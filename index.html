@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <title>Hello from Electron renderer!</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: sans-serif;
+      }
+
+      #address-bar {
+        display: flex;
+        padding: 8px;
+        background-color: #f3f4f6;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      #url-input {
+        flex-grow: 1;
+        margin-right: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 16px;
+        outline: none;
+      }
+
+      #url-input:focus {
+        border-color: #3b82f6;
+      }
+
+      #navigate-btn {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 16px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.2s;
+      }
+
+      #navigate-btn:hover {
+        background-color: #2563eb;
+      }
+
+      #container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      #webview {
+        flex: 1;
+        border: none;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="address-bar">
+      <input type="text" id="url-input" placeholder="Enter URL" value="https://www.google.com" />
+      <button id="navigate-btn">Go</button>
+    </div>
+    <p id="info"></p>
+    <p id="ollama"></p>
+    <div id="container">
+      <webview id="webview" src="https://www.google.com"></webview>
+    </div>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
