@@ -56,3 +56,77 @@ This epic will implement hands-free and keyboard-based navigation of web pages u
 *   **User Story 5.5:** As a developer, I want to implement a command parser using an NLP library to understand the intent and parameters from the transcribed text or typed commands.
 *   **User Story 5.6:** As a developer, I want to use Playwright's API to execute the parsed commands on the current webpage, such as clicking elements, typing text, and scrolling.
 *   **User Story 5.7:** As a developer, I want to provide visual feedback to the user to confirm that their voice or text command has been understood and is being executed. 
+
+---
+
+## Installation & Running
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Run the app:**
+   ```bash
+   npm start
+   ```
+
+3. **Build for distribution:**
+   ```bash
+   npm run build
+   ```
+   *(If you have a build script configured)*
+
+---
+
+## Architecture Overview
+
+```mermaid
+flowchart TD
+    subgraph Main_Process["Main Process (Electron)"]
+        A[Window Management]
+        B[Global Shortcuts]
+        C[Ollama Server Control]
+        D[Playwright Automation]
+        E[IPC Communication]
+    end
+
+    subgraph Renderer_Process["Renderer Process (Electron)"]
+        F[Browser UI]
+        G[Webview Content]
+        H[axe-core Accessibility Scan]
+        I[User Interaction]
+        J[IPC Communication]
+    end
+
+    subgraph AI_Modules["AI Modules"]
+        K[Ollama (LLM)]
+        L[Text Simplification]
+        M[Layout Simplification]
+    end
+
+    subgraph Automation["Automation"]
+        N[Playwright]
+        O[Speech-to-Text]
+        P[NLP Command Parser]
+    end
+
+    A --> F
+    B --> F
+    C --> K
+    D --> N
+    E <--> J
+    F --> G
+    G --> H
+    H --> F
+    F --> I
+    I --> J
+    J --> E
+    K --> L
+    K --> M
+    L --> F
+    M --> F
+    N --> G
+    O --> P
+    P --> N
+```
