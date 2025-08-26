@@ -100,7 +100,7 @@ flowchart TD
     J[IPC Communication]
 
     %% AI Modules
-    K[Ollama (LLM)]
+    K["Ollama (LLM)"]
     L[Text Simplification]
     M[Layout Simplification]
 
