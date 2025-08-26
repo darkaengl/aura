@@ -1,26 +1,26 @@
 /**
- * Calculates the WCAG score based on the number of violations.
- * @param {number} violations - The number of accessibility violations found.
+ * Calculates the WCAG score based on the number of passes and total checks.
+ * @param {number} passes - The number of accessibility checks that passed.
  * @param {number} totalChecks - The total number of checks performed by axe-core.
  * @returns {{score: string, color: string}}
  */
-const calculateWcagScore = (violations, totalChecks) => {
+const calculateWcagScore = (passes, totalChecks) => {
   if (totalChecks === 0) {
     return { score: 'N/A', color: '#808080' }; // Grey for not applicable
   }
 
-  const violationPercentage = (violations / totalChecks) * 100;
+  const successRatio = (passes / totalChecks) * 100;
   let color;
 
-  if (violationPercentage < 10) {
+  if (successRatio >= 90) {
     color = '#FFD700'; // Gold
-  } else if (violationPercentage < 30) {
+  } else if (successRatio >= 70) {
     color = '#C0C0C0'; // Silver
   } else {
     color = '#CD7F32'; // Bronze
   }
 
-  return { score: `${violationPercentage.toFixed(2)}%`, color: color };
+  return { score: `${successRatio.toFixed(2)}%`, color: color };
 };
 
 window.onload = async () => {
@@ -104,9 +104,10 @@ window.onload = async () => {
     const axeResults = JSON.parse(results);
 
     const violations = axeResults.violations.length;
-    const totalChecks = axeResults.passes.length + violations + axeResults.incomplete.length + axeResults.inapplicable.length;
+    const passes = axeResults.passes.length; // Get the number of passes
+    const totalChecks = passes + violations + axeResults.incomplete.length + axeResults.inapplicable.length;
 
-    const { score, color } = calculateWcagScore(violations, totalChecks);
+    const { score, color } = calculateWcagScore(passes, totalChecks);
     wcagScoreLabel.innerText = `WCAG: ${score}`;
     wcagScoreLabel.style.backgroundColor = color;
   });
