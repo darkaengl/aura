@@ -1,29 +1,46 @@
-// renderer.js
-// Use the exposed API to make the call
-const runOllama = async () => {
-  try {
-    const messages = [{ role: 'user', content: 'Why is the sky blue?' }];
-    // The ollamaAPI object is now available on `window`
-    const responseContent = await window.ollamaAPI.chat(messages);
-    console.log('Response from Ollama:');
-    // Assuming responseContent is a string or an object with a 'text' property
-    const ollama_response = document.getElementById('ollama')
-    ollama_response.innerText = responseContent; // Display the response in the info element
-
-    // console.log(responseContent);
-  } catch (error) {
-    console.error('Failed to get response from Ollama:', error);
+/**
+ * Calculates the WCAG score based on the number of violations.
+ * @param {number} violations - The number of accessibility violations found.
+ * @param {number} totalChecks - The total number of checks performed by axe-core.
+ * @returns {{score: string, color: string}}
+ */
+const calculateWcagScore = (violations, totalChecks) => {
+  if (totalChecks === 0) {
+    return { score: 'N/A', color: '#808080' }; // Grey for not applicable
   }
+
+  const violationPercentage = (violations / totalChecks) * 100;
+  let color;
+
+  if (violationPercentage < 10) {
+    color = '#FFD700'; // Gold
+  } else if (violationPercentage < 30) {
+    color = '#C0C0C0'; // Silver
+  } else {
+    color = '#CD7F32'; // Bronze
+  }
+
+  return { score: `${violationPercentage.toFixed(2)}%`, color: color };
 };
 
-//runOllama();
-
-window.onload = () => {
+window.onload = async () => {
   const urlInput = document.getElementById('url-input');
   const backBtn = document.getElementById('back-btn');
   const forwardBtn = document.getElementById('forward-btn');
   const refreshBtn = document.getElementById('refresh-btn');
   const webview = document.getElementById('webview');
+  const wcagScoreLabel = document.getElementById('wcag-score-label');
+
+  // Load axe-core script once
+  let axeCoreScriptContent;
+  try {
+    axeCoreScriptContent = await window.fileAPI.readLocalFile('assets/axe.min.js');
+  } catch (error) {
+    console.error('Failed to load axe.min.js:', error);
+    wcagScoreLabel.innerText = 'WCAG: Error';
+    wcagScoreLabel.style.backgroundColor = 'red';
+    return; // Stop execution if axe-core can't be loaded
+  }
 
   /**
    * Navigates the webview to the URL in the input field.
@@ -66,16 +83,38 @@ window.onload = () => {
     urlInput.value = webview.getURL();
   });
 
-  // Update button states based on navigation history
-  webview.addEventListener('did-finish-load', () => {
+  // Update button states based on navigation history and run axe-core audit
+  webview.addEventListener('did-finish-load', async () => {
     backBtn.disabled = !webview.canGoBack();
     forwardBtn.disabled = !webview.canGoForward();
+
+    // Inject axe-core into the webview
+    await webview.executeJavaScript(axeCoreScriptContent);
+
+    // Run axe-core audit and get results
+    const results = await webview.executeJavaScript(`
+      (async () => {
+        if (typeof axe === 'undefined') {
+          return JSON.stringify({ violations: [], passes: [], incomplete: [], inapplicable: [] });
+        }
+        const result = await axe.run(document);
+        return JSON.stringify(result);
+      })();
+    `);
+    const axeResults = JSON.parse(results);
+
+    const violations = axeResults.violations.length;
+    const totalChecks = axeResults.passes.length + violations + axeResults.incomplete.length + axeResults.inapplicable.length;
+
+    const { score, color } = calculateWcagScore(violations, totalChecks);
+    wcagScoreLabel.innerText = `WCAG: ${score}`;
+    wcagScoreLabel.style.backgroundColor = color;
   });
 
   webview.addEventListener('did-fail-load', (event) => {
     if (event.errorCode !== -3) { // -3 is ABORTED, which happens on new navigation
       console.error('Webview failed to load:', event.errorDescription);
-      // Optionally, display an.error message in the UI
+      // Optionally, display an error message in the UI
     }
   });
 };

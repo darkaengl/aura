@@ -1,5 +1,17 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main')
 const path = require('node:path')
+const fs = require('node:fs/promises'); // Import Node.js file system promises API
+
+ipcMain.handle('read-local-file', async (event, filePath) => {
+  try {
+    const absolutePath = path.join(__dirname, filePath);
+    const content = await fs.readFile(absolutePath, 'utf8');
+    return content;
+  } catch (error) {
+    console.error(`Failed to read local file ${filePath}:`, error);
+    throw new Error(`Failed to read local file: ${error.message}`);
+  }
+});
 
 
 ipcMain.handle('ollama:chat', async (event, messages) => {
