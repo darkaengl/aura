@@ -4,7 +4,7 @@ const fs = require('node:fs/promises'); // Import Node.js file system promises A
 
 ipcMain.handle('read-local-file', async (event, filePath) => {
   try {
-    const absolutePath = path.join(__dirname, filePath);
+    const absolutePath = path.join(__dirname, '../../', filePath);
     const content = await fs.readFile(absolutePath, 'utf8');
     return content;
   } catch (error) {
@@ -45,7 +45,7 @@ const createWindow = () => {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '../shared/preload.js'),
       webviewTag: true, // Enable webview tag
       contextIsolation: true, // Isolate context to enhance security
       nodeIntegration: false // Keep nodeIntegration false for security
