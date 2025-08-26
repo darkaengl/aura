@@ -81,8 +81,6 @@ This epic will implement hands-free and keyboard-based navigation of web pages u
 
 ## Architecture Overview
 
-## Architecture Overview
-
 ```mermaid
 flowchart TD
     %% Main Process
