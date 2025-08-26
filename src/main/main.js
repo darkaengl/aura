@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain } = require('electron/main')
 const path = require('node:path')
 const fs = require('node:fs/promises'); // Import Node.js file system promises API
 
+app.setName('Aura');
+
 ipcMain.handle('read-local-file', async (event, filePath) => {
   try {
     const absolutePath = path.join(__dirname, '../../', filePath);
@@ -44,6 +46,7 @@ const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    title: 'Aura',
     webPreferences: {
       preload: path.join(__dirname, '../shared/preload.js'),
       webviewTag: true, // Enable webview tag
@@ -52,7 +55,8 @@ const createWindow = () => {
     }
   })
 
-  win.loadFile('index.html')
+  win.loadFile('index.html');
+  win.setTitle('Aura Browser');
 }
 
 app.whenReady().then(() => {

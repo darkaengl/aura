@@ -29,3 +29,9 @@ Thumbs.db
 
 # coverage
 coverage/
+
+.gemini/
+
+.git/
+
+.gitignore

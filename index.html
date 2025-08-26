@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Aura Browser</title>
@@ -14,6 +15,8 @@
       flex-direction: column;
       font-family: Arial, sans-serif;
     }
+
+
 
     #address-bar {
       display: flex;
@@ -72,11 +75,13 @@
       font-weight: bold;
       color: white;
       margin-left: 8px;
-      cursor: pointer; /* Make it look clickable */
+      cursor: pointer;
+      /* Make it look clickable */
     }
 
     #accessibility-report {
-      display: none; /* Hidden by default */
+      display: none;
+      /* Hidden by default */
       position: fixed;
       top: 0;
       left: 0;
@@ -92,10 +97,14 @@
       background-color: white;
       padding: 20px;
       border-radius: 8px;
-      width: 90%; /* Increased width */
-      height: 90%; /* Increased height */
-      max-width: 900px; /* Max width for larger screens */
-      max-height: 700px; /* Max height for larger screens */
+      width: 90%;
+      /* Increased width */
+      height: 90%;
+      /* Increased height */
+      max-width: 900px;
+      /* Max width for larger screens */
+      max-height: 700px;
+      /* Max height for larger screens */
       overflow: auto;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       position: relative;
@@ -105,18 +114,22 @@
 
     #report-details {
       flex-grow: 1;
-      overflow-y: auto; /* Ensure scrollability for the content area */
-      padding-right: 10px; /* Add some padding for scrollbar */
+      overflow-y: auto;
+      /* Ensure scrollability for the content area */
+      padding-right: 10px;
+      /* Add some padding for scrollbar */
     }
 
     #report-details ul {
-      list-style-type: disc; /* Ensure bullets are visible */
+      list-style-type: disc;
+      /* Ensure bullets are visible */
       margin-left: 20px;
       padding-left: 0;
     }
 
     #report-details ul ul {
-      list-style-type: circle; /* Different bullet for nested lists */
+      list-style-type: circle;
+      /* Different bullet for nested lists */
       margin-left: 20px;
     }
 
@@ -136,6 +149,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="address-bar">
     <button id="back-btn" class="nav-btn">←</button>

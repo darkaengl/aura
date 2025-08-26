@@ -1,5 +1,6 @@
 {
-  "name": "my-electron-app",
+  "name": "my-aura-app",
+  "productName": "Aura",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
