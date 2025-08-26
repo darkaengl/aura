@@ -81,36 +81,64 @@ This epic will implement hands-free and keyboard-based navigation of web pages u
 
 ## Architecture Overview
 
+## Architecture Overview
+
 ```mermaid
 flowchart TD
+    %% Main Process
+    A[Window Management]
+    B[Global Shortcuts]
+    C[Ollama Server Control]
+    D[Playwright Automation]
+    E[IPC Communication]
+
+    %% Renderer Process
+    F[Browser UI]
+    G[Webview Content]
+    H[axe-core Accessibility Scan]
+    I[User Interaction]
+    J[IPC Communication]
+
+    %% AI Modules
+    K[Ollama (LLM)]
+    L[Text Simplification]
+    M[Layout Simplification]
+
+    %% Automation
+    N[Playwright]
+    O[Speech-to-Text]
+    P[NLP Command Parser]
+
+    %% Grouping
     subgraph Main_Process["Main Process (Electron)"]
-        A[Window Management]
-        B[Global Shortcuts]
-        C[Ollama Server Control]
-        D[Playwright Automation]
-        E[IPC Communication]
+      A
+      B
+      C
+      D
+      E
     end
 
     subgraph Renderer_Process["Renderer Process (Electron)"]
-        F[Browser UI]
-        G[Webview Content]
-        H[axe-core Accessibility Scan]
-        I[User Interaction]
-        J[IPC Communication]
+      F
+      G
+      H
+      I
+      J
     end
 
     subgraph AI_Modules["AI Modules"]
-        K[Ollama (LLM)]
-        L[Text Simplification]
-        M[Layout Simplification]
+      K
+      L
+      M
     end
 
     subgraph Automation["Automation"]
-        N[Playwright]
-        O[Speech-to-Text]
-        P[NLP Command Parser]
+      N
+      O
+      P
     end
 
+    %% Connections
     A --> F
     B --> F
     C --> K
