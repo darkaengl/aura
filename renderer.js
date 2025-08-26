@@ -1,8 +1,4 @@
 // renderer.js
-const information = document.getElementById('info')
-information.innerText = `This app is using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
-
-
 // Use the exposed API to make the call
 const runOllama = async () => {
   try {
@@ -20,11 +16,13 @@ const runOllama = async () => {
   }
 };
 
-runOllama();
+//runOllama();
 
 window.onload = () => {
   const urlInput = document.getElementById('url-input');
-  const navigateBtn = document.getElementById('navigate-btn');
+  const backBtn = document.getElementById('back-btn');
+  const forwardBtn = document.getElementById('forward-btn');
+  const refreshBtn = document.getElementById('refresh-btn');
   const webview = document.getElementById('webview');
 
   /**
@@ -41,8 +39,20 @@ window.onload = () => {
     }
   };
 
-  // Add event listener for the 'Go' button click
-  navigateBtn.addEventListener('click', navigate);
+  // Add event listeners for navigation buttons
+  backBtn.addEventListener('click', () => {
+    if (webview.canGoBack()) {
+      webview.goBack();
+    }
+  });
+  forwardBtn.addEventListener('click', () => {
+    if (webview.canGoForward()) {
+      webview.goForward();
+    }
+  });
+  refreshBtn.addEventListener('click', () => {
+    webview.reload();
+  });
 
   // Add event listener for the 'Enter' key press in the input field
   urlInput.addEventListener('keydown', (event) => {
@@ -51,11 +61,21 @@ window.onload = () => {
     }
   });
 
-  // Optional: Add an event listener to keep the address bar in sync with the current URL
-  webview.addEventListener('did-finish-load', (event) => {
-    // Check if the webview actually loaded a valid URL
-    if (webview.getURL() !== 'about:blank') {
-      urlInput.value = webview.getURL();
+  // Update the URL input when the webview navigates
+  webview.addEventListener('did-navigate', () => {
+    urlInput.value = webview.getURL();
+  });
+
+  // Update button states based on navigation history
+  webview.addEventListener('did-finish-load', () => {
+    backBtn.disabled = !webview.canGoBack();
+    forwardBtn.disabled = !webview.canGoForward();
+  });
+
+  webview.addEventListener('did-fail-load', (event) => {
+    if (event.errorCode !== -3) { // -3 is ABORTED, which happens on new navigation
+      console.error('Webview failed to load:', event.errorDescription);
+      // Optionally, display an.error message in the UI
     }
   });
 };

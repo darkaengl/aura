@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Aura Browser</title>
+  <title>Simple Electron Browser</title>
   <style>
     body,
     html {
@@ -15,7 +16,7 @@
       font-family: Arial, sans-serif;
     }
 
-    #address-bar {
+    .address-bar {
       display: flex;
       gap: 8px;
       padding: 10px;
@@ -24,7 +25,7 @@
       align-items: center;
     }
 
-    .nav-btn {
+    button {
       padding: 8px 12px;
       font-size: 16px;
       cursor: pointer;
@@ -35,16 +36,16 @@
       transition: background-color 0.3s;
     }
 
-    .nav-btn:disabled {
+    button:disabled {
       background-color: #a0a0a0;
       cursor: default;
     }
 
-    .nav-btn:hover:not(:disabled) {
+    button:hover:not(:disabled) {
       background-color: #357abd;
     }
 
-    #url-input {
+    input.url-input {
       flex: 1 1 0;
       font-size: 16px;
       padding: 8px 12px;
@@ -60,18 +61,17 @@
     }
   </style>
 </head>
+
 <body>
-  <div id="address-bar">
-    <button id="back-btn" class="nav-btn">←</button>
-    <button id="forward-btn" class="nav-btn">→</button>
-    <button id="refresh-btn" class="nav-btn">↻</button>
-    <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" />
+  <div class="address-bar">
+    <button id="back-btn" disabled>← Back</button>
+    <button id="forward-btn" disabled>Forward →</button>
+    <button id="refresh-btn">⟳ Refresh</button>
+    <input id="url-input" class="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" />
   </div>
-  <webview id="webview" src="https://www.google.com" allowpopups></webview>
-  <script>
-    console.log("Inline script in index.html executed.");
-  </script>
-  <script src="./renderer.js"></script>
+
+  <webview id="webview" src="https://www.google.com" allowpopups style="height: 100%;"></webview>
+  <script src="renderer.js"></script>
 </body>
 
 </html>
