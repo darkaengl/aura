@@ -147,6 +147,183 @@
       cursor: pointer;
       color: #333;
     }
+
+    /* Text Simplification Modal Styles */
+    #text-simplification-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1001;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #text-simplification-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 95%;
+      height: 90%;
+      max-width: 1200px;
+      max-height: 800px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #close-simplification-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #333;
+      z-index: 1002;
+    }
+
+    #simplification-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    #simplification-controls label {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+
+    .control-input {
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .status-message {
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    .status-message.loading {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .status-message.success {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+
+    .status-message.error {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+
+    #text-comparison {
+      flex: 1;
+      display: flex;
+      gap: 15px;
+      overflow: hidden;
+    }
+
+    .text-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .text-panel h3 {
+      margin: 0 0 10px 0;
+      padding: 8px 12px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      font-size: 14px;
+      border-left: 4px solid #4a90e2;
+    }
+
+    .text-display {
+      flex: 1;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fafafa;
+      overflow-y: auto;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    #original-text-display {
+      background-color: #fff9f9;
+    }
+
+    #simplified-text-display {
+      background-color: #f9fff9;
+    }
+
+    #simplified-text-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    #simplified-text-actions button {
+      flex: 1;
+    }
+
+    /* Loading animation for the simplify button */
+    #simplify-text-btn.loading {
+      animation: pulse 1.5s infinite;
+      background-color: #ffa726;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    /* Responsive design for smaller screens */
+    @media (max-width: 768px) {
+      #text-comparison {
+        flex-direction: column;
+      }
+      
+      .text-panel {
+        max-height: 300px;
+      }
+      
+      #text-simplification-content {
+        width: 98%;
+        height: 95%;
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 
@@ -157,6 +334,7 @@
     <button id="refresh-btn" class="nav-btn">↻</button>
     <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" />
     <span id="wcag-score-label" class="wcag-score"></span>
+    <button id="simplify-text-btn" class="nav-btn" title="Simplify page text">📝</button>
   </div>
   <div id="container">
     <webview id="webview" src="https://www.google.com" allowpopups></webview>
@@ -168,6 +346,41 @@
       <h2>Accessibility Report</h2>
       <button id="download-report-btn" class="nav-btn">Download JSON</button>
       <div id="report-details"></div>
+    </div>
+  </div>
+
+  <div id="text-simplification-modal">
+    <div id="text-simplification-content">
+      <button id="close-simplification-btn">×</button>
+      <h2>Text Simplification</h2>
+      
+      <div id="simplification-controls">
+        <label for="complexity-select">Complexity Level:</label>
+        <select id="complexity-select" class="control-input">
+          <option value="simple">Simple (Elementary)</option>
+          <option value="moderate" selected>Moderate (Common vocabulary)</option>
+          <option value="advanced">Advanced (Clear but detailed)</option>
+        </select>
+        <button id="extract-text-btn" class="nav-btn">Extract & Simplify Text</button>
+      </div>
+
+      <div id="simplification-status" class="status-message"></div>
+      
+      <div id="text-comparison">
+        <div id="original-text-panel" class="text-panel">
+          <h3>Original Text (<span id="original-word-count">0</span> words)</h3>
+          <div id="original-text-display" class="text-display"></div>
+        </div>
+        
+        <div id="simplified-text-panel" class="text-panel">
+          <h3>Simplified Text (<span id="simplified-word-count">0</span> words, <span id="word-reduction">0%</span> reduction)</h3>
+          <div id="simplified-text-display" class="text-display"></div>
+          <div id="simplified-text-actions">
+            <button id="copy-simplified-text" class="nav-btn">Copy Simplified Text</button>
+            <button id="replace-page-text" class="nav-btn" disabled>Replace Page Text</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

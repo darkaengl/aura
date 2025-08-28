@@ -17,3 +17,12 @@ contextBridge.exposeInMainWorld('versions', {
 contextBridge.exposeInMainWorld('fileAPI', {
   readLocalFile: async (filePath) => ipcRenderer.invoke('read-local-file', filePath)
 });
+
+contextBridge.exposeInMainWorld('textSimplificationAPI', {
+  extractText: async (options) => {
+    return await ipcRenderer.invoke('simplify:extract-text', options);
+  },
+  processText: async (textData, options) => {
+    return await ipcRenderer.invoke('simplify:process-text', textData, options);
+  }
+});
