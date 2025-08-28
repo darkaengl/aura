@@ -152,6 +152,9 @@ const createWindow = () => {
 
   win.loadFile('index.html');
   win.setTitle('Aura Browser');
+  
+  // Uncomment to enable DevTools for debugging
+  // win.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
