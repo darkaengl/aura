@@ -11,8 +11,16 @@ window.onload = async () => {
   const reportDetails = document.getElementById('report-details');
   const closeReportBtn = document.getElementById('close-report-btn');
   const downloadReportBtn = document.getElementById('download-report-btn');
+  const micBtn = document.getElementById('mic-btn');
 
-  /**
+  // Chat interface elements
+  const chatContainer = document.getElementById('chat-container');
+  const closeChatBtn = document.getElementById('close-chat-btn');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+  const chatSendBtn = document.getElementById('chat-send-btn');
+
+  /**``
    * Navigates the webview to the URL in the input field.
    */
   const navigate = () => {
@@ -47,6 +55,47 @@ window.onload = async () => {
       navigate();
     }
   });
+
+  micBtn.addEventListener('click', () => {
+    chatContainer.classList.remove('hidden');
+  });
+
+  closeChatBtn.addEventListener('click', () => {
+    chatContainer.classList.add('hidden');
+  });
+
+  chatSendBtn.addEventListener('click', () => sendMessage());
+
+  chatInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  const addMessage = (text, sender) => {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message', `${sender}-message`);
+    messageElement.innerText = text;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
+  };
+
+  const sendMessage = async () => {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    addMessage(message, 'user');
+    chatInput.value = '';
+
+    try {
+      // We are reusing the ollamaAPI that was already set up.
+      const response = await window.ollamaAPI.chat([{ role: 'user', content: message }]);
+      addMessage(response, 'ai');
+    } catch (error) {
+      console.error('Error communicating with Ollama:', error);
+      addMessage('Sorry, I am having trouble connecting to the AI. Please try again later.', 'ai');
+    }
+  };
 
   // Update the URL input when the webview navigates
   webview.addEventListener('did-navigate', () => {
