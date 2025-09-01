@@ -74,6 +74,8 @@ Guidelines:
 - Break long sentences into shorter ones
 - Explain complex concepts clearly
 - Maintain the logical flow of information
+- Your output MUST be ONLY the simplified content. Do NOT include any conversational filler, introductory phrases, self-referential statements, or any text other than the simplified content itself.
+- Format the simplified content using Markdown.
 ${preserveFormatting ? '- Keep basic formatting like headings and paragraphs' : '- Focus on content, formatting will be handled separately'}`;
 
     const userPrompt = `Page Title: ${title}

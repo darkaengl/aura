@@ -32,6 +32,113 @@ window.onload = async () => {
   const replacePageText = document.getElementById('replace-page-text');
 
   /**
+   * Replaces the original page text with simplified text or toggles back to original
+   */
+  const replacePageTextWithSimplified = async () => {
+    try {
+      if (isPageSimplified) {
+        // Revert to original
+        showStatus('Restoring original page text...', 'loading');
+        for (const item of pageContentState) {
+          if (item.element) {
+            // Re-inject original HTML into the webview element
+            await webview.executeJavaScript(`
+              (function() {
+                const el = document.getElementById('${item.element.id}');
+                if (el) {
+                  el.innerHTML = ${JSON.stringify(item.originalHtml)};
+                }
+              })();
+            `);
+          }
+        }
+        isPageSimplified = false;
+        replacePageText.textContent = 'Replace Page Text';
+        showStatus('Original page text restored!', 'success');
+      } else {
+        // Simplify and replace
+        const simplifiedText = simplifiedTextDisplay.textContent;
+        if (!simplifiedText || simplifiedText.startsWith('Error:')) {
+          showStatus('No simplified text to replace with', 'error');
+          return;
+        }
+
+        showStatus('Replacing page text with simplified version...', 'loading');
+
+        // Clear previous state
+        pageContentState = [];
+
+        // Get target elements (e.g., paragraphs, main content areas)
+        // This part needs careful consideration to match the extraction logic
+        // For simplicity, let's target all <p> tags for now, as the text-extraction.js
+        // now focuses on headings and paragraphs.
+        const targetElementsData = await webview.executeJavaScript(
+          `Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, p')).map(el => {
+            // Assign a temporary ID if the element doesn't have one
+            const id = el.id || 'aura-temp-id-' + Math.random().toString(36).substr(2, 9);
+            el.id = id; // Set the ID in the webview DOM
+            return {
+              id: id,
+              originalHtml: el.innerHTML
+            };
+          });`
+        );
+
+        if (targetElementsData.length === 0) {
+          showStatus('No suitable elements found on page to replace.', 'error');
+          return;
+        }
+
+        // Get the simplified text, split by paragraphs (assuming Ollama returns paragraphs separated by newlines)
+        const simplifiedParagraphs = simplifiedText.split('\n\n').filter(p => p.trim());
+        let simplifiedIndex = 0;
+
+        for (let i = 0; i < targetElementsData.length; i++) {
+          const elementData = targetElementsData[i];
+          
+          // Store original content and a reference to the element (by ID)
+          pageContentState.push({
+            originalHtml: elementData.originalHtml,
+            element: { id: elementData.id } // Store only the ID for later retrieval
+          });
+
+          if (simplifiedIndex < simplifiedParagraphs.length) {
+            const simplifiedHtml = marked.parse(simplifiedParagraphs[simplifiedIndex]);
+            // Update the element's innerHTML in the webview
+            await webview.executeJavaScript(`
+              (function() {
+                const el = document.getElementById('${elementData.id}');
+                if (el) {
+                  el.innerHTML = ${JSON.stringify(simplifiedHtml)};
+                }
+              })();
+            `);
+            pageContentState[pageContentState.length - 1].simplifiedHtml = simplifiedHtml; // Store simplified HTML
+            simplifiedIndex++;
+          } else {
+            // If no more simplified paragraphs, hide or clear remaining original elements
+            await webview.executeJavaScript(`
+              (function() {
+                const el = document.getElementById('${elementData.id}');
+                if (el) {
+                  el.innerHTML = ''; // Or el.style.display = 'none';
+                }
+              })();
+            `);
+          }
+        }
+
+        isPageSimplified = true;
+        replacePageText.textContent = 'Show Original';
+        showStatus('Page text replaced with simplified version!', 'success');
+      }
+    } catch (error) {
+      console.error('Failed to replace page text:', error);
+      showStatus(`Failed to replace text: ${error.message}`, 'error');
+    }
+  };
+
+  /**
    * Navigates the webview to the URL in the input field.
    */
   const navigate = () => {
@@ -75,6 +182,8 @@ window.onload = async () => {
   // Text Simplification Functionality
   let currentTextData = null;
   let isProcessing = false;
+  let pageContentState = []; // Stores { originalHtml, simplifiedHtml, element }
+  let isPageSimplified = false;
 
   /**
    * Shows a status message with appropriate styling
@@ -160,7 +269,7 @@ window.onload = async () => {
       //           // Resolve with an error message
       //           resolve(JSON.stringify({ success: false, message: 'No text content found after 5 seconds.' }));
       //         }
-      //       }, 500); // Check every 500 milliseconds
+      //     }, 500); // Check every 500 milliseconds
       //     });
       //   })();
       // `);
@@ -298,10 +407,6 @@ window.onload = async () => {
       simplifiedTextDisplay.innerHTML = `<p style="color: red;">Error: ${simplificationResult.message}</p>`;
       simplifiedWordCount.textContent = '0';
       wordReduction.textContent = '0%';
-    } else {
-      simplifiedTextDisplay.innerHTML = marked.parse(simplificationResult.simplified);
-      simplifiedWordCount.textContent = simplificationResult.metadata.simplifiedWordCount.toLocaleString();
-      wordReduction.textContent = `${simplificationResult.wordReduction}%`;
     }
     
     // Enable/disable action buttons
@@ -385,111 +490,7 @@ window.onload = async () => {
     }
   };
 
-  /**
-   * Replaces the original page text with simplified text
-   */
-  const replacePageTextWithSimplified = async () => {
-    try {
-      const simplifiedText = simplifiedTextDisplay.textContent;
-      if (!simplifiedText || simplifiedText.startsWith('Error:')) {
-        showStatus('No simplified text to replace with', 'error');
-        return;
-      }
-
-      if (!currentTextData || !currentTextData.elements) {
-        showStatus('No original text structure available for replacement', 'error');
-        return;
-      }
-
-      showStatus('Replacing page text with simplified version...', 'loading');
-
-      // Create replacement script that will modify the page content
-      const replacementScript = `
-        (function() {
-          try {
-            const simplifiedText = ${JSON.stringify(simplifiedText)};
-            
-            // Create a simple replacement by targeting main content areas
-            const contentSelectors = [
-              'main', 'article', '[role="main"]', '.content', '#content',
-              '.post-content', '.entry-content', '.article-content'
-            ];
-            
-            let replaced = false;
-            
-            // Try to find and replace main content area
-            for (const selector of contentSelectors) {
-              const element = document.querySelector(selector);
-              if (element) {
-                // Create a new div with simplified text
-                const newContent = document.createElement('div');
-                newContent.style.cssText = 'line-height: 1.6; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;';
-                
-                // Split simplified text into paragraphs and create proper structure
-                const paragraphs = simplifiedText.split('\\n\\n').filter(p => p.trim());
-                paragraphs.forEach(paragraph => {
-                  const p = document.createElement('p');
-                  p.style.cssText = 'margin-bottom: 16px; font-size: 16px;';
-                  p.textContent = paragraph.trim();
-                  newContent.appendChild(p);
-                });
-                
-                // Add header indicating this is simplified
-                const header = document.createElement('div');
-                header.style.cssText = 'background: #e8f5e8; border: 1px solid #4caf50; border-radius: 4px; padding: 12px; margin-bottom: 20px; font-weight: bold; color: #2e7d32;';
-                header.textContent = '📝 This page content has been simplified for easier reading';
-                newContent.insertBefore(header, newContent.firstChild);
-                
-                // Replace the content
-                element.innerHTML = '';
-                element.appendChild(newContent);
-                replaced = true;
-                break;
-              }
-            }
-            
-            // Fallback: replace body content if no main content area found
-            if (!replaced) {
-              // Find paragraphs and replace them
-              const paragraphs = document.querySelectorAll('p, div');
-              const textParagraphs = simplifiedText.split('\\n\\n').filter(p => p.trim());
-              let textIndex = 0;
-              
-              paragraphs.forEach(p => {
-                if (p.textContent.trim().length > 50 && textIndex < textParagraphs.length) {
-                  p.textContent = textParagraphs[textIndex];
-                  p.style.cssText = 'line-height: 1.6; margin-bottom: 16px; font-size: 16px;';
-                  textIndex++;
-                }
-              });
-              
-              replaced = textIndex > 0;
-            }
-            
-            return JSON.stringify({ success: replaced, message: replaced ? 'Text replaced successfully' : 'Could not find suitable content to replace' });
-            
-          } catch (error) {
-            return JSON.stringify({ success: false, message: error.message });
-          }
-        })();
-      `;
-
-      const result = await webview.executeJavaScript(replacementScript);
-      const replacementResult = JSON.parse(result);
-
-      if (replacementResult.success) {
-        showStatus('Page text replaced with simplified version!', 'success');
-        replacePageText.disabled = true;
-        replacePageText.textContent = 'Text Replaced';
-      } else {
-        throw new Error(replacementResult.message);
-      }
-
-    } catch (error) {
-      console.error('Failed to replace page text:', error);
-      showStatus(`Failed to replace text: ${error.message}`, 'error');
-    }
-  };
+  
 
   // Event Listeners for Text Simplification
   simplifyTextBtn.addEventListener('click', () => {
@@ -519,14 +520,14 @@ window.onload = async () => {
       Array.from(document.styleSheets)
         .map(sheet => {
           try {
-            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\\n');
+            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
           } catch (e) {
             // Skip CORS-protected sheets
             return '';
           }
         })
         .filter(text => text.length)
-        .join('\\n')
+        .join('\n')
       `).then(async cssText => {
         const messages = [{
           role: 'user',
@@ -548,9 +549,9 @@ window.onload = async () => {
         // console.log(JSON.parse(llmResponse).optimised_css);
         // console.log(llmResponse.split("```")[1]);
         const escaped = llmResponse.split("```")[1].slice(4)
-                                                   .replace(/\\/g, '\\\\')     // escape backslashes
-                                                   .replace(/`/g, '\\`')       // escape backticks
-                                                   .replace(/\$/g, '\\$');     // escape dollar signs if using ${}
+                                                   .replace(/\\/g, '\\')     // escape backslashes
+                                                   .replace(/`/g, '\`')       // escape backticks
+                                                   .replace(/\$/g, '\$');     // escape dollar signs if using ${}
 
         const script = `
           (function() {
@@ -560,7 +561,7 @@ window.onload = async () => {
               style.id = 'dynamic-style';
               document.head.appendChild(style);
             }
-            style.textContent = \`${escaped}\`;
+            style.textContent = "${escaped}";
           })();
         `;
 
