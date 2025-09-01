@@ -30,6 +30,7 @@ window.onload = async () => {
   const wordReduction = document.getElementById('word-reduction');
   const copySimplifiedText = document.getElementById('copy-simplified-text');
   const replacePageText = document.getElementById('replace-page-text');
+  const refreshSimplificationBtn = document.getElementById('refresh-simplification-btn');
 
   /**
    * Replaces the original page text with simplified text or toggles back to original
@@ -184,6 +185,7 @@ window.onload = async () => {
   let isProcessing = false;
   let pageContentState = []; // Stores { originalHtml, simplifiedHtml, element }
   let isPageSimplified = false;
+  let latestRequestId = 0;
 
   /**
    * Shows a status message with appropriate styling
@@ -295,10 +297,17 @@ window.onload = async () => {
   /**
    * Processes text through Ollama for simplification
    */
-  const processTextWithOllama = async (textData, options) => {
+  const processTextWithOllama = async (textData, options, requestId) => {
+    console.log(`[processTextWithOllama] Starting for request ID: ${requestId}`);
     try {
       const validatedOptions = validateOptions(options);
-      const { text, title, url } = textData;
+      const { text, title, url } = textData; // Destructure requestId from textData
+
+      // Immediately check if this request is still valid
+      if (requestId !== latestRequestId) {
+        console.log(`[processTextWithOllama] Discarding request ${requestId} before processing. Newer request ${latestRequestId} exists.`);
+        return null; // Discard this request early
+      }
       
       // Estimate processing time and show to user
       const estimatedTime = estimateProcessingTime(textData.wordCount, validatedOptions.complexity);
@@ -307,7 +316,8 @@ window.onload = async () => {
       
       // For very large texts, split into chunks
       if (text.length > 8000) {
-        return await processTextInChunks(textData, validatedOptions);
+        console.log(`[processTextWithOllama] Text length > 8000, calling processTextInChunks.`);
+        return await processTextInChunks(textData, { ...validatedOptions, requestId }); // Pass requestId to processTextInChunks
       }
       
       // Process single text block
@@ -317,14 +327,39 @@ window.onload = async () => {
         url,
         wordCount: textData.wordCount
       });
+      console.log(`[processTextWithOllama] Processing single text block for request ID: ${requestId}`);
       
       const result = await window.textSimplificationAPI.processText(textData, validatedOptions);
+      console.log(`[processTextWithOllama] Result from textSimplificationAPI.processText (single block):`, result);
       
       if (result.error) {
         throw new Error(result.message);
       }
+
+      // Check again after processing, in case a new request came in during the Ollama call
+      if (requestId !== latestRequestId) {
+        console.log(`[processTextWithOllama] Discarding result for request ${requestId} after processing. Newer request ${latestRequestId} exists.`);
+        return null; // Return null or throw an error to indicate discard
+      }
       
-      return result;
+      // Return a structured result similar to processTextInChunks
+      const finalResult = {
+        original: textData.text,
+        simplified: result.simplified, // Assuming result.simplified holds the simplified text
+        complexity: validatedOptions.complexity,
+        processingTime: Date.now(),
+        model: 'llama3.2',
+        wordReduction: parseFloat(((textData.wordCount - result.simplified.split(/\s+/).filter(word => word.length > 0).length) / textData.wordCount * 100).toFixed(1)),
+        metadata: {
+          originalWordCount: textData.wordCount,
+          simplifiedWordCount: result.simplified.split(/\s+/).filter(word => word.length > 0).length,
+          title: textData.title,
+          url: textData.url,
+          chunks: 1 // Indicate it was processed as a single chunk
+        }
+      };
+      console.log(`[processTextWithOllama] Returning final result (single block):`, finalResult);
+      return finalResult;
       
     } catch (error) {
       console.error('Text processing failed:', error);
@@ -336,10 +371,18 @@ window.onload = async () => {
    * Processes large text by splitting into chunks
    */
   const processTextInChunks = async (textData, options) => {
+    console.log(`[processTextInChunks] Starting for request ID: ${options.requestId}`);
     const chunks = splitTextIntoChunks(textData.text, 3000);
     let combinedSimplifiedText = '';
     let currentSimplifiedWordCount = 0;
     const originalWordCount = textData.wordCount;
+    const requestId = options.requestId; // Get requestId from options
+
+    // Immediately check if this request is still valid
+    if (requestId !== latestRequestId) {
+      console.log(`[processTextInChunks] Discarding chunk processing for request ${requestId} before starting. Newer request ${latestRequestId} exists.`);
+      return null; // Discard this request early
+    }
 
     // Clear previous simplified text display
     simplifiedTextDisplay.textContent = '';
@@ -349,6 +392,12 @@ window.onload = async () => {
     showStatus(`Processing ${chunks.length} text chunks...`, 'loading');
     
     for (let i = 0; i < chunks.length; i++) {
+      // Check if this is still the latest request before processing each chunk
+      if (requestId !== latestRequestId) {
+        console.log(`[processTextInChunks] Discarding chunk processing for request ${requestId}. Newer request ${latestRequestId} exists.`);
+        return null; // Discard the entire chunk processing
+      }
+
       showStatus(`Processing chunk ${i + 1} of ${chunks.length}...`, 'loading');
       
       const chunkData = {
@@ -358,6 +407,7 @@ window.onload = async () => {
       };
       
       const result = await window.textSimplificationAPI.processText(chunkData, options);
+      console.log(`[processTextInChunks] Result for chunk ${i + 1} of ${chunks.length}:`, result);
       
       if (result.error) {
         throw new Error(`Chunk ${i + 1} failed: ${result.message}`);
@@ -366,7 +416,7 @@ window.onload = async () => {
       // Append simplified chunk to display and combined text
       const simplifiedChunk = result.simplified;
       combinedSimplifiedText += (i > 0 ? '\n\n' : '') + simplifiedChunk;
-      simplifiedTextDisplay.textContent = combinedSimplifiedText;
+      simplifiedTextDisplay.textContent = combinedSimplifiedText; // Update display after each chunk
 
       // Update word counts dynamically
       currentSimplifiedWordCount = combinedSimplifiedText.split(/\s+/).filter(word => word.length > 0).length;
@@ -377,7 +427,7 @@ window.onload = async () => {
     }
     
     // Final result object
-    return {
+    const finalResult = {
       original: textData.text,
       simplified: combinedSimplifiedText,
       complexity: options.complexity,
@@ -392,12 +442,15 @@ window.onload = async () => {
         chunks: chunks.length
       }
     };
+    console.log(`[processTextInChunks] Returning final result:`, finalResult);
+    return finalResult;
   };
 
   /**
    * Updates the display with original and simplified text
    */
   const updateTextDisplay = (textData, simplificationResult) => {
+    console.log(`[updateTextDisplay] Called with simplificationResult:`, simplificationResult);
     // Update original text panel
     originalTextDisplay.textContent = textData.text;
     originalWordCount.textContent = textData.wordCount.toLocaleString();
@@ -407,6 +460,14 @@ window.onload = async () => {
       simplifiedTextDisplay.innerHTML = `<p style="color: red;">Error: ${simplificationResult.message}</p>`;
       simplifiedWordCount.textContent = '0';
       wordReduction.textContent = '0%';
+    } else {
+      console.log(`[updateTextDisplay] Updating simplifiedTextDisplay with:`, simplificationResult.simplified);
+      simplifiedTextDisplay.textContent = simplificationResult.simplified;
+      const currentSimplifiedWordCount = simplificationResult.simplified.split(/\s+/).filter(word => word.length > 0).length;
+      simplifiedWordCount.textContent = currentSimplifiedWordCount.toLocaleString();
+      const originalWordCount = textData.wordCount;
+      const currentWordReductionPercent = ((originalWordCount - currentSimplifiedWordCount) / originalWordCount * 100).toFixed(1);
+      wordReduction.textContent = `${currentWordReductionPercent}%`;
     }
     
     // Enable/disable action buttons
@@ -425,6 +486,9 @@ window.onload = async () => {
   const extractAndSimplifyText = async () => {
     if (isProcessing) return;
     
+    const requestId = ++latestRequestId; // Generate a new request ID
+    console.log(`[extractAndSimplifyText] Starting new request with ID: ${requestId}`);
+
     try {
       setProcessingState(true);
       clearStatus();
@@ -432,6 +496,7 @@ window.onload = async () => {
       // Extract text from page
       const textData = await extractPageText();
       currentTextData = textData;
+      console.log(`[extractAndSimplifyText] Extracted textData:`, textData);
 
       // Display original text immediately
       originalTextDisplay.textContent = textData.text;
@@ -443,8 +508,15 @@ window.onload = async () => {
       const complexity = complexitySelect.value;
       
       // Process with Ollama
-      const result = await processTextWithOllama(textData, { complexity });
+      const result = await processTextWithOllama(textData, { complexity }, requestId);
+      console.log(`[extractAndSimplifyText] Result from processTextWithOllama:`, result);
       
+      // Only update UI if this is still the latest request and result is not null (i.e., not discarded)
+      if (requestId !== latestRequestId || result === null) {
+        console.log(`[extractAndSimplifyText] Discarding result for request ${requestId}. Newer request ${latestRequestId} exists or result was null.`);
+        return;
+      }
+
       // Update display
       updateTextDisplay(textData, result);
       
@@ -506,6 +578,33 @@ window.onload = async () => {
   copySimplifiedText.addEventListener('click', copyToClipboard);
 
   replacePageText.addEventListener('click', replacePageTextWithSimplified);
+
+  refreshSimplificationBtn.addEventListener('click', () => {
+    // Invalidate any ongoing simplification processes
+    latestRequestId++;
+
+    // Clear displayed text
+    originalTextDisplay.textContent = '';
+    simplifiedTextDisplay.textContent = '';
+
+    // Reset word counts
+    originalWordCount.textContent = '0';
+    simplifiedWordCount.textContent = '0';
+    wordReduction.textContent = '0%';
+
+    // Clear status message
+    clearStatus();
+
+    // Reset currentTextData
+    currentTextData = null;
+
+    // Ensure buttons are re-enabled
+    setProcessingState(false);
+
+    // Reset replace page text button
+    replacePageText.textContent = 'Replace Page Text';
+    isPageSimplified = false;
+  });
 
   // Close modal when clicking outside
   textSimplificationModal.addEventListener('click', (event) => {
