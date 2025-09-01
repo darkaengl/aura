@@ -192,7 +192,14 @@ window.onload = async () => {
    */
   const processTextInChunks = async (textData, options) => {
     const chunks = splitTextIntoChunks(textData.text, 3000);
-    const simplifiedChunks = [];
+    let combinedSimplifiedText = '';
+    let currentSimplifiedWordCount = 0;
+    const originalWordCount = textData.wordCount;
+
+    // Clear previous simplified text display
+    simplifiedTextDisplay.textContent = '';
+    simplifiedWordCount.textContent = '0';
+    wordReduction.textContent = '0%';
     
     showStatus(`Processing ${chunks.length} text chunks...`, 'loading');
     
@@ -211,25 +218,30 @@ window.onload = async () => {
         throw new Error(`Chunk ${i + 1} failed: ${result.message}`);
       }
       
-      simplifiedChunks.push(result.simplified);
+      // Append simplified chunk to display and combined text
+      const simplifiedChunk = result.simplified;
+      combinedSimplifiedText += (i > 0 ? '\n\n' : '') + simplifiedChunk;
+      simplifiedTextDisplay.textContent = combinedSimplifiedText;
+
+      // Update word counts dynamically
+      currentSimplifiedWordCount = combinedSimplifiedText.split(/\s+/).filter(word => word.length > 0).length;
+      simplifiedWordCount.textContent = currentSimplifiedWordCount.toLocaleString();
+      
+      const currentWordReductionPercent = ((originalWordCount - currentSimplifiedWordCount) / originalWordCount * 100).toFixed(1);
+      wordReduction.textContent = `${currentWordReductionPercent}%`;
     }
     
-    // Combine chunks and create final result
-    const combinedText = simplifiedChunks.join('\n\n');
-    const combinedWordCount = combinedText.split(/\s+/).length;
-    const originalWordCount = textData.wordCount;
-    const wordReductionPercent = ((originalWordCount - combinedWordCount) / originalWordCount * 100).toFixed(1);
-    
+    // Final result object
     return {
       original: textData.text,
-      simplified: combinedText,
+      simplified: combinedSimplifiedText,
       complexity: options.complexity,
       processingTime: Date.now(),
       model: 'llama3.2',
-      wordReduction: parseFloat(wordReductionPercent),
+      wordReduction: parseFloat(((originalWordCount - currentSimplifiedWordCount) / originalWordCount * 100).toFixed(1)),
       metadata: {
         originalWordCount,
-        simplifiedWordCount: combinedWordCount,
+        simplifiedWordCount: currentSimplifiedWordCount,
         title: textData.title,
         url: textData.url,
         chunks: chunks.length
