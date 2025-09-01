@@ -18,6 +18,6 @@
     "axe-core": "^4.10.3",
     "node-fetch": "^3.3.2",
     "ollama": "^0.5.16",
-    "playwright": "^1.54.2"
+    "@google-cloud/speech": "^6.3.0"
   }
 }

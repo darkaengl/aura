@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
+console.log('Preload script loaded.');
 
 // Expose a safe, limited API to the renderer process
 contextBridge.exposeInMainWorld('ollamaAPI', {
@@ -17,3 +18,9 @@ contextBridge.exposeInMainWorld('versions', {
 contextBridge.exposeInMainWorld('fileAPI', {
   readLocalFile: async (filePath) => ipcRenderer.invoke('read-local-file', filePath)
 });
+
+contextBridge.exposeInMainWorld('speechAPI', {
+  transcribeAudio: async (audioBuffer, sampleRate) => ipcRenderer.invoke('transcribe-audio', audioBuffer, sampleRate)
+});
+
+contextBridge.exposeInMainWorld('nodeBufferFrom', Buffer.from);
