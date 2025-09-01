@@ -281,7 +281,7 @@ export const getTextExtractionScript = () => {
     // Define element types we want to extract
     const textElements = selectionMode ? 
       [element] : 
-      element.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, blockquote, article, section, div, span');
+      element.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, blockquote, article, section, main, [role="main"], .content, #content, .post-content, .entry-content, .article-content, div:not([role="presentation"]):not([aria-hidden="true"]):not([class*="nav"]):not([class*="menu"]):not([class*="header"]):not([class*="footer"]):not([class*="sidebar"]):not([class*="ad"]):not([class*="banner"]):not([class*="popup"]):not([class*="cookie"]):not([class*="subscribe"]), span:not([role="presentation"]):not([aria-hidden="true"]):not([class*="nav"]):not([class*="menu"]):not([class*="header"]):not([class*="footer"]):not([class*="sidebar"]):not([class*="ad"]):not([class*="banner"]):not([class*="popup"]):not([class*="cookie"]):not([class*="subscribe"])');
     
     // If no structured elements found, fall back to text content
     if (textElements.length === 0) {

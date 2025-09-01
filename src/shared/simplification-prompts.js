@@ -49,15 +49,7 @@ const createSystemPrompt = (complexity, preserveFormatting) => {
   const formattingInstructions = getFormattingInstructions(preserveFormatting);
   const generalGuidelines = getGeneralGuidelines();
 
-  return `${basePrompt}
-
-${complexityInstructions}
-
-${formattingInstructions}
-
-${generalGuidelines}
-
-IMPORTANT: Return only the simplified text without any explanations, comments, or meta-text. Do not add phrases like "Here is the simplified version:" or similar introductory text.`;
+  return `${basePrompt}\n\n${complexityInstructions}\n\n${formattingInstructions}\n\n${generalGuidelines}\n\nIMPORTANT: Return only the simplified text without any explanations, comments, or meta-text. Do not add phrases like \"Here is the simplified version:\" or similar introductory text.`;
 };
 
 /**
@@ -68,35 +60,14 @@ IMPORTANT: Return only the simplified text without any explanations, comments, o
 const getComplexityInstructions = (complexity) => {
   switch (complexity) {
     case 'simple':
-      return `COMPLEXITY LEVEL: SIMPLE (Elementary/Middle School)
-- Use only common, everyday words that a 12-year-old would understand
-- Keep sentences very short (maximum 15 words)
-- Avoid all technical terms, jargon, and complex concepts
-- Replace difficult words with simpler alternatives
-- Break complex ideas into multiple simple sentences
-- Use active voice instead of passive voice
-- Target reading level: 6th-8th grade`;
+      return `COMPLEXITY LEVEL: SIMPLE (Elementary/Middle School)\n- Use only common, everyday words that a 12-year-old would understand\n- Keep sentences very short (maximum 15 words)\n- Avoid all technical terms, jargon, and complex concepts\n- Replace difficult words with simpler alternatives\n- Break complex ideas into multiple simple sentences\n- Use active voice instead of passive voice\n- Target reading level: 6th-8th grade`;
 
     case 'advanced':
-      return `COMPLEXITY LEVEL: ADVANCED (Clear Professional)
-- Use professional vocabulary but avoid unnecessary jargon
-- Keep sentences reasonably short (maximum 25 words)
-- Explain technical terms when they must be used
-- Maintain sophisticated ideas but improve clarity
-- Use precise but accessible language
-- Keep logical flow and detailed information
-- Target reading level: College level`;
+      return `COMPLEXITY LEVEL: ADVANCED (Clear Professional)\n- Use professional vocabulary but avoid unnecessary jargon\n- Keep sentences reasonably short (maximum 25 words)\n- Explain technical terms when they must be used\n- Maintain sophisticated ideas but improve clarity\n- Use precise but accessible language\n- Keep logical flow and detailed information\n- Target reading level: College level`;
 
     case 'moderate':
     default:
-      return `COMPLEXITY LEVEL: MODERATE (High School)
-- Use common vocabulary that most adults would understand
-- Keep sentences at a reasonable length (maximum 20 words)
-- Explain technical terms in simple words when they appear
-- Replace overly complex words with clearer alternatives
-- Break long, complex sentences into shorter ones
-- Maintain important details while improving readability
-- Target reading level: 9th-12th grade`;
+      return `COMPLEXITY LEVEL: MODERATE (High School)\n- Use common vocabulary that most adults would understand\n- Keep sentences at a reasonable length (maximum 20 words)\n- Explain technical terms in simple words when they appear\n- Replace overly complex words with clearer alternatives\n- Break long, complex sentences into shorter ones\n- Maintain important details while improving readability\n- Target reading level: 9th-12th grade`;
   }
 };
 
@@ -107,18 +78,9 @@ const getComplexityInstructions = (complexity) => {
  */
 const getFormattingInstructions = (preserveFormatting) => {
   if (preserveFormatting) {
-    return `FORMATTING PRESERVATION:
-- Keep paragraph breaks and structure
-- Maintain headings and their hierarchy
-- Preserve lists and bullet points
-- Keep important emphasis and structure
-- Maintain logical document flow`;
+    return `FORMATTING PRESERVATION:\n- Keep paragraph breaks and structure\n- Maintain headings and their hierarchy\n- Preserve lists and bullet points\n- Keep important emphasis and structure\n- Maintain logical document flow`;
   } else {
-    return `FORMATTING APPROACH:
-- Focus on content clarity over formatting
-- Create natural paragraph breaks for readability
-- Structure information in logical flow
-- Don't worry about preserving original formatting`;
+    return `FORMATTING APPROACH:\n- Focus on content clarity over formatting\n- Create natural paragraph breaks for readability\n- Structure information in logical flow\n- Don't worry about preserving original formatting`;
   }
 };
 
@@ -127,15 +89,18 @@ const getFormattingInstructions = (preserveFormatting) => {
  * @returns {string} General guidelines
  */
 const getGeneralGuidelines = () => {
-  return `GENERAL GUIDELINES:
-- Never lose important information or meaning
-- Always preserve facts, numbers, and key details
-- Use concrete examples when possible
-- Replace abstract concepts with specific examples
-- Maintain the author's intent and tone
-- Use transitions to connect ideas clearly
-- Remove unnecessary filler words and redundancy
-- Make sure the simplified text flows naturally`;
+  return `GENERAL GUIDELINES:\n
+  - Never lose important information or meaning\n
+  - Always preserve facts, numbers, and key details\n
+  - Use concrete examples when possible\n
+  - Replace abstract concepts with specific examples\n
+  - Maintain the author's intent and tone\n
+  - Use transitions to connect ideas clearly\n
+  - Remove unnecessary filler words and redundancy\n
+  - Make sure the simplified text flows naturally\n- Format the simplified text using Markdown. Use headings (##), bold (**text**), italics (*text*), lists (- item), and code blocks where appropriate to improve readability and structure.\n
+  - Focus simplification ONLY on natural language prose.\n
+  - If a section is clearly not natural language (e.g., a block of CSS, a JavaScript function, or a JSON object), output it verbatim within a code block.\n
+  - Never simplify javascript / browser cookies related content `;
 };
 
 /**
@@ -157,9 +122,7 @@ const createUserPrompt = (text, title, url, wordCount) => {
     contextInfo += '\n';
   }
 
-  return `${contextInfo}Please simplify the following text:
-
-${text}`;
+  return `${contextInfo}Please simplify the following text:\n\n${text}`;
 };
 
 /**
@@ -174,14 +137,8 @@ export const createChunkPrompt = (chunk, chunkIndex, totalChunks, options = {}) 
   const baseOptions = { ...options };
   const systemPrompt = createSystemPrompt(baseOptions.complexity || 'moderate', baseOptions.preserveFormatting || false);
   
-  const userPrompt = `CHUNK PROCESSING: This is part ${chunkIndex + 1} of ${totalChunks} from a larger document.
-
-${baseOptions.title ? `Original Document: ${baseOptions.title}` : ''}
-
-Please simplify this text chunk while maintaining consistency with the overall document:
-
-${chunk}`;
-
+  const userPrompt = `CHUNK PROCESSING: This is part ${chunkIndex + 1} of ${totalChunks} from a larger document.\n\n${baseOptions.title ? `Original Document: ${baseOptions.title}` : ''}\n\nPlease simplify this text chunk while maintaining consistency with the overall document:\n\n${chunk}`;
+  
   return {
     model: 'llama3.2',
     messages: [

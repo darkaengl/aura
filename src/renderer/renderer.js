@@ -1,6 +1,7 @@
 import { initializeAccessibility } from '../shared/accessibility.js';
 import { getTextExtractionScript } from '../shared/text-extraction.js';
 import { createSimplificationPrompt, splitTextIntoChunks, createChunkPrompt, validateOptions, estimateProcessingTime } from '../shared/simplification-prompts.js';
+import { marked } from '../../node_modules/marked/lib/marked.esm.js'; // Import marked library
 
 window.onload = async () => {
   const urlInput = document.getElementById('url-input');
@@ -129,7 +130,41 @@ window.onload = async () => {
           }
         })();
       `);
-      
+
+      // const extractionResult = await webview.executeJavaScript(`
+      //   (function() {
+      //     // This function will be called to attempt the extraction
+      //     const attemptExtraction = () => {
+      //       const text = document.body.innerText.trim();
+      //       if (text) {
+      //         // If text is found, resolve the promise with the data
+      //         return { success: true, data: text };
+      //       }
+      //       // If no text, return null to signal a retry
+      //       return null;
+      //     };
+
+      //     // We'll use a Promise to handle the asynchronous waiting
+      //     return new Promise((resolve, reject) => {
+      //       const maxAttempts = 10; // 10 attempts * 500ms = 5 seconds total
+      //       let attempt = 0;
+
+      //       const intervalId = setInterval(() => {
+      //         const result = attemptExtraction();
+              
+      //         if (result) {
+      //           clearInterval(intervalId); // Stop polling
+      //           resolve(JSON.stringify(result)); // Send the successful result back
+      //         } else if (++attempt >= maxAttempts) {
+      //           clearInterval(intervalId); // Stop polling after max attempts
+      //           // Resolve with an error message
+      //           resolve(JSON.stringify({ success: false, message: 'No text content found after 5 seconds.' }));
+      //         }
+      //       }, 500); // Check every 500 milliseconds
+      //     });
+      //   })();
+      // `);
+            
       const textData = JSON.parse(extractionResult);
       
       if (textData.error) {
@@ -260,11 +295,11 @@ window.onload = async () => {
     
     // Update simplified text panel
     if (simplificationResult.error) {
-      simplifiedTextDisplay.textContent = `Error: ${simplificationResult.message}`;
+      simplifiedTextDisplay.innerHTML = `<p style="color: red;">Error: ${simplificationResult.message}</p>`;
       simplifiedWordCount.textContent = '0';
       wordReduction.textContent = '0%';
     } else {
-      simplifiedTextDisplay.textContent = simplificationResult.simplified;
+      simplifiedTextDisplay.innerHTML = marked.parse(simplificationResult.simplified);
       simplifiedWordCount.textContent = simplificationResult.metadata.simplifiedWordCount.toLocaleString();
       wordReduction.textContent = `${simplificationResult.wordReduction}%`;
     }
