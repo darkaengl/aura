@@ -292,6 +292,10 @@ window.onload = async () => {
       // Extract text from page
       const textData = await extractPageText();
       currentTextData = textData;
+
+      // Display original text immediately
+      originalTextDisplay.textContent = textData.text;
+      originalWordCount.textContent = textData.wordCount.toLocaleString();
       
       showStatus(`Extracted ${textData.wordCount} words. Processing with Ollama...`, 'loading');
       
