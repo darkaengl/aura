@@ -125,7 +125,13 @@ window.onload = async () => {
         pageContentState = [{ originalHtml: originalPageHtml }]; // Store as a single item
 
         // Clear the entire page and inject simplified text
-        await webview.executeJavaScript(`document.body.innerHTML = ${JSON.stringify(simplifiedTextDisplay.innerHTML)};`);
+        await webview.executeJavaScript(`
+          document.body.innerHTML = ${JSON.stringify(`
+            <div style="max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+              ${simplifiedTextDisplay.innerHTML}
+            </div>
+          `)};
+        `);
 
         isPageSimplified = true;
         replacePageText.textContent = 'Show Original';
