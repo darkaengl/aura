@@ -524,7 +524,7 @@ window.onload = async () => {
       wordReduction.textContent = '0%';
     } else {
       console.log(`[updateTextDisplay] Updating simplifiedTextDisplay with:`, simplificationResult.simplified);
-      simplifiedTextDisplay.textContent = simplificationResult.simplified;
+      simplifiedTextDisplay.innerHTML = marked.parse(simplificationResult.simplified);
       const currentSimplifiedWordCount = simplificationResult.simplified.split(/\s+/).filter(word => word.length > 0).length;
       simplifiedWordCount.textContent = currentSimplifiedWordCount.toLocaleString();
       const originalWordCount = textData.wordCount;
