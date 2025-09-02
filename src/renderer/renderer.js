@@ -32,6 +32,66 @@ window.onload = async () => {
   const replacePageText = document.getElementById('replace-page-text');
   const refreshSimplificationBtn = document.getElementById('refresh-simplification-btn');
 
+  // PDF Upload to Simplify Functionality (moved inside modal context)
+  const uploadPdfBtn = document.getElementById('upload-pdf-btn');
+  const pdfUploadInput = document.getElementById('pdf-upload-input');
+
+  uploadPdfBtn.addEventListener('click', () => {
+    pdfUploadInput.click(); // Trigger the hidden file input click
+  });
+
+  pdfUploadInput.addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      showStatus('Processing PDF for simplification...', 'loading');
+      textSimplificationModal.style.display = 'flex'; // Open the simplification modal
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const arrayBuffer = e.target.result;
+        try {
+          // Send PDF data to main process for text extraction
+          const textData = await window.textSimplificationAPI.processPdfForSimplification(arrayBuffer);
+          currentTextData = textData; // Store for later use
+
+          if (textData && textData.text) {
+            originalTextDisplay.textContent = textData.text;
+            originalWordCount.textContent = textData.wordCount.toLocaleString();
+            showStatus(`Extracted ${textData.wordCount} words from PDF. Processing with Ollama...`, 'loading');
+
+            const complexity = complexitySelect.value;
+            const requestId = ++latestRequestId; // Generate new request ID for PDF processing
+            const result = await processTextWithOllama(textData, { complexity }, requestId);
+
+            if (requestId !== latestRequestId || result === null) {
+              console.log(`[PDF Simplification] Discarding result for request ${requestId}. Newer request ${latestRequestId} exists or result was null.`);
+              return;
+            }
+
+            updateTextDisplay(textData, result);
+            showStatus(`PDF text simplified successfully! Reduced by ${result.wordReduction}% (${result.metadata.originalWordCount} → ${result.metadata.simplifiedWordCount} words)`, 'success');
+          } else {
+            throw new Error('No text could be extracted from the PDF.');
+          }
+        } catch (error) {
+          console.error('Error processing PDF:', error);
+          showStatus(`Error processing PDF: ${error.message}`, 'error');
+          originalTextDisplay.textContent = '';
+          simplifiedTextDisplay.textContent = '';
+          originalWordCount.textContent = '0';
+          simplifiedWordCount.textContent = '0';
+          wordReduction.textContent = '0%';
+        } finally {
+          pdfUploadInput.value = ''; // Clear the input so the same file can be selected again
+          setProcessingState(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      showStatus('Please select a valid PDF file.', 'error');
+    }
+  });
+
   /**
    * Replaces the original page text with simplified text or toggles back to original
    */
@@ -167,6 +227,8 @@ window.onload = async () => {
   refreshBtn.addEventListener('click', () => {
     webview.reload();
   });
+
+  
 
   // Add event listener for the 'Enter' key press in the input field
   urlInput.addEventListener('keydown', (event) => {

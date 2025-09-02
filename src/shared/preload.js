@@ -24,5 +24,8 @@ contextBridge.exposeInMainWorld('textSimplificationAPI', {
   },
   processText: async (textData, options) => {
     return await ipcRenderer.invoke('simplify:process-text', textData, options);
+  },
+  processPdfForSimplification: async (pdfArrayBuffer) => {
+    return await ipcRenderer.invoke('process-pdf-for-simplification', pdfArrayBuffer);
   }
 });

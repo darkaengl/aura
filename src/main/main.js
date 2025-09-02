@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main')
 const path = require('node:path')
 const fs = require('node:fs/promises'); // Import Node.js file system promises API
+const pdfParse = require('pdf-parse');
 
 app.setName('Aura');
 
@@ -58,6 +59,7 @@ ipcMain.handle('simplify:process-text', async (event, textData, options = {}) =>
   try {
     const { text, title = '', url = '' } = textData;
     const { complexity = 'simple', preserveFormatting = false } = options;
+
     
     // Create context-aware prompt for text simplification
     const systemPrompt = `You are an expert at simplifying complex text while preserving meaning. 
@@ -136,6 +138,19 @@ ${text}`;
       message: `Could not simplify text. Is Ollama running? (${error.message})`,
       original: textData.text || ''
     };
+  }
+});
+
+// New IPC handler for PDF processing
+ipcMain.handle('process-pdf-for-simplification', async (event, pdfArrayBuffer) => {
+  try {
+    const data = await pdfParse(pdfArrayBuffer);
+    const text = data.text;
+    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+    return { text, wordCount, title: 'PDF Document', url: 'file://pdf-upload' };
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    throw new Error(`Failed to extract text from PDF: ${error.message}`);
   }
 });
 

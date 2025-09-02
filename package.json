@@ -19,6 +19,7 @@
     "marked": "^12.0.2",
     "node-fetch": "^3.3.2",
     "ollama": "^0.5.16",
+    "pdf-parse": "^1.1.1",
     "playwright": "^1.54.2"
   }
 }
