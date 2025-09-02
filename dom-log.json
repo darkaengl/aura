@@ -1,0 +1,211 @@
+[
+  {
+    "tag": "a",
+    "class": "gb_X",
+    "ariaLabel": "Gmail ",
+    "text": "Gmail",
+    "href": "https://mail.google.com/mail/&ogbl"
+  },
+  {
+    "tag": "a",
+    "class": "gb_X",
+    "ariaLabel": "Cuardaigh Íomhánna ",
+    "text": "Íomhánna",
+    "href": "https://www.google.com/imghp?hl=ga&ogbl"
+  },
+  {
+    "tag": "a",
+    "class": "gb_B",
+    "role": "button",
+    "ariaLabel": "Aipeanna Google",
+    "href": "https://www.google.ie/intl/ga/about/products"
+  },
+  {
+    "tag": "a",
+    "class": "gb_A",
+    "ariaLabel": "Logáil isteach",
+    "text": "Logáil isteach",
+    "href": "https://accounts.google.com/ServiceLogin?hl=ga&passive=true&continue=https://www.google.com/&ec=futura_exp_og_so_72776762_e"
+  },
+  {
+    "tag": "textarea",
+    "id": "APjFqb",
+    "class": "gLFyf",
+    "name": "q",
+    "role": "combobox",
+    "ariaLabel": "Cuardaigh"
+  },
+  {
+    "tag": "div",
+    "class": "Umvnrc",
+    "role": "button",
+    "ariaLabel": "Input tools"
+  },
+  {
+    "tag": "div",
+    "class": "nDcEnd",
+    "role": "button",
+    "ariaLabel": "Cuardaigh de réir íomhá"
+  },
+  {
+    "tag": "span",
+    "class": "Job8vb z1asCe wuXmqc",
+    "role": "button",
+    "ariaLabel": "Dún Choose what you’re giving feedback on"
+  },
+  {
+    "tag": "div",
+    "class": "AQZ9Vd",
+    "role": "button",
+    "text": ".JCHpcb:hover,.LvqzR .JCHpcb{color:#8ab4f8;text-decoration:underline}.JCHpcb{color:#aaadb2;font:13px arial,sans-serif;cursor:pointer;align-self:center}@media (hover:hover){.sbai{visibility:hidden}.sbhl .sbai{visibility:inherit}}Delete"
+  },
+  {
+    "tag": "div",
+    "class": "AQZ9Vd",
+    "role": "button",
+    "text": "Delete"
+  },
+  {
+    "tag": "input",
+    "class": "gNO89b",
+    "name": "btnK",
+    "role": "button",
+    "ariaLabel": "Cuardach Google",
+    "type": "submit"
+  },
+  {
+    "tag": "input",
+    "class": "RNmpXc",
+    "name": "btnI",
+    "ariaLabel": "Tá an tÁdh Orm Inniu!",
+    "type": "submit"
+  },
+  {
+    "tag": "a",
+    "class": "lh87ke",
+    "text": "Tuilleadh eolais",
+    "href": "https://support.google.com/websearch/answer/106230?hl=ga"
+  },
+  {
+    "tag": "div",
+    "class": "WzNHm mWcf0e",
+    "role": "button",
+    "text": "Report inappropriate predictions"
+  },
+  {
+    "tag": "input",
+    "class": "gNO89b",
+    "name": "btnK",
+    "role": "button",
+    "ariaLabel": "Cuardach Google",
+    "type": "submit"
+  },
+  {
+    "tag": "input",
+    "class": "RNmpXc",
+    "name": "btnI",
+    "ariaLabel": "Tá an tÁdh Orm Inniu!",
+    "type": "submit"
+  },
+  {
+    "tag": "a",
+    "text": "English",
+    "href": "https://www.google.com/setprefs?sig=0_hgrOLkpWnIV58qk2syonpAG69Vg%3D&hl=en&source=homepage&sa=X&ved=0ahUKEwjI087R67mPAxW9WUEAHcg2NkoQ2ZgBCBQ"
+  },
+  {
+    "tag": "a",
+    "class": "pHiOh",
+    "text": "Fúinne",
+    "href": "https://about.google/?utm_source=google-IE&utm_medium=referral&utm_campaign=hp-footer&fg=1"
+  },
+  {
+    "tag": "a",
+    "class": "pHiOh",
+    "text": "Advertising",
+    "href": "https://www.google.com/intl/ga_ie/ads/?subid=ww-ww-et-g-awa-a-g_hpafoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpafooter&fg=1"
+  },
+  {
+    "tag": "a",
+    "class": "pHiOh",
+    "text": "Business",
+    "href": "https://www.google.com/services/?subid=ww-ww-et-g-awa-a-g_hpbfoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpbfooter&fg=1"
+  },
+  {
+    "tag": "a",
+    "class": "pHiOh",
+    "text": "Conas a oibríonn Cuardach",
+    "href": "https://google.com/search/howsearchworks/?fg=1"
+  },
+  {
+    "tag": "a",
+    "class": "pHiOh",
+    "text": "Príobháideacht",
+    "href": "https://policies.google.com/privacy?hl=ga&fg=1"
+  },
+  {
+    "tag": "a",
+    "class": "pHiOh",
+    "text": "Téarmaí",
+    "href": "https://policies.google.com/terms?hl=ga&fg=1"
+  },
+  {
+    "tag": "div",
+    "class": "CcNe6e",
+    "role": "button",
+    "text": "Sainroghanna"
+  },
+  {
+    "tag": "a",
+    "role": "menuitem",
+    "text": "Socruithe cuardaigh",
+    "href": "https://www.google.com/preferences?hl=ga&fg=1"
+  },
+  {
+    "tag": "a",
+    "role": "menuitem",
+    "text": "Cuardach casta",
+    "href": "/advanced_search?hl=ga&fg=1"
+  },
+  {
+    "tag": "a",
+    "role": "menuitem",
+    "text": "Do shonraí in Cuardach",
+    "href": "/history/privacyadvisor/search/unauth?utm_source=googlemenu&fg=1&cctld=com"
+  },
+  {
+    "tag": "a",
+    "role": "menuitem",
+    "text": "Oiriúnú agus fianáin",
+    "href": "https://consent.google.com/d?continue=https://www.google.com/&gl=IE&m=0&pc=shp&cm=5&hl=ga&src=4"
+  },
+  {
+    "tag": "a",
+    "role": "menuitem",
+    "text": "Stair na gcuardach",
+    "href": "/history/optout?hl=ga&fg=1"
+  },
+  {
+    "tag": "a",
+    "role": "menuitem",
+    "text": "Cabhair le cuardach",
+    "href": "https://support.google.com/websearch/?p=ws_results_help&hl=ga&fg=1"
+  },
+  {
+    "tag": "span",
+    "role": "menuitem",
+    "text": "Seol aiseolas"
+  },
+  {
+    "tag": "div",
+    "id": "YUIDDb",
+    "class": "y0fQ9c",
+    "role": "menuitem",
+    "text": ".tFYjZe{align-items:center;display:flex;justify-content:space-between;padding-bottom:4px;padding-top:4px}.tFYjZe:hover .iOHNLb,.tFYjZe:focus .iOHNLb{opacity:1}.iOHNLb{color:#9e9e9e;height:20px;margin-top:-2px;opacity:0;width:20px}Téama dorcha: Ar siúl"
+  },
+  {
+    "tag": "div",
+    "class": "tFYjZe",
+    "role": "link",
+    "text": "Téama dorcha: Ar siúl"
+  }
+]
