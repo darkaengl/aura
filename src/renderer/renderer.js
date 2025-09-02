@@ -8,6 +8,7 @@ window.onload = async () => {
   const backBtn = document.getElementById('back-btn');
   const forwardBtn = document.getElementById('forward-btn');
   const refreshBtn = document.getElementById('refresh-btn');
+  const browserLogo = document.getElementById('browser-logo'); // New Browser Logo
   const webview = document.getElementById('webview');
   const wcagScoreLabel = document.getElementById('wcag-score-label');
   const accessibilityReport = document.getElementById('accessibility-report');
@@ -226,6 +227,16 @@ window.onload = async () => {
   });
   refreshBtn.addEventListener('click', () => {
     webview.reload();
+  });
+
+  browserLogo.addEventListener('click', () => {
+    window.location.href = 'homepage.html'; // Navigate to homepage.html when logo is clicked
+  });
+
+  // Handle navigation from main process (e.g., from homepage links)
+  window.electronAPI.onNavigateWebview((url) => {
+    webview.src = url;
+    urlInput.value = url; // Update URL input as well
   });
 
   

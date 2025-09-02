@@ -154,11 +154,29 @@ ipcMain.handle('process-pdf-for-simplification', async (event, pdfArrayBuffer) =
   }
 });
 
+ipcMain.handle('navigateToUrl', (event, url) => {
+  if (mainWindow) {
+    // Load index.html first if it's not already loaded
+    if (mainWindow.webContents.getURL().includes('homepage.html')) {
+      mainWindow.loadFile('index.html').then(() => {
+        // Once index.html is loaded, send the URL to its renderer
+        mainWindow.webContents.send('navigate-webview', url);
+      });
+    } else {
+      // If index.html is already loaded, just send the URL
+      mainWindow.webContents.send('navigate-webview', url);
+    }
+  }
+});
+
+let mainWindow; // Declare mainWindow globally
+
 const createWindow = () => {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     title: 'Aura',
+    icon: path.join(__dirname, '../../assets/brand/IMG_3414.png'), // Set the application icon
     webPreferences: {
       preload: path.join(__dirname, '../shared/preload.js'),
       webviewTag: true, // Enable webview tag
@@ -167,11 +185,11 @@ const createWindow = () => {
     }
   })
 
-  win.loadFile('index.html');
-  win.setTitle('Aura Browser');
+  mainWindow.loadFile('homepage.html');
+  mainWindow.setTitle('Aura Browser');
   
   // Uncomment to enable DevTools for debugging
-  // win.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Homepage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .homepage-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+        .homepage-logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #4a90e2;
+            margin-bottom: 30px;
+        }
+        .site-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .site-list li {
+            margin-bottom: 15px;
+        }
+        .site-list a {
+            text-decoration: none;
+            color: #357abd;
+            font-size: 1.1em;
+            padding: 10px 15px;
+            border: 1px solid #a0c8f7;
+            border-radius: 5px;
+            display: inline-block;
+            width: 80%;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .site-list a:hover {
+            background-color: #4a90e2;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="homepage-container">
+        <img src="./assets/brand/IMG_3414.png" alt="Aura Logo" class="homepage-logo">
+        <h1>Welcome to Aura Browser</h1>
+        <p>Your personalized browsing experience.</p>
+        <ul class="site-list">
+            <li><a href="#" data-url="https://www.revenue.ie">Revenue.ie</a></li>
+            <li><a href="#" data-url="https://www.hse.ie">HSE.ie</a></li>
+            <li><a href="#" data-url="https://www.google.com">Google.com</a></li>
+            <li><a href="#" data-url="https://www.citizensinformation.ie">Citizens Information</a></li>
+        </ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const siteLinks = document.querySelectorAll('.site-list a');
+            siteLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const url = event.target.dataset.url;
+                    if (url) {
+                        // Send the URL to the main process to navigate the main browser window
+                        window.electronAPI.navigateToUrl(url);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
