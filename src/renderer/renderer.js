@@ -478,7 +478,7 @@ window.onload = async () => {
       // Append simplified chunk to display and combined text
       const simplifiedChunk = result.simplified;
       combinedSimplifiedText += (i > 0 ? '\n\n' : '') + simplifiedChunk;
-      simplifiedTextDisplay.textContent = combinedSimplifiedText; // Update display after each chunk
+      simplifiedTextDisplay.innerHTML = marked.parse(combinedSimplifiedText); // Update display after each chunk
 
       // Update word counts dynamically
       currentSimplifiedWordCount = combinedSimplifiedText.split(/\s+/).filter(word => word.length > 0).length;
