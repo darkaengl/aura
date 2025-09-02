@@ -101,18 +101,8 @@ window.onload = async () => {
       if (isPageSimplified) {
         // Revert to original
         showStatus('Restoring original page text...', 'loading');
-        for (const item of pageContentState) {
-          if (item.element) {
-            // Re-inject original HTML into the webview element
-            await webview.executeJavaScript(`
-              (function() {
-                const el = document.getElementById('${item.element.id}');
-                if (el) {
-                  el.innerHTML = ${JSON.stringify(item.originalHtml)};
-                }
-              })();
-            `);
-          }
+        if (pageContentState.length > 0 && pageContentState[0].originalHtml) {
+          await webview.executeJavaScript(`document.body.innerHTML = ${JSON.stringify(pageContentState[0].originalHtml)};`);
         }
         isPageSimplified = false;
         replacePageText.textContent = 'Replace Page Text';
@@ -130,65 +120,12 @@ window.onload = async () => {
         // Clear previous state
         pageContentState = [];
 
-        // Get target elements (e.g., paragraphs, main content areas)
-        // This part needs careful consideration to match the extraction logic
-        // For simplicity, let's target all <p> tags for now, as the text-extraction.js
-        // now focuses on headings and paragraphs.
-        const targetElementsData = await webview.executeJavaScript(
-          `Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, p')).map(el => {
-            // Assign a temporary ID if the element doesn't have one
-            const id = el.id || 'aura-temp-id-' + Math.random().toString(36).substr(2, 9);
-            el.id = id; // Set the ID in the webview DOM
-            return {
-              id: id,
-              originalHtml: el.innerHTML
-            };
-          });`
-        );
+        // Store the entire original page HTML before replacing
+        const originalPageHtml = await webview.executeJavaScript(`document.body.innerHTML;`);
+        pageContentState = [{ originalHtml: originalPageHtml }]; // Store as a single item
 
-        if (targetElementsData.length === 0) {
-          showStatus('No suitable elements found on page to replace.', 'error');
-          return;
-        }
-
-        // Get the simplified text, split by paragraphs (assuming Ollama returns paragraphs separated by newlines)
-        const simplifiedParagraphs = simplifiedText.split('\n\n').filter(p => p.trim());
-        let simplifiedIndex = 0;
-
-        for (let i = 0; i < targetElementsData.length; i++) {
-          const elementData = targetElementsData[i];
-          
-          // Store original content and a reference to the element (by ID)
-          pageContentState.push({
-            originalHtml: elementData.originalHtml,
-            element: { id: elementData.id } // Store only the ID for later retrieval
-          });
-
-          if (simplifiedIndex < simplifiedParagraphs.length) {
-            const simplifiedHtml = marked.parse(simplifiedParagraphs[simplifiedIndex]);
-            // Update the element's innerHTML in the webview
-            await webview.executeJavaScript(`
-              (function() {
-                const el = document.getElementById('${elementData.id}');
-                if (el) {
-                  el.innerHTML = ${JSON.stringify(simplifiedHtml)};
-                }
-              })();
-            `);
-            pageContentState[pageContentState.length - 1].simplifiedHtml = simplifiedHtml; // Store simplified HTML
-            simplifiedIndex++;
-          } else {
-            // If no more simplified paragraphs, hide or clear remaining original elements
-            await webview.executeJavaScript(`
-              (function() {
-                const el = document.getElementById('${elementData.id}');
-                if (el) {
-                  el.innerHTML = ''; // Or el.style.display = 'none';
-                }
-              })();
-            `);
-          }
-        }
+        // Clear the entire page and inject simplified text
+        await webview.executeJavaScript(`document.body.innerHTML = ${JSON.stringify(simplifiedTextDisplay.innerHTML)};`);
 
         isPageSimplified = true;
         replacePageText.textContent = 'Show Original';
