@@ -320,6 +320,128 @@ window.onload = async () => {
         continue;
       }
 
+      if (command.action === 'search_and_navigate') {
+        // Search for the topic and click on it to navigate
+        console.log(`Searching and navigating to: ${command.topic}`);
+        
+        const searchAndClickScript = `
+          (() => {
+            const searchTerm = '${command.topic}';
+            
+            // Create multiple search variations for better matching
+            const searchVariations = [
+              searchTerm.toLowerCase(),
+              searchTerm.toLowerCase().replace(/\s+/g, ''), // remove spaces
+              ...searchTerm.toLowerCase().split(' '), // individual words
+            ];
+            
+            // Add common abbreviations and variations
+            if (searchTerm.toLowerCase().includes('vehicle') || searchTerm.toLowerCase().includes('vehical')) {
+              searchVariations.push('vrt', 'vehicle registration tax', 'motor tax');
+            }
+            if (searchTerm.toLowerCase().includes('tax')) {
+              searchVariations.push('vrt', 'taxation', 'revenue');
+            }
+            if (searchTerm.toLowerCase().includes('registration')) {
+              searchVariations.push('vrt', 'register', 'registration');
+            }
+            
+            // First, look for clickable elements (links, buttons)
+            const clickableElements = document.querySelectorAll('a, button, [role="button"], [onclick]');
+            const clickableMatches = [];
+            
+            clickableElements.forEach(element => {
+              if (element.offsetParent !== null) { // Check if visible
+                const text = element.textContent.toLowerCase();
+                const href = element.getAttribute('href') || '';
+                
+                for (const variation of searchVariations) {
+                  if (variation && (text.includes(variation) || href.toLowerCase().includes(variation))) {
+                    const rect = element.getBoundingClientRect();
+                    if (rect.height > 10 && rect.width > 50) { // Meaningful size
+                      clickableMatches.push({
+                        element: element,
+                        text: element.textContent.trim(),
+                        href: href,
+                        matchedTerm: variation,
+                        relevanceScore: calculateRelevance(text + ' ' + href, searchVariations),
+                        rect: rect
+                      });
+                      break;
+                    }
+                  }
+                }
+              }
+            });
+            
+            // Sort by relevance
+            clickableMatches.sort((a, b) => {
+              if (a.relevanceScore !== b.relevanceScore) {
+                return b.relevanceScore - a.relevanceScore;
+              }
+              return a.rect.top - b.rect.top; // Earlier on page wins
+            });
+            
+            if (clickableMatches.length > 0) {
+              const bestMatch = clickableMatches[0];
+              
+              // Highlight briefly before clicking
+              const originalStyle = bestMatch.element.style.cssText;
+              bestMatch.element.style.backgroundColor = '#00ff00';
+              bestMatch.element.style.transition = 'background-color 0.3s';
+              bestMatch.element.style.border = '2px solid #0066ff';
+              
+              // Click after a short delay to show the highlight
+              setTimeout(() => {
+                bestMatch.element.click();
+              }, 500);
+              
+              return {
+                success: true,
+                found: true,
+                clicked: true,
+                text: bestMatch.text,
+                href: bestMatch.href,
+                matchedTerm: bestMatch.matchedTerm,
+                matches: clickableMatches.length
+              };
+            } else {
+              return {
+                success: true,
+                found: false,
+                clicked: false,
+                message: 'No clickable element found for topic',
+                searchedFor: searchVariations
+              };
+            }
+            
+            // Helper function to calculate relevance
+            function calculateRelevance(text, searchTerms) {
+              let score = 0;
+              for (const term of searchTerms) {
+                if (term && text.includes(term)) {
+                  score += term.length; // Longer matches get higher score
+                }
+              }
+              return score;
+            }
+          })();
+        `;
+        
+        try {
+          const result = await webview.executeJavaScript(searchAndClickScript, true);
+          if (result.found && result.clicked) {
+            addMessage(`Navigating to "${result.matchedTerm}": ${result.text}${result.href ? ' → ' + result.href : ''}`, 'ai');
+          } else {
+            addMessage(`Could not find clickable element for "${command.topic}". Searched for: ${result.searchedFor.join(', ')}`, 'ai');
+          }
+        } catch (e) {
+          console.error('Search and navigate error:', e);
+          addMessage(`Error navigating to "${command.topic}": ${e.message}`, 'ai');
+        }
+        continue;
+      }
+
         if (command.action === 'traverse') {
           // Traverse links to a specified depth
           let depth = command.depth || 1;
@@ -523,15 +645,29 @@ window.onload = async () => {
       ];
     }
     
+    // Demo Command 4: Go into a section/page
+    if (lowerMessage.includes('go into') || lowerMessage === '4' || lowerMessage.includes('navigate to') || lowerMessage.includes('enter')) {
+      const topic = extractTopicFromMessage(lowerMessage);
+      return [
+        {
+          "action": "search_and_navigate",
+          "topic": topic
+        }
+      ];
+    }
+    
     return null; // Not a demo command
   };
 
   const extractTopicFromMessage = (message) => {
-    // Extract topic from messages like "look for VRT" or "find vehicle registration"
+    // Extract topic from messages like "look for VRT" or "go into vehicle registration"
     const patterns = [
       /look for (.+)/i,
       /find (.+)/i,
       /search for (.+)/i,
+      /go into (.+)/i,
+      /navigate to (.+)/i,
+      /enter (.+)/i,
       /topic (.+)/i
     ];
     
