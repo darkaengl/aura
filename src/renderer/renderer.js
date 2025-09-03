@@ -21,6 +21,11 @@ window.onload = async () => {
   const chatSendBtn = document.getElementById('chat-send-btn');
   const micChatBtn = document.getElementById('mic-chat-btn');
 
+  // Form filling state
+  let isFillingForm = false;
+  let currentFormFields = [];
+  let currentFieldIndex = 0;
+
   // Speech Recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
@@ -442,6 +447,197 @@ window.onload = async () => {
         continue;
       }
 
+      if (command.action === 'agree_and_start_form') {
+        // Check acknowledgment boxes and start form filling
+        console.log('Checking acknowledgment and starting form filling...');
+        
+        const checkAcknowledgmentScript = `
+          (() => {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const acknowledgedCheckboxes = [];
+            
+            checkboxes.forEach(checkbox => {
+              if (checkbox.offsetParent !== null && !checkbox.disabled) { // Visible and enabled
+                const label = checkbox.labels?.[0]?.textContent || 
+                             checkbox.nextElementSibling?.textContent ||
+                             checkbox.parentElement?.textContent || '';
+                
+                // Look for acknowledgment-related text
+                const acknowledgmentKeywords = ['acknowledge', 'accept', 'agree', 'confirm', 'terms', 'conditions', 'privacy', 'consent'];
+                const labelLower = label.toLowerCase();
+                
+                if (acknowledgmentKeywords.some(keyword => labelLower.includes(keyword))) {
+                  if (!checkbox.checked) {
+                    checkbox.checked = true;
+                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    
+                    // Highlight the checkbox briefly
+                    const parent = checkbox.parentElement || checkbox;
+                    const originalStyle = parent.style.cssText;
+                    parent.style.backgroundColor = '#90EE90';
+                    parent.style.transition = 'background-color 0.3s';
+                    
+                    setTimeout(() => {
+                      parent.style.backgroundColor = '';
+                      setTimeout(() => {
+                        parent.style.cssText = originalStyle;
+                      }, 300);
+                    }, 1000);
+                    
+                    acknowledgedCheckboxes.push({
+                      label: label.trim(),
+                      checked: true
+                    });
+                  }
+                }
+              }
+            });
+            
+            return { success: true, acknowledged: acknowledgedCheckboxes };
+          })();
+        `;
+        
+        try {
+          const ackResult = await webview.executeJavaScript(checkAcknowledgmentScript, true);
+          if (ackResult.acknowledged.length > 0) {
+            addMessage(`✓ Acknowledged: ${ackResult.acknowledged.map(a => a.label).join(', ')}`, 'ai');
+            // Wait a moment for any page updates
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Now automatically start form filling
+            const startFormCommand = { action: 'start_form_filling' };
+            await executeCommands([startFormCommand]);
+          } else {
+            addMessage('No acknowledgment checkboxes found. Starting form filling directly...', 'ai');
+            const startFormCommand = { action: 'start_form_filling' };
+            await executeCommands([startFormCommand]);
+          }
+        } catch (e) {
+          console.error('Acknowledgment error:', e);
+          addMessage(`Error with acknowledgment: ${e.message}`, 'ai');
+        }
+        continue;
+      }
+
+      if (command.action === 'start_form_filling') {
+        // Start the form filling process (without acknowledgment handling)
+        console.log('Starting form filling process...');
+        
+        const formFieldsScript = `
+          (() => {
+            const formFields = [];
+            
+            // More comprehensive selector - include all input types and common form elements
+            const allPossibleInputs = document.querySelectorAll('input, textarea, select, [contenteditable="true"]');
+            console.log('Total elements found:', allPossibleInputs.length);
+            
+            // Log all found elements for debugging
+            allPossibleInputs.forEach((element, index) => {
+              console.log(\`Element \${index + 1}:\`, {
+                tagName: element.tagName,
+                type: element.type,
+                id: element.id,
+                name: element.name,
+                className: element.className,
+                placeholder: element.placeholder,
+                disabled: element.disabled,
+                readOnly: element.readOnly,
+                offsetParent: element.offsetParent !== null,
+                style: element.style.display
+              });
+            });
+            
+            // Filter for actual form inputs (more permissive than before)
+            const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]), textarea, select');
+            console.log('Filtered form inputs:', inputs.length);
+            
+            inputs.forEach((input, index) => {
+              // More lenient visibility check
+              const isVisible = input.offsetParent !== null || 
+                               window.getComputedStyle(input).display !== 'none' ||
+                               window.getComputedStyle(input).visibility !== 'hidden';
+              
+              const isEditable = !input.disabled && !input.readOnly;
+              
+              console.log(\`Input \${index + 1} visibility/editability:\`, {
+                tagName: input.tagName,
+                type: input.type,
+                isVisible: isVisible,
+                isEditable: isEditable,
+                offsetParent: input.offsetParent !== null,
+                computedDisplay: window.getComputedStyle(input).display,
+                computedVisibility: window.getComputedStyle(input).visibility
+              });
+              
+              if (isVisible && isEditable) {
+                const label = input.labels?.[0]?.textContent || 
+                             input.getAttribute('placeholder') || 
+                             input.getAttribute('aria-label') || 
+                             input.getAttribute('name') || 
+                             input.getAttribute('title') ||
+                             \`Field \${index + 1}\`;
+                
+                // Create a better selector
+                let selector = '';
+                if (input.id) {
+                  selector = '#' + input.id;
+                } else if (input.name) {
+                  selector = input.tagName.toLowerCase() + '[name="' + input.name + '"]';
+                } else if (input.className) {
+                  selector = input.tagName.toLowerCase() + '.' + input.className.split(' ').filter(c => c).join('.');
+                } else {
+                  // Fallback: use position-based selector
+                  const allSameTagInputs = Array.from(document.querySelectorAll(input.tagName.toLowerCase()));
+                  const inputIndex = allSameTagInputs.indexOf(input);
+                  selector = input.tagName.toLowerCase() + ':nth-of-type(' + (inputIndex + 1) + ')';
+                }
+                
+                console.log('Found field:', {
+                  label: label.trim(),
+                  selector: selector,
+                  type: input.type || input.tagName.toLowerCase(),
+                  tagName: input.tagName
+                });
+                
+                formFields.push({
+                  selector: selector,
+                  type: input.type || input.tagName.toLowerCase(),
+                  label: label.trim(),
+                  required: input.required,
+                  value: input.value,
+                  options: input.tagName.toLowerCase() === 'select' ? Array.from(input.options).map(o => o.text) : null
+                });
+              }
+            });
+            
+            console.log('Total fields found:', formFields.length);
+            return { success: true, fields: formFields };
+          })();
+        `;
+        
+        try {
+          const result = await webview.executeJavaScript(formFieldsScript, true);
+          console.log('Form detection result:', result);
+          
+          if (result.success && result.fields.length > 0) {
+            currentFormFields = result.fields;
+            currentFieldIndex = 0;
+            isFillingForm = true;
+            
+            addMessage(`Found ${result.fields.length} form fields. Let's fill them out!`, 'ai');
+            console.log('Form fields:', result.fields);
+            askNextFormQuestion();
+          } else {
+            addMessage('No form fields found on this page. Please navigate to a form first.', 'ai');
+            console.log('No form fields detected');
+          }
+        } catch (e) {
+          console.error('Form detection error:', e);
+          addMessage(`Error detecting form fields: ${e.message}`, 'ai');
+        }
+        continue;
+      }
+
         if (command.action === 'traverse') {
           // Traverse links to a specified depth
           let depth = command.depth || 1;
@@ -510,6 +706,149 @@ window.onload = async () => {
       } catch (e) {
         console.error('Error executing script in webview:', e);
         addMessage(`Error executing script: ${e.message}`, 'ai');
+      }
+    }
+  };
+
+  // Form filling helper functions
+  const askNextFormQuestion = () => {
+    if (currentFieldIndex < currentFormFields.length) {
+      const field = currentFormFields[currentFieldIndex];
+      let question = `Please provide a value for "${field.label}"`;
+      
+      if (field.type === 'select' && field.options) {
+        question += ` (Options: ${field.options.join(', ')})`;
+      } else if (field.type === 'email') {
+        question += ' (Email address)';
+      } else if (field.type === 'tel') {
+        question += ' (Phone number)';
+      } else if (field.type === 'date') {
+        question += ' (Date format: YYYY-MM-DD)';
+      }
+      
+      if (field.required) {
+        question += ' *Required';
+      }
+      
+      addMessage(question, 'ai');
+    } else {
+      // All fields completed
+      isFillingForm = false;
+      addMessage('Form filling completed! All fields have been filled.', 'ai');
+    }
+  };
+
+  const fillCurrentField = async (value) => {
+    if (currentFieldIndex < currentFormFields.length) {
+      const field = currentFormFields[currentFieldIndex];
+      console.log('Filling field:', field.label, 'with value:', value, 'using selector:', field.selector);
+      
+      const fillScript = `
+        (() => {
+          try {
+            console.log('Looking for element with selector: ${field.selector}');
+            const element = document.querySelector('${field.selector}');
+            
+            if (!element) {
+              console.log('Element not found, trying alternative selectors...');
+              // Try alternative selectors
+              const allInputs = document.querySelectorAll('input, textarea, select');
+              let foundElement = null;
+              
+              for (let input of allInputs) {
+                const inputLabel = input.labels?.[0]?.textContent || 
+                                 input.getAttribute('placeholder') || 
+                                 input.getAttribute('aria-label') || 
+                                 input.getAttribute('name') || '';
+                
+                if (inputLabel.toLowerCase().includes('${field.label}'.toLowerCase().substring(0, 10))) {
+                  foundElement = input;
+                  break;
+                }
+              }
+              
+              if (!foundElement) {
+                return { success: false, error: 'Field not found with selector: ${field.selector}' };
+              } else {
+                console.log('Found element using label matching');
+                element = foundElement;
+              }
+            }
+            
+            console.log('Found element:', element.tagName, element.type, element.id, element.name);
+            
+            // Focus on the element first
+            element.focus();
+            
+            // Clear existing value
+            element.value = '';
+            
+            // Set the value
+            if (element.tagName.toLowerCase() === 'select') {
+              console.log('Handling select element');
+              const options = Array.from(element.options);
+              console.log('Available options:', options.map(o => o.text));
+              
+              const matchingOption = options.find(opt => 
+                opt.text.toLowerCase().includes('${value}'.toLowerCase()) || 
+                opt.value.toLowerCase().includes('${value}'.toLowerCase())
+              );
+              
+              if (matchingOption) {
+                element.value = matchingOption.value;
+                console.log('Selected option:', matchingOption.text);
+              } else {
+                element.value = '${value}';
+                console.log('No matching option found, set value directly');
+              }
+            } else {
+              console.log('Setting text value');
+              element.value = '${value}';
+            }
+            
+            // Trigger multiple events to ensure the form recognizes the change
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+            element.dispatchEvent(new Event('blur', { bubbles: true }));
+            
+            // Highlight the filled field briefly
+            const originalStyle = element.style.cssText;
+            element.style.backgroundColor = '#90EE90';
+            element.style.transition = 'background-color 0.3s';
+            element.style.border = '2px solid #00AA00';
+            
+            setTimeout(() => {
+              element.style.backgroundColor = '';
+              element.style.border = '';
+              setTimeout(() => {
+                element.style.cssText = originalStyle;
+              }, 300);
+            }, 1500);
+            
+            return { success: true, value: element.value };
+          } catch (e) {
+            console.error('Fill field error:', e);
+            return { success: false, error: e.message };
+          }
+        })();
+      `;
+      
+      try {
+        const result = await webview.executeJavaScript(fillScript, true);
+        if (result.success) {
+          addMessage(`✓ Filled "${field.label}" with: ${value}`, 'ai');
+          currentFieldIndex++;
+          
+          // Wait a moment then ask for next field
+          setTimeout(() => {
+            askNextFormQuestion();
+          }, 500);
+        } else {
+          addMessage(`Error filling field "${field.label}": ${result.error}`, 'ai');
+        }
+      } catch (e) {
+        console.error('Fill field error:', e);
+        addMessage(`Error filling field: ${e.message}`, 'ai');
       }
     }
   };
@@ -656,6 +995,24 @@ window.onload = async () => {
       ];
     }
     
+    // Demo Command 5: I agree - Check acknowledgment boxes and start form
+    if (lowerMessage.includes('i agree') || lowerMessage.includes('i accept') || lowerMessage.includes('i acknowledge')) {
+      return [
+        {
+          "action": "agree_and_start_form"
+        }
+      ];
+    }
+    
+    // Demo Command 6: Fill form (without acknowledgment)
+    if (lowerMessage.includes('fill form') || lowerMessage === '5' || lowerMessage.includes('start form') || lowerMessage.includes('form filling')) {
+      return [
+        {
+          "action": "start_form_filling"
+        }
+      ];
+    }
+    
     return null; // Not a demo command
   };
 
@@ -689,7 +1046,20 @@ window.onload = async () => {
     chatInput.value = '';
 
     try {
-      // Check for demo commands first
+    // Check if we're in form filling mode
+    if (isFillingForm) {
+      // Check for cancel commands
+      if (lowerMessage.includes('cancel') || lowerMessage.includes('stop') || lowerMessage.includes('quit')) {
+        isFillingForm = false;
+        currentFormFields = [];
+        currentFieldIndex = 0;
+        addMessage('Form filling cancelled.', 'ai');
+        return;
+      }
+      
+      await fillCurrentField(message);
+      return;
+    }      // Check for demo commands first
       const demoCommands = handleDemoCommands(message);
       if (demoCommands) {
         addMessage("Executing command...", 'ai');
