@@ -101,7 +101,64 @@ export const initializeAccessibility = async (elements, webviewInstance) => {
   if (wcagScoreLabel) {
     wcagScoreLabel.addEventListener('click', () => {
       if (currentAxeResults) {
-        reportDetails.innerHTML = formatAxeResults(currentAxeResults);
+        // Add WCAG scoring criteria context at the top
+        const scoringContext = `
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #2196F3;">
+            <h3 style="margin-top: 0; color: #2196F3;">WCAG Scoring Criteria</h3>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #FFD700; border-radius: 3px;"></div>
+                <span><strong>Gold:</strong> ≥90% success rate</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #C0C0C0; border-radius: 3px;"></div>
+                <span><strong>Silver:</strong> 70-89% success rate</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #CD7F32; border-radius: 3px;"></div>
+                <span><strong>Bronze:</strong> &lt;70% success rate</span>
+              </div>
+            </div>
+            
+            <div style="background-color: #ffffff; padding: 12px; border-radius: 4px; border: 1px solid #e0e0e0;">
+              <h4 style="margin-top: 0; margin-bottom: 10px; color: #333;">Score Interpretation:</h4>
+              <p style="margin: 5px 0; font-size: 0.9em;">A typical score scale is 0-100, with higher numbers indicating better adherence to guidelines.</p>
+              
+              <div style="display: grid; gap: 8px; margin-top: 10px;">
+                <div style="padding: 6px 10px; background-color: #ffebee; border-left: 3px solid #f44336; border-radius: 3px;">
+                  <strong style="color: #c62828;">Poor Accessibility (0-49):</strong> Major barriers exist, and the site may be largely unusable.
+                </div>
+                <div style="padding: 6px 10px; background-color: #fff3e0; border-left: 3px solid #ff9800; border-radius: 3px;">
+                  <strong style="color: #e65100;">Needs Improvement (50-69):</strong> Significant obstacles to usability remain.
+                </div>
+                <div style="padding: 6px 10px; background-color: #fff8e1; border-left: 3px solid #ffc107; border-radius: 3px;">
+                  <strong style="color: #f57f17;">Fair Accessibility (70-89):</strong> Many key issues are resolved, but some inclusivity issues persist.
+                </div>
+                <div style="padding: 6px 10px; background-color: #e8f5e8; border-left: 3px solid #4caf50; border-radius: 3px;">
+                  <strong style="color: #2e7d32;">Highly Accessible (90-95):</strong> Many common issues are addressed, but manual review is still needed for full verification.
+                </div>
+                <div style="padding: 6px 10px; background-color: #e3f2fd; border-left: 3px solid #2196f3; border-radius: 3px;">
+                  <strong style="color: #1565c0;">Fully Compliant (100):</strong> All issues have been resolved, and manual checks have verified compliance.
+                </div>
+              </div>
+            </div>
+            
+            <p style="margin-bottom: 0; margin-top: 12px; font-size: 0.9em; color: #666;">
+              <strong>Calculation:</strong> Success rate = (Passed checks ÷ Total checks) × 100%
+            </p>
+            
+            <div style="margin-top: 15px; padding: 10px; background-color: #e3f2fd; border-radius: 4px; border: 1px solid #2196f3;">
+              <p style="margin: 0; font-size: 0.9em; color: #1565c0;">
+                <strong>Want to learn more?</strong> 
+                <a href="https://www.w3.org/WAI/standards-guidelines/wcag/wcag3-intro/" target="_blank" style="color: #1565c0; text-decoration: underline;">
+                  Visit the W3C WCAG Guidelines
+                </a>
+              </p>
+            </div>
+          </div>
+        `;
+        
+        reportDetails.innerHTML = scoringContext + formatAxeResults(currentAxeResults);
         accessibilityReport.style.display = 'flex'; // Show the modal
       } else {
         alert('No accessibility report available yet. Please load a page first.');
