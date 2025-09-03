@@ -1,4 +1,4 @@
-import { initializeAccessibility } from '../shared/accessibility.js';
+import { initializeAccessibility, wcagViolations } from '../shared/accessibility.js';
 import { getTextExtractionScript } from '../shared/text-extraction.js';
 import { createSimplificationPrompt, splitTextIntoChunks, createChunkPrompt, validateOptions, estimateProcessingTime } from '../shared/simplification-prompts.js';
 import { marked } from '../../node_modules/marked/lib/marked.esm.js'; // Import marked library
@@ -462,6 +462,76 @@ window.onload = async () => {
     return finalResult;
   };
 
+    /**
+   * Processes CSS by splitting into chunks
+   */
+  const processCssInChunks = async (currentCss, violations) => {
+    console.log(`[processCssInChunks] Start`);
+    console.log('[processCssInChunks] Violations=', violations)
+    const pieces = currentCss.split('}\n}\n');
+
+    let limit = 500;  // character limit
+    let chunks = [];
+    let chunk = '';
+
+    for (let piece of pieces){
+      piece +='}\n}\n';
+      if (piece.length >= limit){
+        if (chunk){
+          chunks.push(chunk);
+          chunk = '';
+        }
+        chunks.push(piece);
+        continue;
+      }
+      if (chunk.length + piece.length <= limit){
+        chunk += piece;
+      } else {
+        if (chunk) {
+          chunks.push(chunk);
+          chunk = piece;
+        }
+      }
+    }
+
+    if (chunk) {
+      chunks.push(chunk);
+    }
+
+    chunks[chunks.length-1] = chunks[chunks.length-1].slice(0, ('}\n}\n').length *-1);
+
+    let combinedSimplifiedCss = '';
+
+    console.log(`[processCssInChunks] number of chunks: `, chunks.length);
+    console.log(`[processCssInChunks] chunks: `, chunks);
+    
+    for (let i = 0; i < chunks.length; i++) {
+      const text = chunks[i];
+      const messages = [{
+        role: 'user',
+        content: 'Respond ONLY with valid CSS contained within triple backticks (e.g: ``` CSS_HERE ```). Optimise the CSS below, making the resulting page simplified and more readable for those with visual impairments:\n\n' + text + '\n\nEND CSS\n\nAccount for the following WCAG violations (if any) wherever possible: ' + violations
+      }];
+
+      console.log(messages);
+      let llmResponse = await window.ollamaAPI.chat(messages);
+      console.log(llmResponse);
+      console.log('\n');
+      console.log(llmResponse.split("```")[1]);
+      const escaped = llmResponse.split("```")[1].slice(4)
+                                                 .replace(/\\/g, '\\')  // escape backslashes
+                                                 .replace(/`/g, '\`')   // escape backticks
+                                                 .replace(/\$/g, '\$'); // escape dollar signs if using ${}
+
+      console.log(`[processCssInChunks] Result for chunk ${i + 1} of ${chunks.length}:`, llmResponse.split("```")[1]);
+
+      // Append simplified chunk to display and combined text
+      combinedSimplifiedCss += (i > 0 ? '\n' : '') + escaped;
+    }
+
+    console.log(`[processTextInChunks] Returning final result:`, combinedSimplifiedCss);
+    return combinedSimplifiedCss;
+  };
+
   /**
    * Updates the display with original and simplified text
    */
@@ -629,45 +699,22 @@ window.onload = async () => {
     }
   });
   // Call the Ollama model to read and simplify the CSS of the current page
-  // TODO: prompt engineering for improved output
   simplifyBtn.addEventListener('click', () => {
-    let newCSS = webview.executeJavaScript(`
+    webview.executeJavaScript(`
       Array.from(document.styleSheets)
         .map(sheet => {
           try {
-            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\\n');
           } catch (e) {
             // Skip CORS-protected sheets
             return '';
           }
         })
         .filter(text => text.length)
-        .join('\n')
+        .join('\\n')
       `).then(async cssText => {
-        const messages = [{
-          role: 'user',
-          content: 'Respond only with valid CSS contained within triple backticks (e.g: ``` CSS_HERE ```). Optimise the following CSS, making the resulting page simplified and more readable. CSS: ' + cssText
-        }];
-        // const schema = { 
-        //   'type': 'object', 
-        //   'properties': { 
-        //       'optimised_css': { 
-        //           'type': 'string'
-        //       } 
-        //   }, 
-        //   'required': ['optimised_css']
-        // };
-        // console.log(cssText);
-        let llmResponse = await window.ollamaAPI.chat(messages);
-        // console.log(llmResponse);
-        // console.log('\n');
-        // console.log(JSON.parse(llmResponse).optimised_css);
-        // console.log(llmResponse.split("```")[1]);
-        const escaped = llmResponse.split("```")[1].slice(4)
-                                                   .replace(/\\/g, '\\')     // escape backslashes
-                                                   .replace(/`/g, '\`')       // escape backticks
-                                                   .replace(/\$/g, '\$');     // escape dollar signs if using ${}
-
+        let newCss = await processCssInChunks(cssText, wcagViolations);
+        console.log('Retrieved newCss:', newCss);
         const script = `
           (function() {
             let style = document.getElementById('dynamic-style');
@@ -676,7 +723,7 @@ window.onload = async () => {
               style.id = 'dynamic-style';
               document.head.appendChild(style);
             }
-            style.textContent = "${escaped}";
+            style.textContent = \`${newCss}\`;
           })();
         `;
 
