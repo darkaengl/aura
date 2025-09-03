@@ -12,7 +12,6 @@ window.onload = async () => {
   const closeReportBtn = document.getElementById('close-report-btn');
   const downloadReportBtn = document.getElementById('download-report-btn');
   const micBtn = document.getElementById('mic-btn');
-  const inspectWebviewBtn = document.getElementById('inspect-webview-btn');
 
   // Chat interface elements
   const chatContainer = document.getElementById('chat-container');
@@ -105,10 +104,6 @@ window.onload = async () => {
     chatContainer.classList.remove('hidden');
   });
 
-  inspectWebviewBtn.addEventListener('click', () => {
-    webview.openDevTools();
-  });
-
   closeChatBtn.addEventListener('click', () => {
     chatContainer.classList.add('hidden');
   });
@@ -155,10 +150,19 @@ window.onload = async () => {
         return `element.value = '${escapedText}';`;
       case 'scroll':
         if (command.selector) {
-          return `element.scrollTop += ${command.direction === 'up' ? -100 : 100};`;
+          return `element.scrollTop += ${command.direction === 'up' ? -(command.amount || 100) : (command.amount || 100)};`;
         } else {
-          return `window.scrollBy(0, ${command.direction === 'up' ? -100 : 100});`;
+          return `window.scrollBy(0, ${command.direction === 'up' ? -(command.amount || 100) : (command.amount || 100)});`;
         }
+        case 'search':
+          // Simulate entering text in a search box and submitting
+          return `if (element) { element.value = '${command.query}'; element.form && element.form.submit && element.form.submit(); }`;
+        case 'traverse':
+          // Traverse links by clicking them, handled in executeCommands
+          return '';
+        case 'follow-link':
+          // Click the link to follow
+          return `element.click();`;
       case 'select':
         return `element.value = '${command.value}';`;
       case 'hover':
@@ -181,6 +185,181 @@ window.onload = async () => {
         await new Promise(resolve => setTimeout(resolve, command.milliseconds));
         continue;
       }
+
+      if (command.action === 'search_content') {
+        // Actually search for the topic in the DOM and scroll to it
+        console.log(`Searching for topic: ${command.topic}`);
+        
+        const searchScript = `
+          (() => {
+            const searchTerm = '${command.topic}';
+            
+            // Create multiple search variations for better matching
+            const searchVariations = [
+              searchTerm.toLowerCase(),
+              searchTerm.toLowerCase().replace(/\s+/g, ''), // remove spaces
+              ...searchTerm.toLowerCase().split(' '), // individual words
+            ];
+            
+            // Add common abbreviations and variations
+            if (searchTerm.toLowerCase().includes('vehicle') || searchTerm.toLowerCase().includes('vehical')) {
+              searchVariations.push('vrt', 'vehicle registration tax', 'motor tax');
+            }
+            if (searchTerm.toLowerCase().includes('tax')) {
+              searchVariations.push('vrt', 'taxation', 'revenue');
+            }
+            if (searchTerm.toLowerCase().includes('registration')) {
+              searchVariations.push('vrt', 'register', 'registration');
+            }
+            
+            console.log('Search variations:', searchVariations);
+            
+            const walker = document.createTreeWalker(
+              document.body,
+              NodeFilter.SHOW_TEXT,
+              null,
+              false
+            );
+            
+            const matches = [];
+            let node;
+            
+            while (node = walker.nextNode()) {
+              const nodeText = node.nodeValue.toLowerCase();
+              
+              // Check if any search variation matches
+              for (const variation of searchVariations) {
+                if (variation && nodeText.includes(variation)) {
+                  const element = node.parentElement;
+                  if (element && element.offsetParent !== null) { // Check if visible
+                    // Check if it's a meaningful element (not just navigation or tiny text)
+                    const rect = element.getBoundingClientRect();
+                    if (rect.height > 20 && rect.width > 100) {
+                      matches.push({
+                        element: element,
+                        text: node.nodeValue.trim(),
+                        rect: rect,
+                        matchedTerm: variation,
+                        relevanceScore: calculateRelevance(nodeText, searchVariations)
+                      });
+                      break; // Don't add same element multiple times
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Sort by relevance (longer matches first, then by position on page)
+            matches.sort((a, b) => {
+              if (a.relevanceScore !== b.relevanceScore) {
+                return b.relevanceScore - a.relevanceScore;
+              }
+              return a.rect.top - b.rect.top; // Earlier on page wins
+            });
+            
+            if (matches.length > 0) {
+              // Scroll to the best match
+              const bestMatch = matches[0];
+              bestMatch.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Highlight the found element temporarily
+              const originalStyle = bestMatch.element.style.cssText;
+              bestMatch.element.style.backgroundColor = '#ffff00';
+              bestMatch.element.style.transition = 'background-color 0.3s';
+              bestMatch.element.style.border = '2px solid #ff6600';
+              
+              setTimeout(() => {
+                bestMatch.element.style.backgroundColor = '';
+                bestMatch.element.style.border = '';
+                setTimeout(() => {
+                  bestMatch.element.style.cssText = originalStyle;
+                }, 300);
+              }, 3000);
+              
+              return { 
+                success: true, 
+                found: true, 
+                text: bestMatch.text,
+                matchedTerm: bestMatch.matchedTerm,
+                matches: matches.length,
+                allMatches: matches.slice(0, 3).map(m => m.text.substring(0, 50))
+              };
+            } else {
+              return { 
+                success: true, 
+                found: false, 
+                message: 'Topic not found on page',
+                searchedFor: searchVariations
+              };
+            }
+            
+            // Helper function to calculate relevance
+            function calculateRelevance(text, searchTerms) {
+              let score = 0;
+              for (const term of searchTerms) {
+                if (term && text.includes(term)) {
+                  score += term.length; // Longer matches get higher score
+                }
+              }
+              return score;
+            }
+          })();
+        `;
+        
+        try {
+          const result = await webview.executeJavaScript(searchScript, true);
+          if (result.found) {
+            addMessage(`Found "${result.matchedTerm}": ${result.text.substring(0, 100)}... (${result.matches} total matches)`, 'ai');
+          } else {
+            addMessage(`Topic "${command.topic}" not found. Searched for: ${result.searchedFor.join(', ')}`, 'ai');
+          }
+        } catch (e) {
+          console.error('Search content error:', e);
+          addMessage(`Error searching for "${command.topic}": ${e.message}`, 'ai');
+        }
+        continue;
+      }
+
+        if (command.action === 'traverse') {
+          // Traverse links to a specified depth
+          let depth = command.depth || 1;
+          let selector = command.selector;
+          for (let i = 0; i < depth; i++) {
+            const script = `
+              (() => {
+                const element = document.querySelector('${selector}');
+                if (element) { element.click(); return { success: true }; }
+                return { success: false, error: 'Element not found for traverse' };
+              })();
+            `;
+            try {
+              const result = await webview.executeJavaScript(script, true);
+              if (!result.success) break;
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for navigation
+            } catch (e) {
+              console.error('Traverse error:', e);
+              break;
+            }
+          }
+          continue;
+        }
+
+        if (command.action === 'follow-link') {
+          // Click the link to follow
+          const script = `
+            (() => {
+              const element = document.querySelector('${command.selector}');
+              if (element) { element.click(); return { success: true }; }
+              return { success: false, error: 'Link not found' };
+            })();
+          `;
+          try {
+            await webview.executeJavaScript(script, true);
+          } catch (e) {
+            console.error('Follow-link error:', e);
+          }
+          continue;
+        }
 
       const escapedSelector = command.selector ? command.selector.replace(/'/g, "'") : '';
 
@@ -291,6 +470,81 @@ window.onload = async () => {
     `, true);
   };
 
+  const handleDemoCommands = (message) => {
+    const lowerMessage = message.toLowerCase().trim();
+    
+    // Demo Command 1: Go to revenue.ie
+    if (lowerMessage.includes('go to revenue.ie') || lowerMessage === '1' || lowerMessage.includes('revenue.ie')) {
+      return [
+        {
+          "action": "goto",
+          "url": "https://www.revenue.ie/"
+        }
+      ];
+    }
+    
+    // Demo Command 2: Scroll down
+    if (lowerMessage.includes('scroll down') || lowerMessage === '2' || (lowerMessage.includes('scroll') && lowerMessage.includes('down'))) {
+      return [
+        {
+          "action": "scroll",
+          "direction": "down",
+          "amount": 500
+        },
+        {
+          "action": "wait",
+          "milliseconds": 1000
+        },
+        {
+          "action": "scroll",
+          "direction": "down",
+          "amount": 500
+        },
+        {
+          "action": "wait",
+          "milliseconds": 1000
+        },
+        {
+          "action": "scroll",
+          "direction": "down",
+          "amount": 500
+        }
+      ];
+    }
+    
+    // Demo Command 3: Look for specific topic and bring into focus
+    if (lowerMessage.includes('look for') || lowerMessage === '3' || lowerMessage.includes('find') || lowerMessage.includes('search for')) {
+      const topic = extractTopicFromMessage(lowerMessage);
+      return [
+        {
+          "action": "search_content",
+          "topic": topic
+        }
+      ];
+    }
+    
+    return null; // Not a demo command
+  };
+
+  const extractTopicFromMessage = (message) => {
+    // Extract topic from messages like "look for VRT" or "find vehicle registration"
+    const patterns = [
+      /look for (.+)/i,
+      /find (.+)/i,
+      /search for (.+)/i,
+      /topic (.+)/i
+    ];
+    
+    for (const pattern of patterns) {
+      const match = message.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    
+    return 'information';
+  };
+
   const sendMessage = async () => {
     const message = chatInput.value.trim();
     if (!message) return;
@@ -299,6 +553,14 @@ window.onload = async () => {
     chatInput.value = '';
 
     try {
+      // Check for demo commands first
+      const demoCommands = handleDemoCommands(message);
+      if (demoCommands) {
+        addMessage("Executing command...", 'ai');
+        await executeCommands(demoCommands);
+        return;
+      }
+
       // Classify intent first
       const intent = await window.ollamaAPI.classifyIntent(message);
       console.log('Intent classified as:', intent, 'for message:', message);

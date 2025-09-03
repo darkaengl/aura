@@ -1,211 +1,409 @@
 [
   {
     "tag": "a",
-    "class": "gb_X",
-    "ariaLabel": "Gmail ",
-    "text": "Gmail",
-    "href": "https://mail.google.com/mail/&ogbl"
+    "text": "Cookie Statement",
+    "href": "https://revenue.ie/en/online-services/support/data-and-security/privacy/use-of-cookies.aspx"
+  },
+  {
+    "tag": "button",
+    "class": "cookie-button",
+    "text": "Save and close",
+    "type": "button"
   },
   {
     "tag": "a",
-    "class": "gb_X",
-    "ariaLabel": "Cuardaigh Íomhánna ",
-    "text": "Íomhánna",
-    "href": "https://www.google.com/imghp?hl=ga&ogbl"
+    "text": "Cookie Statement",
+    "href": "https://revenue.ie/en/online-services/support/data-and-security/privacy/use-of-cookies.aspx"
   },
   {
     "tag": "a",
-    "class": "gb_B",
-    "role": "button",
-    "ariaLabel": "Aipeanna Google",
-    "href": "https://www.google.ie/intl/ga/about/products"
+    "text": "YouTube's own cookies policy",
+    "href": "https://policies.google.com/technologies/types?hl=en"
+  },
+  {
+    "tag": "button",
+    "class": "cookie-button",
+    "text": "Save and close",
+    "type": "button"
   },
   {
     "tag": "a",
-    "class": "gb_A",
-    "ariaLabel": "Logáil isteach",
-    "text": "Logáil isteach",
-    "href": "https://accounts.google.com/ServiceLogin?hl=ga&passive=true&continue=https://www.google.com/&ec=futura_exp_og_so_72776762_e"
+    "text": "update your browser",
+    "href": "https://browser-update.org/update-browser.html"
   },
   {
-    "tag": "textarea",
-    "id": "APjFqb",
-    "class": "gLFyf",
-    "name": "q",
-    "role": "combobox",
-    "ariaLabel": "Cuardaigh"
+    "tag": "a",
+    "class": "top-alert__close-link",
+    "text": "Close",
+    "href": "#"
   },
   {
-    "tag": "div",
-    "class": "Umvnrc",
-    "role": "button",
-    "ariaLabel": "Input tools"
+    "tag": "a",
+    "class": "changeLang links nopadding",
+    "text": "Gaeilge",
+    "href": "#"
   },
   {
-    "tag": "div",
-    "class": "nDcEnd",
-    "role": "button",
-    "ariaLabel": "Cuardaigh de réir íomhá"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "myAccount",
+    "href": "https://www.ros.ie/myaccount-web/sign_in.html?execution=e1s1&lang=en"
   },
   {
-    "tag": "span",
-    "class": "Job8vb z1asCe wuXmqc",
-    "role": "button",
-    "ariaLabel": "Dún Choose what you’re giving feedback on"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "ROS",
+    "href": "https://www.ros.ie/oidc/login?lang=en&client_id=rosint_rp"
   },
   {
-    "tag": "div",
-    "class": "AQZ9Vd",
-    "role": "button",
-    "text": ".JCHpcb:hover,.LvqzR .JCHpcb{color:#8ab4f8;text-decoration:underline}.JCHpcb{color:#aaadb2;font:13px arial,sans-serif;cursor:pointer;align-self:center}@media (hover:hover){.sbai{visibility:hidden}.sbhl .sbai{visibility:inherit}}Delete"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "LPT online",
+    "href": "https://lpt.revenue.ie/lpt-web/views/login.html?execution=e1s1&_eventId=changeLocale&locale=en"
   },
   {
-    "tag": "div",
-    "class": "AQZ9Vd",
-    "role": "button",
-    "text": "Delete"
+    "tag": "a",
+    "class": "revenueLogo float-left",
+    "href": "/en/home.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "myAccount",
+    "href": "https://www.ros.ie/myaccount-web/sign_in.html?execution=e1s1&lang=en"
+  },
+  {
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "ROS",
+    "href": "https://www.ros.ie/oidc/login?lang=en&client_id=rosint_rp"
+  },
+  {
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "LPT online",
+    "href": "https://lpt.revenue.ie/lpt-web/views/login.html?execution=e1s1&_eventId=changeLocale&locale=en"
+  },
+  {
+    "tag": "a",
+    "class": "changeLang links nopadding",
+    "text": "Gaeilge",
+    "href": "#"
   },
   {
     "tag": "input",
-    "class": "gNO89b",
-    "name": "btnK",
-    "role": "button",
-    "ariaLabel": "Cuardach Google",
-    "type": "submit"
+    "id": "searchInput",
+    "class": "input-group-field ui-autocomplete-input",
+    "name": "searchInput",
+    "ariaLabel": "Search",
+    "placeholder": "Search",
+    "type": "text"
   },
   {
-    "tag": "input",
-    "class": "RNmpXc",
-    "name": "btnI",
-    "ariaLabel": "Tá an tÁdh Orm Inniu!",
-    "type": "submit"
-  },
-  {
-    "tag": "a",
-    "class": "lh87ke",
-    "text": "Tuilleadh eolais",
-    "href": "https://support.google.com/websearch/answer/106230?hl=ga"
-  },
-  {
-    "tag": "div",
-    "class": "WzNHm mWcf0e",
-    "role": "button",
-    "text": "Report inappropriate predictions"
-  },
-  {
-    "tag": "input",
-    "class": "gNO89b",
-    "name": "btnK",
-    "role": "button",
-    "ariaLabel": "Cuardach Google",
-    "type": "submit"
-  },
-  {
-    "tag": "input",
-    "class": "RNmpXc",
-    "name": "btnI",
-    "ariaLabel": "Tá an tÁdh Orm Inniu!",
-    "type": "submit"
+    "tag": "button",
+    "id": "btnSearch",
+    "class": "button icon-button",
+    "text": "Search",
+    "type": "button"
   },
   {
     "tag": "a",
-    "text": "English",
-    "href": "https://www.google.com/setprefs?sig=0_hgrOLkpWnIV58qk2syonpAG69Vg%3D&hl=en&source=homepage&sa=X&ved=0ahUKEwjI087R67mPAxW9WUEAHcg2NkoQ2ZgBCBQ"
+    "text": "Direct debit modernisation",
+    "href": "/en/starting-a-business/paying-your-tax/monthly-direct-debit/index.aspx"
   },
   {
     "tag": "a",
-    "class": "pHiOh",
-    "text": "Fúinne",
-    "href": "https://about.google/?utm_source=google-IE&utm_medium=referral&utm_campaign=hp-footer&fg=1"
+    "text": "Help to Buy (HTB) Scheme",
+    "href": "/en/property/help-to-buy-incentive/index.aspx"
   },
   {
     "tag": "a",
-    "class": "pHiOh",
-    "text": "Advertising",
-    "href": "https://www.google.com/intl/ga_ie/ads/?subid=ww-ww-et-g-awa-a-g_hpafoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpafooter&fg=1"
+    "text": "Local Property Tax (LPT)",
+    "href": "/en/property/local-property-tax/index.aspx"
   },
   {
     "tag": "a",
-    "class": "pHiOh",
-    "text": "Business",
-    "href": "https://www.google.com/services/?subid=ww-ww-et-g-awa-a-g_hpbfoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpbfooter&fg=1"
+    "text": "Pensions",
+    "href": "/en/jobs-and-pensions/pension/index.aspx"
+  },
+  {
+    "tag": "button",
+    "class": "button",
+    "text": "Read more...",
+    "type": "button"
   },
   {
     "tag": "a",
-    "class": "pHiOh",
-    "text": "Conas a oibríonn Cuardach",
-    "href": "https://google.com/search/howsearchworks/?fg=1"
+    "class": "tile",
+    "text": "Jobs and pensions\n\nStarting work, Emergency Tax, claiming a refund, calculating your tax, understanding entitlements, pensions, being tax compliant.",
+    "href": "/en/jobs-and-pensions/index.aspx"
   },
   {
     "tag": "a",
-    "class": "pHiOh",
-    "text": "Príobháideacht",
-    "href": "https://policies.google.com/privacy?hl=ga&fg=1"
+    "class": "tile",
+    "text": "Personal tax credits, reliefs and exemptions\n\nUnderstand your tax entitlements and ensure you get what you are due.",
+    "href": "/en/personal-tax-credits-reliefs-and-exemptions/index.aspx"
   },
   {
     "tag": "a",
-    "class": "pHiOh",
-    "text": "Téarmaí",
-    "href": "https://policies.google.com/terms?hl=ga&fg=1"
-  },
-  {
-    "tag": "div",
-    "class": "CcNe6e",
-    "role": "button",
-    "text": "Sainroghanna"
+    "class": "tile",
+    "text": "Life events and personal circumstances\n\nMarriage, separation, having children, illness, bereavement, disability, unemployment, retirement.",
+    "href": "/en/life-events-and-personal-circumstances/index.aspx"
   },
   {
     "tag": "a",
-    "role": "menuitem",
-    "text": "Socruithe cuardaigh",
-    "href": "https://www.google.com/preferences?hl=ga&fg=1"
+    "class": "tile",
+    "text": "Self-assessment and self-employment\n\nPay and file, Relevant Contracts Tax, Professional Services Withholding Tax, share options, disclosure, audit.",
+    "href": "/en/self-assessment-and-self-employment/index.aspx"
   },
   {
     "tag": "a",
-    "role": "menuitem",
-    "text": "Cuardach casta",
-    "href": "/advanced_search?hl=ga&fg=1"
+    "class": "tile",
+    "text": "Gains, gifts and inheritances\n\nSelling assets, paying tax on gifts and inheritances, filing returns, Probate Tax, reliefs and exemptions.",
+    "href": "/en/gains-gifts-and-inheritance/index.aspx"
   },
   {
     "tag": "a",
-    "role": "menuitem",
-    "text": "Do shonraí in Cuardach",
-    "href": "/history/privacyadvisor/search/unauth?utm_source=googlemenu&fg=1&cctld=com"
+    "class": "tile",
+    "text": "Employing people\n\nHiring and paying employees, returns, paying tax, benefit in kind, social welfare payments, employee expenses, PAYE modernisation.",
+    "href": "/en/employing-people/index.aspx"
   },
   {
     "tag": "a",
-    "role": "menuitem",
-    "text": "Oiriúnú agus fianáin",
-    "href": "https://consent.google.com/d?continue=https://www.google.com/&gl=IE&m=0&pc=shp&cm=5&hl=ga&src=4"
+    "class": "tile",
+    "text": "Property\n\nBuying and selling, Local Property Tax, Stamp Duty, Home Renovation Incentive, Help to Buy, rental income.",
+    "href": "/en/property/index.aspx"
   },
   {
     "tag": "a",
-    "role": "menuitem",
-    "text": "Stair na gcuardach",
-    "href": "/history/optout?hl=ga&fg=1"
+    "class": "tile",
+    "text": "Starting and running a business\n\nRegistering for tax, tax clearance, paying tax, initiatives for start-ups, licences, authorisations, importing and exporting goods.",
+    "href": "/en/starting-a-business/index.aspx"
   },
   {
     "tag": "a",
-    "role": "menuitem",
-    "text": "Cabhair le cuardach",
-    "href": "https://support.google.com/websearch/?p=ws_results_help&hl=ga&fg=1"
+    "class": "tile",
+    "text": "Companies and charities\n\nCorporation tax, international tax, charities and sports bodies, excise and licences, compliance, audit, disclosures.",
+    "href": "/en/companies-and-charities/index.aspx"
   },
   {
-    "tag": "span",
-    "role": "menuitem",
-    "text": "Seol aiseolas"
+    "tag": "a",
+    "class": "tile",
+    "text": "Additional incomes\n\nBenefits from employers, social welfare payments, second jobs, employment related shares, overtime.",
+    "href": "/en/additional-incomes/index.aspx"
   },
   {
-    "tag": "div",
-    "id": "YUIDDb",
-    "class": "y0fQ9c",
-    "role": "menuitem",
-    "text": ".tFYjZe{align-items:center;display:flex;justify-content:space-between;padding-bottom:4px;padding-top:4px}.tFYjZe:hover .iOHNLb,.tFYjZe:focus .iOHNLb{opacity:1}.iOHNLb{color:#9e9e9e;height:20px;margin-top:-2px;opacity:0;width:20px}Téama dorcha: Ar siúl"
+    "tag": "a",
+    "class": "tile",
+    "text": "Vehicle Registration Tax (VRT)\n\nImporting a vehicle, calculating and paying VRT, reliefs, exemptions, appeals and vehicle conversions.",
+    "href": "/en/vrt/index.aspx"
   },
   {
-    "tag": "div",
-    "class": "tFYjZe",
-    "role": "link",
-    "text": "Téama dorcha: Ar siúl"
+    "tag": "a",
+    "class": "tile",
+    "text": "Value-Added Tax (VAT)\n\nRates, registration, paying and reclaiming VAT, property and construction.",
+    "href": "/en/vat/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Online services",
+    "href": "/en/online-services/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Tax and duty professionals",
+    "href": "/en/tax-professionals/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Customs",
+    "href": "/en/customs/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue concludes 2025 PAYE correspondence campaign",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090125-correspondence-campaign.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize cocaine worth €980,000 at Dublin Port",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082725-cocaine-dublin-port.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize contraband worth €340,440 in various operations",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082725-contraband.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize herbal cannabis worth €399,600 at Dublin Airport",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082625-cannabis-dublin-airport.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize herbal cannabis worth over €3 million in Rosslare Europort",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082425-cannabis-rosslare-europort.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "View all news",
+    "href": "/en/news/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue concludes 2025 PAYE correspondence campaign",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090125-correspondence-campaign.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize cocaine worth €980,000 at Dublin Port",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082725-cocaine-dublin-port.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize contraband worth €340,440 in various operations",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082725-contraband.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize herbal cannabis worth €399,600 at Dublin Airport",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082625-cannabis-dublin-airport.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize herbal cannabis worth over €3 million in Rosslare Europort",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-082425-cannabis-rosslare-europort.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "View all news",
+    "href": "/en/news/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Back to homepage",
+    "href": "/en/home.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "back-to-top",
+    "text": "Back to top",
+    "href": "#"
+  },
+  {
+    "tag": "a",
+    "text": "Careers",
+    "href": "/en/corporate/information-about-revenue/careers/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Customer service",
+    "href": "/en/corporate/information-about-revenue/customer-service/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Press office",
+    "href": "/en/corporate/press-office/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Information about Revenue",
+    "href": "/en/corporate/information-about-revenue/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue museum",
+    "href": "/en/corporate/information-about-revenue/revenue-museum/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Assist us",
+    "href": "/en/corporate/assist-us/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Consultations and submissions",
+    "href": "/en/corporate/consultations-and-submissions/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Contact us",
+    "href": "/en/contact-us/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Statistics and research",
+    "href": "/en/corporate/information-about-revenue/statistics/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Tax education",
+    "href": "/en/tax-education/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Using revenue.ie",
+    "href": "/en/corporate/using-revenue/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Communications",
+    "href": "/en/corporate/communications/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Central Register of Beneficial Ownership of Trusts (CRBOT)",
+    "href": "/en/crbot/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": " bold-link normal-link::after",
+    "text": "Accessibility",
+    "href": "/en/online-services/support/technical-requirements/accessibility-statement/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": " bold-link normal-link::after",
+    "text": "Statutory obligations",
+    "href": "/en/corporate/statutory-obligations/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": " bold-link normal-link::after",
+    "text": "Privacy",
+    "href": "/en/online-services/support/data-and-security/privacy/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "Website feedback",
+    "href": "https://revenue.eu.qualtrics.com/jfe/form/SV_3EpTMqX6iaPuoYJ"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "WhoDoesWhat (English)",
+    "href": "https://www.gov.ie/en/organisation-information/467cb-who-does-what-office-of-the-revenue-commissioners/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "WhoDoesWhat (Irish)",
+    "href": "https://www.gov.ie/ga/oifig-na-gcoimisin%C3%A9ir%C3%AD-ioncaim/eolas-eagraiochta/revenue-commissioners-who-does-what/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "gov.ie (English)",
+    "href": "http://www.gov.ie/en/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "gov.ie (Irish)",
+    "href": "https://www.gov.ie/ga/"
   }
 ]
