@@ -15,6 +15,98 @@
       flex-direction: column;
       font-family: Arial, sans-serif;
     }
+      /* Chat Interface Styles */
+      .hidden {
+        display: none !important;
+      }
+
+      #chat-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 400px;
+        height: 600px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        z-index: 1001;
+      }
+
+      #chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #f1f1f1;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+      }
+
+      #chat-header h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      #close-chat-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      #chat-messages {
+        flex-grow: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .chat-message {
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 80%;
+      }
+
+      .user-message {
+        background-color: #4a90e2;
+        color: white;
+        align-self: flex-end;
+      }
+
+      .ai-message {
+        background-color: #f1f1f1;
+        color: black;
+        align-self: flex-start;
+      }
+
+      #chat-input-container {
+        display: flex;
+        padding: 20px;
+        border-top: 1px solid #f1f1f1;
+      }
+
+      #chat-input {
+        flex-grow: 1;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+        font-size: 16px;
+      }
+
+      #chat-send-btn {
+        margin-left: 10px;
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 16px;
+      }
 
 
 
@@ -76,6 +168,7 @@
       color: white;
       margin-left: 8px;
       cursor: pointer;
+
       /* Make it look clickable */
     }
 
@@ -329,14 +422,15 @@
 
 <body>
   <div id="address-bar">
-    <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo" style="height: 32px; margin-right: 8px;">
-    <button id="back-btn" class="nav-btn">←</button>
-    <button id="forward-btn" class="nav-btn">→</button>
-    <button id="refresh-btn" class="nav-btn">↻</button>
-    <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" />
-    <span id="wcag-score-label" class="wcag-score"></span>
-    <button id="simplify-text-btn" class="nav-btn" title="Simplify page text">📝</button>
-    <button id="simplify-btn" class="nav-btn">Simplify</button>
+  <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo" style="height: 32px; margin-right: 8px;">
+  <button id="back-btn" class="nav-btn">←</button>
+  <button id="forward-btn" class="nav-btn">→</button>
+  <button id="refresh-btn" class="nav-btn">↻</button>
+  <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" />
+  <span id="wcag-score-label" class="wcag-score"></span>
+  <button id="mic-btn" class="nav-btn">🎤</button>
+  <button id="simplify-text-btn" class="nav-btn" title="Simplify page text">📝</button>
+  <button id="simplify-btn" class="nav-btn">Simplify</button>
   </div>
   <div id="container">
     <webview id="webview" src="about:blank" allowpopups></webview>
@@ -390,6 +484,18 @@
   </div>
 
   <script type="module" src="./src/renderer/renderer.js"></script>
-</body>
+    <div id="chat-container" class="hidden">
+      <div id="chat-header">
+        <h3>Aura Chat</h3>
+  <button id="close-chat-btn" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: #333; z-index: 1002;">×</button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-container">
+        <input type="text" id="chat-input" placeholder="Ask Aura anything...">
+  <button id="mic-chat-btn" class="action-btn" style="margin-left: 8px;">🎤</button>
+        <button id="chat-send-btn">Send</button>
+      </div>
+    </div>
 
+</body>
 </html>
