@@ -1,1 +1,1 @@
-"[\n  {\n    \"action\": \"goto\",\n    \"url\": \"/en/home.aspx\"\n  },\n  {\n    \"action\": \"click\",\n    \"selector\": \".button\"\n  }\n]"
+"[\n  {\n    \"action\": \"fill\",\n    \"selector\": \"#statCode\",\n    \"text\": \"exampleStatCode\"\n  },\n  {\n    \"action\": \"select\",\n    \"selector\": \"#startYear\",\n    \"value\": \"2021\"\n  },\n  {\n    \"action\": \"select\",\n    \"selector\": \"#startMonth\",\n    \"value\": \"January\"\n  }\n]"

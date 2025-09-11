@@ -310,7 +310,7 @@ Make sure each suggestion references specific elements or content from the DOM a
       case 'wait':
         return `⏳ Waiting ${command.milliseconds}ms`;
       case 'agree_and_start_form':
-        return `✅ Agreeing to terms and starting form`;
+        return `✅ Agreeing to terms and conditions`;
       case 'start_form_filling':
         return `📝 Starting form filling process`;
       case 'traverse':
@@ -819,17 +819,14 @@ Make sure each suggestion references specific elements or content from the DOM a
         try {
           const ackResult = await webview.executeJavaScript(checkAcknowledgmentScript, true);
           if (ackResult.acknowledged.length > 0) {
-            addMessage(`✓ Acknowledged: ${ackResult.acknowledged.map(a => a.label).join(', ')}`, 'ai');
-            // Wait a moment for any page updates
+            addMessage(`✅ Acknowledged: ${ackResult.acknowledged.map(a => a.label).join(', ')}`, 'ai');
+            // Wait a moment for any page updates after acknowledgment
             await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Now automatically start form filling
-            const startFormCommand = { action: 'start_form_filling' };
-            await executeCommands([startFormCommand]);
+            addMessage(`✓ Agreement completed. You may now proceed to the next step or navigate to a form.`, 'ai');
           } else {
-            addMessage('No acknowledgment checkboxes found. Starting form filling directly...', 'ai');
-            const startFormCommand = { action: 'start_form_filling' };
-            await executeCommands([startFormCommand]);
+            addMessage('❌ No acknowledgment checkboxes found on this page.', 'ai');
+            executionFailed = true;
+            break;
           }
         } catch (e) {
           console.error('Acknowledgment error:', e);
@@ -1366,7 +1363,7 @@ Make sure each suggestion references specific elements or content from the DOM a
       ];
     }
     
-    // Demo Command 5: I agree - Check acknowledgment boxes and start form
+    // Demo Command 5: I agree - Check acknowledgment boxes only
     if (lowerMessage.includes('i agree') || lowerMessage.includes('i accept') || lowerMessage.includes('i acknowledge')) {
       return [
         {
@@ -1375,8 +1372,8 @@ Make sure each suggestion references specific elements or content from the DOM a
       ];
     }
     
-    // Demo Command 6: Fill form (without acknowledgment)
-    if (lowerMessage.includes('fill form') || lowerMessage === '5' || lowerMessage.includes('start form') || lowerMessage.includes('form filling')) {
+    // Demo Command 6: Fill form (separate from acknowledgment)
+    if (lowerMessage.includes('fill form') || lowerMessage === '6' || lowerMessage.includes('start form') || lowerMessage.includes('form filling')) {
       return [
         {
           "action": "start_form_filling"
