@@ -1,12 +1,17 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main')
 const path = require('node:path')
 const fs = require('node:fs/promises'); // Import Node.js file system promises API
-const { spawn } = require('child_process');
+// Removed Ollama spawn import
+require('dotenv').config();
+const OpenAI = require('openai');
 
+const openai = new OpenAI({
+  apiKey: process.env.CHAT_GPT_API,
+});
 
 app.setName('Aura');
 
-// IPC handler to classify user input as 'question' or 'action' using LLM
+// IPC handler to classify user input as 'question' or 'action' using GPT
 ipcMain.handle('classify-intent', async (event, userMessage) => {
   const systemPrompt = `You are an intent classifier for a browser assistant. Given a user message, respond with only 'question' if the user is asking for information, or 'action' if the user is asking to perform an action on the website. Do not explain your answer.`;
   const messages = [
@@ -14,33 +19,20 @@ ipcMain.handle('classify-intent', async (event, userMessage) => {
     { role: 'user', content: userMessage }
   ];
   try {
-    // Directly spawn Ollama for classification
-    return await new Promise((resolve, reject) => {
-      const input = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-      const child = spawn('ollama', ['run', 'mistral:7b-instruct-v0.2-q4_0']);
-      let output = '';
-      child.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-      child.stderr.on('data', (data) => {
-        console.error('Ollama stderr:', data.toString());
-      });
-      child.on('close', (code) => {
-        const cleanedOutput = output.replace(/^Thinking\.{3}.*?\.\.\.done thinking\.\n*/s, '');
-        const intent = (cleanedOutput || '').trim().toLowerCase();
-        if (intent === 'question' || intent === 'action') {
-          resolve(intent);
-        } else if (intent.includes('question')) {
-          resolve('question');
-        } else if (intent.includes('action')) {
-          resolve('action');
-        } else {
-          resolve('unknown');
-        }
-      });
-      child.stdin.write(input + '\n');
-      child.stdin.end();
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: messages,
     });
+    const intent = (response.choices[0].message.content || '').trim().toLowerCase();
+    if (intent === 'question' || intent === 'action') {
+      return intent;
+    } else if (intent.includes('question')) {
+      return 'question';
+    } else if (intent.includes('action')) {
+      return 'action';
+    } else {
+      return 'unknown';
+    }
   } catch (error) {
     console.error('Intent classification failed:', error);
     return 'unknown';
@@ -59,33 +51,19 @@ ipcMain.handle('read-local-file', async (event, filePath) => {
 });
 
 
-ipcMain.handle('ollama:chat', async (event, messages) => {
-  console.log('ollama:chat handler called');
-  return new Promise((resolve, reject) => {
-    const input = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-    console.log('Input to Ollama length:', input.length);
-    const child = spawn('ollama', ['run', 'mistral:7b-instruct-v0.2-q4_0']);
-
-    let output = '';
-    child.stdout.on('data', (data) => {
-      output += data.toString();
+ipcMain.handle('gpt:chat', async (event, messages) => {
+  console.log('gpt:chat handler called');
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: messages,
     });
-
-    child.stderr.on('data', (data) => {
-      console.error('Ollama stderr:', data.toString());
-    });
-
-    child.on('close', (code) => {
-      console.log(`Ollama process closed with code ${code}`);
-      // Remove the "thinking" part of the output.
-      const cleanedOutput = output.replace(/^Thinking\.\.\..*?\.\.\.done thinking\.\n*/s, '');
-      console.log('Cleaned Ollama output length:', cleanedOutput.length);
-      resolve(cleanedOutput);
-    });
-
-    child.stdin.write(input + '\n');
-    child.stdin.end();
-  });
+    const reply = response.choices[0].message.content;
+    return reply;
+  } catch (error) {
+    console.error('OpenAI GPT chat error:', error);
+    throw new Error('Failed to get response from GPT API');
+  }
 });
 
 ipcMain.handle('save-dom-log', async (event, domJson) => {

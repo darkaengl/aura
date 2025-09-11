@@ -2,9 +2,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose a safe, limited API to the renderer process
 
-contextBridge.exposeInMainWorld('ollamaAPI', {
+contextBridge.exposeInMainWorld('gptAPI', {
   chat: async (messages) => {
-    return await ipcRenderer.invoke('ollama:chat', messages);
+    return await ipcRenderer.invoke('gpt:chat', messages);
   },
   classifyIntent: async (userMessage) => {
     return await ipcRenderer.invoke('classify-intent', userMessage);

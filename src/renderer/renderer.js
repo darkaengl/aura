@@ -1068,7 +1068,7 @@ window.onload = async () => {
       }
 
       // Classify intent first
-      const intent = await window.ollamaAPI.classifyIntent(message);
+  const intent = await window.gptAPI.classifyIntent(message);
       console.log('Intent classified as:', intent, 'for message:', message);
 
       if (intent === 'action') {
@@ -1159,7 +1159,7 @@ Generated commands:
 Please generate the JSON array of commands. Provide only the JSON array, with no other text before or after it.
 `;
         console.log('Sending message to LLM with context...');
-        const llmResponse = await window.ollamaAPI.chat([{ role: 'user', content: messageWithContext }]);
+  const llmResponse = await window.gptAPI.chat([{ role: 'user', content: messageWithContext }]);
         console.log('LLM response received:', llmResponse);
         await window.mainAPI.saveLlmLog(llmResponse);
         try {
@@ -1176,7 +1176,7 @@ Please generate the JSON array of commands. Provide only the JSON array, with no
         const pageText = await extractVisibleTextFromWebview();
         console.log('Extracted page text:', pageText);
         const prompt = `You are an AI assistant. The user is viewing a website and has asked: "${message}"\n\nHere is the visible text from the page:\n${pageText}\n\nPlease answer the user's question using only the information from the page. If the answer is not present, say so.`;
-        const llmResponse = await window.ollamaAPI.chat([{ role: 'user', content: prompt }]);
+  const llmResponse = await window.gptAPI.chat([{ role: 'user', content: prompt }]);
         addMessage(llmResponse, 'ai');
         await window.mainAPI.saveLlmLog(llmResponse);
       } else {
