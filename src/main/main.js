@@ -260,7 +260,6 @@ ipcMain.handle('process-pdf-for-simplification', async (event, pdfArrayBuffer) =
   }
 });
 
-<<<<<<< HEAD
 ipcMain.handle('webview:execute-javascript', async (event, script) => {
   try {
     // Get the webContents of the webview that sent the IPC message
@@ -273,8 +272,8 @@ ipcMain.handle('webview:execute-javascript', async (event, script) => {
     }
   } catch (error) {
     console.error('Error executing script in webview from main process:', error);
-    throw error;
-=======
+    throw error;})
+    
 // Google Cloud Speech-to-Text IPC handler
 const speech = require('@google-cloud/speech');
 const speechClient = new speech.SpeechClient({
@@ -306,7 +305,6 @@ ipcMain.handle('transcribe-audio', async (event, audioBuffer, sampleRate) => {
   } catch (error) {
     console.error('Google Cloud Speech-to-Text error:', error);
     throw new Error(`Speech-to-Text failed: ${error.message}`);
->>>>>>> 52c6995a225b0b4ce73b9dba724c08f87e076ed0
   }
 });
 
