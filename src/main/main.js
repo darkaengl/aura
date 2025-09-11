@@ -5,7 +5,7 @@ require('dotenv').config();
 const OpenAI = require('openai');
 
 const openai = new OpenAI({
-  apiKey: process.env.CHAT_GPT_API,
+  apiKey: process.env.CHATGPT_API_KEY,
 });
 
 app.setName('Aura');

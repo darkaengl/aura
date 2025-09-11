@@ -129,6 +129,138 @@ window.onload = async () => {
     chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
   };
 
+  // Helper function to get human-readable command descriptions
+  const getCommandDescription = (command) => {
+    switch (command.action) {
+      case 'goto':
+        return `🌐 Navigating to: ${command.url}`;
+      case 'click':
+        return `👆 Clicking element: ${command.selector}`;
+      case 'fill':
+        return `✏️ Filling field "${command.selector}" with: "${command.text}"`;
+      case 'scroll':
+        return `📜 Scrolling ${command.direction}${command.amount ? ` by ${command.amount}px` : ''}`;
+      case 'search':
+        return `🔍 Searching for: "${command.query}"`;
+      case 'search_content':
+        return `🔍 Looking for content: "${command.topic}"`;
+      case 'search_and_navigate':
+        return `🔍➡️ Finding and navigating to: "${command.topic}"`;
+      case 'select':
+        return `📋 Selecting option "${command.value}" in: ${command.selector}`;
+      case 'hover':
+        return `🖱️ Hovering over: ${command.selector}`;
+      case 'wait':
+        return `⏳ Waiting ${command.milliseconds}ms`;
+      case 'agree_and_start_form':
+        return `✅ Agreeing to terms and starting form`;
+      case 'start_form_filling':
+        return `📝 Starting form filling process`;
+      case 'traverse':
+        return `🚶 Traversing through: ${command.text}`;
+      case 'follow-link':
+        return `🔗 Following link: ${command.text}`;
+      default:
+        return `⚡ Executing: ${command.action}`;
+    }
+  };
+
+  // Helper function to show visual command indicator
+  const showCommandIndicator = (command, stepNumber) => {
+    // Create a floating indicator on the page
+    const indicatorScript = `
+      (() => {
+        try {
+          // Remove any existing indicators
+          const existingIndicators = document.querySelectorAll('.aura-command-indicator');
+          existingIndicators.forEach(ind => ind.remove());
+          
+          // Create new indicator
+          const indicator = document.createElement('div');
+          indicator.className = 'aura-command-indicator';
+          indicator.style.cssText = \`
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.3s ease-out;
+          \`;
+          
+          // Add CSS animation
+          if (!document.querySelector('#aura-animations')) {
+            const style = document.createElement('style');
+            style.id = 'aura-animations';
+            style.textContent = \`
+              @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+              }
+              @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+              }
+              .aura-command-indicator.fade-out {
+                animation: fadeOut 0.3s ease-out forwards;
+              }
+            \`;
+            document.head.appendChild(style);
+          }
+          
+          const actionEmojis = {
+            'goto': '🌐',
+            'click': '👆',
+            'fill': '✏️',
+            'scroll': '📜',
+            'search': '🔍',
+            'search_content': '🔍',
+            'search_and_navigate': '🔍➡️',
+            'select': '📋',
+            'hover': '🖱️',
+            'wait': '⏳',
+            'agree_and_start_form': '✅',
+            'start_form_filling': '📝'
+          };
+          
+          const emoji = actionEmojis['${command.action}'] || '⚡';
+          indicator.innerHTML = \`\${emoji} Step ${stepNumber}: ${command.action}\`;
+          
+          document.body.appendChild(indicator);
+          
+          // Remove indicator after 3 seconds
+          setTimeout(() => {
+            indicator.classList.add('fade-out');
+            setTimeout(() => {
+              if (indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+              }
+            }, 300);
+          }, 3000);
+          
+          return { success: true };
+        } catch (e) {
+          console.error('Indicator error:', e);
+          return { success: false, error: e.message };
+        }
+      })();
+    `;
+    
+    try {
+      webview.executeJavaScript(indicatorScript, true);
+    } catch (e) {
+      console.error('Failed to show command indicator:', e);
+    }
+  };
+
   const getDomFromWebview = () => {
     console.log('getDomFromWebview called');
     return new Promise((resolve) => {
@@ -178,15 +310,27 @@ window.onload = async () => {
   };
 
   const executeCommands = async (commands) => {
-    for (const command of commands) {
-      console.log(`Executing command:`, command);
+    addMessage(`📋 Executing ${commands.length} command(s)...`, 'ai');
+    
+    for (let i = 0; i < commands.length; i++) {
+      const command = commands[i];
+      console.log(`Executing command ${i + 1}/${commands.length}:`, command);
+      
+      // Add visual representation of the command
+      const commandDescription = getCommandDescription(command);
+      addMessage(`${i + 1}. ${commandDescription}`, 'ai');
+      
+      // Add visual indicator to the UI
+      showCommandIndicator(command, i + 1);
 
       if (command.action === 'goto') {
         webview.loadURL(command.url);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for navigation
         continue;
       }
 
       if (command.action === 'wait') {
+        addMessage(`⏳ Waiting ${command.milliseconds}ms...`, 'ai');
         await new Promise(resolve => setTimeout(resolve, command.milliseconds));
         continue;
       }
@@ -194,6 +338,7 @@ window.onload = async () => {
       if (command.action === 'search_content') {
         // Actually search for the topic in the DOM and scroll to it
         console.log(`Searching for topic: ${command.topic}`);
+        addMessage(`🔍 Searching for "${command.topic}" on the page...`, 'ai');
         
         const searchScript = `
           (() => {
@@ -314,13 +459,13 @@ window.onload = async () => {
         try {
           const result = await webview.executeJavaScript(searchScript, true);
           if (result.found) {
-            addMessage(`Found "${result.matchedTerm}": ${result.text.substring(0, 100)}... (${result.matches} total matches)`, 'ai');
+            addMessage(`✅ Found "${result.matchedTerm}": ${result.text.substring(0, 100)}... (${result.matches} total matches)`, 'ai');
           } else {
-            addMessage(`Topic "${command.topic}" not found. Searched for: ${result.searchedFor.join(', ')}`, 'ai');
+            addMessage(`❌ Topic "${command.topic}" not found. Searched for: ${result.searchedFor.join(', ')}`, 'ai');
           }
         } catch (e) {
           console.error('Search content error:', e);
-          addMessage(`Error searching for "${command.topic}": ${e.message}`, 'ai');
+          addMessage(`❌ Error searching for "${command.topic}": ${e.message}`, 'ai');
         }
         continue;
       }
@@ -328,6 +473,7 @@ window.onload = async () => {
       if (command.action === 'search_and_navigate') {
         // Search for the topic and click on it to navigate
         console.log(`Searching and navigating to: ${command.topic}`);
+        addMessage(`🔍➡️ Finding and clicking "${command.topic}"...`, 'ai');
         
         const searchAndClickScript = `
           (() => {
@@ -436,13 +582,13 @@ window.onload = async () => {
         try {
           const result = await webview.executeJavaScript(searchAndClickScript, true);
           if (result.found && result.clicked) {
-            addMessage(`Navigating to "${result.matchedTerm}": ${result.text}${result.href ? ' → ' + result.href : ''}`, 'ai');
+            addMessage(`✅ Found and clicked "${result.matchedTerm}": ${result.text}${result.href ? ' → ' + result.href : ''}`, 'ai');
           } else {
-            addMessage(`Could not find clickable element for "${command.topic}". Searched for: ${result.searchedFor.join(', ')}`, 'ai');
+            addMessage(`❌ Could not find clickable element for "${command.topic}". Searched for: ${result.searchedFor.join(', ')}`, 'ai');
           }
         } catch (e) {
           console.error('Search and navigate error:', e);
-          addMessage(`Error navigating to "${command.topic}": ${e.message}`, 'ai');
+          addMessage(`❌ Error navigating to "${command.topic}": ${e.message}`, 'ai');
         }
         continue;
       }
@@ -450,6 +596,7 @@ window.onload = async () => {
       if (command.action === 'agree_and_start_form') {
         // Check acknowledgment boxes and start form filling
         console.log('Checking acknowledgment and starting form filling...');
+        addMessage(`✅ Looking for agreement checkboxes and forms...`, 'ai');
         
         const checkAcknowledgmentScript = `
           (() => {
@@ -698,16 +845,23 @@ window.onload = async () => {
 
       try {
         const result = await webview.executeJavaScript(script, true);
-        if (result && !result.success) {
-          const errorMessage = `Error executing command: ${result.error}`;
+        if (result && result.success) {
+          addMessage(`✅ Step ${i + 1} completed successfully`, 'ai');
+        } else if (result && !result.success) {
+          const errorMessage = `❌ Step ${i + 1} failed: ${result.error}`;
           console.error(errorMessage);
           addMessage(errorMessage, 'ai');
         }
       } catch (e) {
         console.error('Error executing script in webview:', e);
-        addMessage(`Error executing script: ${e.message}`, 'ai');
+        addMessage(`❌ Step ${i + 1} failed: ${e.message}`, 'ai');
       }
+      
+      // Small delay between commands for better visual feedback
+      await new Promise(resolve => setTimeout(resolve, 800));
     }
+    
+    addMessage(`🎉 All ${commands.length} commands completed!`, 'ai');
   };
 
   // Form filling helper functions
@@ -1164,9 +1318,9 @@ Please generate the JSON array of commands. Provide only the JSON array, with no
         await window.mainAPI.saveLlmLog(llmResponse);
         try {
           const commands = JSON.parse(llmResponse);
-          addMessage("Executing the steps...", 'ai');
+          addMessage("🚀 Executing the automation steps...", 'ai');
           await executeCommands(commands);
-          addMessage("Done.", 'ai');
+          addMessage("✨ Task completed successfully!", 'ai');
         } catch (e) {
           addMessage(llmResponse, 'ai');
         }

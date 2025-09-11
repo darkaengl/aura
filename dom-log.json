@@ -1,615 +1,409 @@
 [
   {
     "tag": "a",
-    "class": "hse-skip-link",
-    "text": "Skip to main content",
-    "href": "#maincontent"
-  },
-  {
-    "tag": "a",
-    "class": "hse-utility-links__navigation-link",
-    "text": "Jobs",
-    "href": "https://about.hse.ie/jobs/job-search/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-utility-links__navigation-link",
-    "text": "HSE Staff",
-    "href": "https://healthservice.hse.ie/staff/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-utility-links__navigation-link",
-    "text": "About the HSE",
-    "href": "https://about.hse.ie/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__link",
-    "ariaLabel": "HSE homepage",
-    "href": "/"
+    "text": "Cookie Statement",
+    "href": "https://revenue.ie/en/online-services/support/data-and-security/privacy/use-of-cookies.aspx"
   },
   {
     "tag": "button",
-    "id": "toggle-search",
-    "class": "hse-header__toggle-btn hse-header__toggle-btn--search",
-    "text": "Toggle search\nSearch"
-  },
-  {
-    "tag": "input",
-    "id": "search-field",
-    "class": "hse-input hse-input--search",
-    "name": "q",
-    "type": "search"
-  },
-  {
-    "tag": "button",
-    "class": "hse-search-full__submit",
-    "text": "Search",
-    "type": "submit"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__recommended-links__link",
-    "text": "Medical cards",
-    "href": "https://www2.hse.ie/services/schemes-allowances/medical-cards/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__recommended-links__link",
-    "text": "European Health Insurance Card (EHIC)",
-    "href": "https://www2.hse.ie/services/schemes-allowances/ehic/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__recommended-links__link",
-    "text": "Find urgent and emergency care",
-    "href": "https://www2.hse.ie/services/urgent-emergency-care/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__recommended-links__link",
-    "text": "Find a civil registration service",
-    "href": "https://www2.hse.ie/services/births-deaths-and-marriages/find-a-civil-registration-service/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__recommended-links__link",
-    "text": "GP visit cards",
-    "href": "https://www2.hse.ie/services/schemes-allowances/gp-visit-cards/gp-visit-cards/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "Health A to Z",
-    "href": "https://www2.hse.ie/conditions/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "Services",
-    "href": "https://www2.hse.ie/services/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "Living well",
-    "href": "https://www2.hse.ie/living-well/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "Mental health",
-    "href": "https://www2.hse.ie/mental-health/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "Pregnancy and birth",
-    "href": "https://www2.hse.ie/pregnancy-birth/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "Babies and children",
-    "href": "https://www2.hse.ie/babies-children/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "Jobs",
-    "href": "https://about.hse.ie/jobs/job-search/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "HSE Staff",
-    "href": "https://healthservice.hse.ie/staff/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mainmenu-link",
-    "text": "About the HSE",
-    "href": "https://about.hse.ie/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mobilemenu__navigation-link",
-    "text": "Health A to Z",
-    "href": "https://www2.hse.ie/conditions/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mobilemenu__navigation-link",
-    "text": "Services",
-    "href": "https://www2.hse.ie/services/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-header__mobilemenu__navigation-link",
-    "text": "Living Well",
-    "href": "https://www2.hse.ie/living-well"
-  },
-  {
-    "tag": "a",
-    "class": "hse-contents-list__link",
-    "text": "Chrome",
-    "href": "https://www.google.com/intl/en_ie/chrome/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-contents-list__link",
-    "text": "Edge",
-    "href": "https://www.microsoft.com/en-us/edge?form=MA13FJ&exp=e00"
-  },
-  {
-    "tag": "a",
-    "class": "hse-contents-list__link",
-    "text": "FireFox",
-    "href": "https://www.mozilla.org/en-US/firefox/new/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-contents-list__link",
-    "text": "Opera",
-    "href": "https://www.opera.com/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-contents-list__link",
-    "text": "Safari",
-    "href": "https://www.apple.com/safari/"
-  },
-  {
-    "tag": "a",
-    "class": "custom-link",
-    "text": "Health A to Z",
-    "href": "https://www2.hse.ie/conditions/"
-  },
-  {
-    "tag": "a",
-    "class": "custom-link",
-    "text": "Living well",
-    "href": "https://www2.hse.ie/living-well/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "Find a GP out of hours",
-    "href": "https://www2.hse.ie/services/find-urgent-emergency-care/?kind=gp-out-of-hours"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "Find urgent and emergency care",
-    "href": "https://www2.hse.ie/services/find-urgent-emergency-care/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "Find a GP",
-    "href": "https://www2.hse.ie/services/find-a-gp/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "Find a civil registration service",
-    "href": "https://www2.hse.ie/services/births-deaths-and-marriages/find-a-civil-registration-service/"
-  },
-  {
-    "tag": "a",
-    "class": "custom-link",
-    "text": "See all services",
-    "href": "https://www2.hse.ie/services/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "Medical cards",
-    "href": "https://www2.hse.ie/services/schemes-allowances/medical-cards/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "European Health Insurance Card (EHIC)",
-    "href": "https://www2.hse.ie/services/schemes-allowances/ehic/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "Drugs payment scheme",
-    "href": "https://www2.hse.ie/services/schemes-allowances/drugs-payment-scheme/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link",
-    "text": "GP visit cards",
-    "href": "https://www2.hse.ie/services/schemes-allowances/gp-visit-cards/"
-  },
-  {
-    "tag": "a",
-    "class": "custom-link",
-    "text": "See all schemes and allowances",
-    "href": "https://www2.hse.ie/services/schemes-allowances/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link hse-quick-link__link--aqua",
-    "text": "Norovirus",
-    "href": "https://www2.hse.ie/conditions/norovirus/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link hse-quick-link__link--aqua",
-    "text": "Sepsis",
-    "href": "https://www2.hse.ie/conditions/sepsis/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link hse-quick-link__link--aqua",
-    "text": "Slapped cheek syndrome",
-    "href": "https://www2.hse.ie/conditions/slapped-cheek-syndrome/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-quick-link__link hse-quick-link__link--aqua",
-    "text": "Medicines A to Z",
-    "href": "https://www2.hse.ie/medicines/"
-  },
-  {
-    "tag": "a",
-    "class": "custom-link",
-    "text": "Find a pharmacy offering free HRT",
-    "href": "https://www2.hse.ie/services/pharmacies-free-hrt/"
-  },
-  {
-    "tag": "a",
-    "class": "custom-link",
-    "text": "Go to screening and vaccinations",
-    "href": "https://www2.hse.ie/screening-and-vaccinations/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-promo__link-wrapper",
-    "text": "HSE Health App\n\nFind out more about our new app",
-    "href": "https://www2.hse.ie/health-app/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-promo__link-wrapper",
-    "text": "COVID-19 spring booster vaccine\n\nFind out if a spring booster is recommended for you",
-    "href": "https://www2.hse.ie/screening-and-vaccinations/covid-19-vaccine/get-the-vaccine/covid-19-vaccine-booster-dose/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-promo__link-wrapper",
-    "text": "Could it be sepsis?\n\nGet information on what sepsis is and symptoms to watch out for",
-    "href": "https://www2.hse.ie/conditions/sepsis/"
-  },
-  {
-    "tag": "a",
-    "text": "My health my language",
-    "href": "https://www.hse.ie/eng/services/mhml/"
-  },
-  {
-    "tag": "a",
-    "text": "Order HSE resources",
-    "href": "https://www.healthpromotion.ie/"
-  },
-  {
-    "tag": "a",
-    "text": "Urgent and emergency care report (daily)",
-    "href": "https://www2.hse.ie/services/urgent-emergency-care-report/"
-  },
-  {
-    "tag": "a",
-    "text": "PCRS online services",
-    "href": "https://www.hse.ie/eng/staff/pcrs/"
-  },
-  {
-    "tag": "a",
-    "text": "Health A to Z",
-    "href": "https://www2.hse.ie/conditions/"
-  },
-  {
-    "tag": "a",
-    "text": "Pregnancy and birth",
-    "href": "https://www2.hse.ie/pregnancy-birth/"
-  },
-  {
-    "tag": "a",
-    "text": "Babies and children",
-    "href": "https://www2.hse.ie/babies-children/"
-  },
-  {
-    "tag": "a",
-    "text": "Mental health",
-    "href": "https://www2.hse.ie/mental-health/"
-  },
-  {
-    "tag": "a",
-    "text": "Living well",
-    "href": "https://www2.hse.ie/living-well/"
-  },
-  {
-    "tag": "a",
-    "text": "Services",
-    "href": "https://www2.hse.ie/services/"
-  },
-  {
-    "tag": "a",
-    "text": "Screening and vaccinations",
-    "href": "https://www2.hse.ie/screening-and-vaccinations/"
-  },
-  {
-    "tag": "a",
-    "text": "Our work",
-    "href": "https://about.hse.ie/our-work/"
-  },
-  {
-    "tag": "a",
-    "text": "Leadership and operations",
-    "href": "https://about.hse.ie/leadership-and-operations/"
-  },
-  {
-    "tag": "a",
-    "text": "Health regions",
-    "href": "https://about.hse.ie/health-regions/"
-  },
-  {
-    "tag": "a",
-    "text": "Teams",
-    "href": "https://about.hse.ie/organisation/"
-  },
-  {
-    "tag": "a",
-    "text": "News",
-    "href": "https://about.hse.ie/news/"
-  },
-  {
-    "tag": "a",
-    "text": "Publications",
-    "href": "https://about.hse.ie/publications/"
-  },
-  {
-    "tag": "a",
-    "text": "Jobs",
-    "href": "https://about.hse.ie/jobs/job-search/"
-  },
-  {
-    "tag": "a",
-    "text": "Benefits",
-    "href": "http://healthservice.hse.ie/staff/benefits-and-services/"
-  },
-  {
-    "tag": "a",
-    "text": "Training",
-    "href": "http://healthservice.hse.ie/staff/training-and-development/"
-  },
-  {
-    "tag": "a",
-    "text": "Staff news",
-    "href": "http://healthservice.hse.ie/staff/news/"
-  },
-  {
-    "tag": "a",
-    "text": "1800 700 700",
-    "href": "tel:1800700700"
-  },
-  {
-    "tag": "a",
-    "text": "00 353 1 240 8787",
-    "href": "tel:0035312408787"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "HSE Facebook",
-    "href": "https://www.facebook.com/HSElive/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "HSE Instagram",
-    "href": "https://instagram.com/irishhealthservice"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "HSE TikTok",
-    "href": "https://www.tiktok.com/@hselive"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "HSE YouTube",
-    "href": "https://www.youtube.com/channel/UCoNNhGGAYkdavsSXp1iVzCg"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "HSE LinkedIn",
-    "href": "https://ie.linkedin.com/company/health-service-executive"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "HSE X (Twitter)",
-    "href": "https://twitter.com/HSELive"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "Complaints and feedback",
-    "href": "https://www2.hse.ie/services/hse-complaints-and-feedback/your-service-your-say.html"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "Emergencies",
-    "href": "https://www2.hse.ie/services/find-urgent-emergency-care/"
-  },
-  {
-    "tag": "a",
-    "class": "cookie-settings-popup hse-footer__list-item-link",
-    "role": "button",
-    "text": "Cookie settings",
-    "href": "#"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "Cookie statement",
-    "href": "https://www.hse.ie/eng/cookie-policy/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "Accessibility",
-    "href": "https://www2.hse.ie/accessibility-statement/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "Privacy statement",
-    "href": "https://www.hse.ie/eng/privacy-statement/"
-  },
-  {
-    "tag": "a",
-    "class": "hse-footer__list-item-link",
-    "text": "Disclaimer",
-    "href": "https://www.hse.ie/eng/disclaimer/"
-  },
-  {
-    "tag": "button",
-    "id": "close-pc-btn-handler",
-    "class": "ot-close-icon",
-    "ariaLabel": "Close"
+    "class": "cookie-button",
+    "text": "Save and close",
+    "type": "button"
   },
   {
     "tag": "a",
     "text": "Cookie Statement",
-    "href": "https://www2.hse.ie/cookie-statement/"
+    "href": "https://revenue.ie/en/online-services/support/data-and-security/privacy/use-of-cookies.aspx"
   },
   {
     "tag": "a",
-    "text": "Privacy Statement",
-    "href": "https://www2.hse.ie/privacy-statement/"
+    "text": "YouTube's own cookies policy",
+    "href": "https://policies.google.com/technologies/types?hl=en"
   },
   {
     "tag": "button",
-    "id": "accept-recommended-btn-handler",
-    "text": "Allow All"
-  },
-  {
-    "tag": "button"
+    "class": "cookie-button",
+    "text": "Save and close",
+    "type": "button"
   },
   {
     "tag": "a",
-    "text": "Google Privacy Policy",
-    "href": "https://policies.google.com/privacy"
+    "text": "update your browser",
+    "href": "https://browser-update.org/update-browser.html"
   },
   {
     "tag": "a",
-    "text": "Google Terms of Service",
-    "href": "https://policies.google.com/terms"
+    "class": "top-alert__close-link",
+    "text": "Close",
+    "href": "#"
   },
   {
-    "tag": "button",
-    "class": "ot-link-btn category-host-list-handler",
-    "ariaLabel": "Cookie Details button opens Cookie List menu",
-    "text": "Cookies Details‎"
+    "tag": "a",
+    "class": "changeLang links nopadding",
+    "text": "Gaeilge",
+    "href": "#"
   },
   {
-    "tag": "button"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "myAccount",
+    "href": "https://www.ros.ie/myaccount-web/sign_in.html?execution=e1s1&lang=en"
   },
   {
-    "tag": "button",
-    "class": "ot-link-btn category-host-list-handler",
-    "ariaLabel": "Cookie Details button opens Cookie List menu",
-    "text": "Cookies Details‎"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "ROS",
+    "href": "https://www.ros.ie/oidc/login?lang=en&client_id=rosint_rp"
   },
   {
-    "tag": "button"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "LPT online",
+    "href": "https://lpt.revenue.ie/lpt-web/views/login.html?execution=e1s1&_eventId=changeLocale&locale=en"
   },
   {
-    "tag": "button",
-    "class": "ot-link-btn category-host-list-handler",
-    "ariaLabel": "Cookie Details button opens Cookie List menu",
-    "text": "Cookies Details‎"
+    "tag": "a",
+    "class": "revenueLogo float-left",
+    "href": "/en/home.aspx"
   },
   {
-    "tag": "button"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "myAccount",
+    "href": "https://www.ros.ie/myaccount-web/sign_in.html?execution=e1s1&lang=en"
   },
   {
-    "tag": "button",
-    "class": "ot-link-btn category-host-list-handler",
-    "ariaLabel": "Cookie Details button opens Cookie List menu",
-    "text": "Cookies Details‎"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "ROS",
+    "href": "https://www.ros.ie/oidc/login?lang=en&client_id=rosint_rp"
   },
   {
-    "tag": "button",
-    "class": "ot-link-btn back-btn-handler",
-    "ariaLabel": "Back",
-    "text": "Back Button"
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "LPT online",
+    "href": "https://lpt.revenue.ie/lpt-web/views/login.html?execution=e1s1&_eventId=changeLocale&locale=en"
+  },
+  {
+    "tag": "a",
+    "class": "changeLang links nopadding",
+    "text": "Gaeilge",
+    "href": "#"
   },
   {
     "tag": "input",
-    "id": "vendor-search-handler",
-    "name": "vendor-search-handler",
-    "ariaLabel": "Cookie list search",
-    "placeholder": "Search…",
+    "id": "searchInput",
+    "class": "input-group-field ui-autocomplete-input",
+    "name": "searchInput",
+    "ariaLabel": "Search",
+    "placeholder": "Search",
     "type": "text"
   },
   {
     "tag": "button",
-    "id": "filter-btn-handler",
-    "ariaLabel": "Filter",
-    "text": "Filter Icon"
-  },
-  {
-    "tag": "button",
-    "id": "clear-filters-handler",
-    "text": "Clear"
-  },
-  {
-    "tag": "button",
-    "id": "filter-apply-handler",
-    "text": "Apply"
-  },
-  {
-    "tag": "button",
-    "id": "filter-cancel-handler",
-    "text": "Cancel"
-  },
-  {
-    "tag": "button",
-    "class": "save-preference-btn-handler onetrust-close-btn-handler",
-    "text": "Confirm My Choices"
+    "id": "btnSearch",
+    "class": "button icon-button",
+    "text": "Search",
+    "type": "button"
   },
   {
     "tag": "a",
-    "ariaLabel": "Powered by OneTrust Opens in a new Tab",
-    "href": "https://www.onetrust.com/products/cookie-consent/"
+    "text": "Direct debit modernisation",
+    "href": "/en/starting-a-business/paying-your-tax/monthly-direct-debit/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Help to Buy (HTB) Scheme",
+    "href": "/en/property/help-to-buy-incentive/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Local Property Tax (LPT)",
+    "href": "/en/property/local-property-tax/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Pensions",
+    "href": "/en/jobs-and-pensions/pension/index.aspx"
+  },
+  {
+    "tag": "button",
+    "class": "button",
+    "text": "Read more...",
+    "type": "button"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Jobs and pensions\n\nStarting work, Emergency Tax, claiming a refund, calculating your tax, understanding entitlements, pensions, being tax compliant.",
+    "href": "/en/jobs-and-pensions/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Personal tax credits, reliefs and exemptions\n\nUnderstand your tax entitlements and ensure you get what you are due.",
+    "href": "/en/personal-tax-credits-reliefs-and-exemptions/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Life events and personal circumstances\n\nMarriage, separation, having children, illness, bereavement, disability, unemployment, retirement.",
+    "href": "/en/life-events-and-personal-circumstances/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Self-assessment and self-employment\n\nPay and file, Relevant Contracts Tax, Professional Services Withholding Tax, share options, disclosure, audit.",
+    "href": "/en/self-assessment-and-self-employment/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Gains, gifts and inheritances\n\nSelling assets, paying tax on gifts and inheritances, filing returns, Probate Tax, reliefs and exemptions.",
+    "href": "/en/gains-gifts-and-inheritance/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Employing people\n\nHiring and paying employees, returns, paying tax, benefit in kind, social welfare payments, employee expenses, PAYE modernisation.",
+    "href": "/en/employing-people/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Property\n\nBuying and selling, Local Property Tax, Stamp Duty, Home Renovation Incentive, Help to Buy, rental income.",
+    "href": "/en/property/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Starting and running a business\n\nRegistering for tax, tax clearance, paying tax, initiatives for start-ups, licences, authorisations, importing and exporting goods.",
+    "href": "/en/starting-a-business/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Companies and charities\n\nCorporation tax, international tax, charities and sports bodies, excise and licences, compliance, audit, disclosures.",
+    "href": "/en/companies-and-charities/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Additional incomes\n\nBenefits from employers, social welfare payments, second jobs, employment related shares, overtime.",
+    "href": "/en/additional-incomes/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Vehicle Registration Tax (VRT)\n\nImporting a vehicle, calculating and paying VRT, reliefs, exemptions, appeals and vehicle conversions.",
+    "href": "/en/vrt/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Value-Added Tax (VAT)\n\nRates, registration, paying and reclaiming VAT, property and construction.",
+    "href": "/en/vat/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Online services",
+    "href": "/en/online-services/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Tax and duty professionals",
+    "href": "/en/tax-professionals/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "tile",
+    "text": "Customs",
+    "href": "/en/customs/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue publishes list of tax defaulters",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-tax-defaulters.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue concludes 2025 PAYE correspondence campaign",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090125-correspondence-campaign.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize contraband worth over €439,400 in various operations",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-contraband.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize €109,000 in cash and tobacco worth over €26,000 in Waterford",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090825-cash-tobacco-waterford.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize contraband worth €262,500 in various operations",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090525-seize-contraband-various-operations.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "View all news",
+    "href": "/en/news/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue publishes list of tax defaulters",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-tax-defaulters.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue concludes 2025 PAYE correspondence campaign",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090125-correspondence-campaign.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize contraband worth over €439,400 in various operations",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-contraband.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize €109,000 in cash and tobacco worth over €26,000 in Waterford",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090825-cash-tobacco-waterford.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue seize contraband worth €262,500 in various operations",
+    "href": "/en/corporate/press-office/press-releases/2025/pr-090525-seize-contraband-various-operations.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "View all news",
+    "href": "/en/news/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Back to homepage",
+    "href": "/en/home.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "back-to-top",
+    "text": "Back to top",
+    "href": "#"
+  },
+  {
+    "tag": "a",
+    "text": "Careers",
+    "href": "/en/corporate/information-about-revenue/careers/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Customer service",
+    "href": "/en/corporate/information-about-revenue/customer-service/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Press office",
+    "href": "/en/corporate/press-office/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Information about Revenue",
+    "href": "/en/corporate/information-about-revenue/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue museum",
+    "href": "/en/corporate/information-about-revenue/revenue-museum/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Assist us",
+    "href": "/en/corporate/assist-us/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Consultations and submissions",
+    "href": "/en/corporate/consultations-and-submissions/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Contact us",
+    "href": "/en/contact-us/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Statistics and research",
+    "href": "/en/corporate/information-about-revenue/statistics/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Tax education",
+    "href": "/en/tax-education/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Using revenue.ie",
+    "href": "/en/corporate/using-revenue/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Communications",
+    "href": "/en/corporate/communications/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Central Register of Beneficial Ownership of Trusts (CRBOT)",
+    "href": "/en/crbot/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": " bold-link normal-link::after",
+    "text": "Accessibility",
+    "href": "/en/online-services/support/technical-requirements/accessibility-statement/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": " bold-link normal-link::after",
+    "text": "Statutory obligations",
+    "href": "/en/corporate/statutory-obligations/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": " bold-link normal-link::after",
+    "text": "Privacy",
+    "href": "/en/online-services/support/data-and-security/privacy/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "Website feedback",
+    "href": "https://revenue.eu.qualtrics.com/jfe/form/SV_3EpTMqX6iaPuoYJ"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "WhoDoesWhat (English)",
+    "href": "https://www.gov.ie/en/organisation-information/467cb-who-does-what-office-of-the-revenue-commissioners/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "WhoDoesWhat (Irish)",
+    "href": "https://www.gov.ie/ga/oifig-na-gcoimisin%C3%A9ir%C3%AD-ioncaim/eolas-eagraiochta/revenue-commissioners-who-does-what/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "gov.ie (English)",
+    "href": "http://www.gov.ie/en/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "gov.ie (Irish)",
+    "href": "https://www.gov.ie/ga/"
   }
 ]
