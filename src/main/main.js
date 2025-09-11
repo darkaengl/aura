@@ -1,7 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main')
 const path = require('node:path')
 const fs = require('node:fs/promises'); // Import Node.js file system promises API
-// Removed Ollama spawn import
 require('dotenv').config();
 const OpenAI = require('openai');
 

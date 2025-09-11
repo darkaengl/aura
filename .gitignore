@@ -73,6 +73,9 @@ typings/
 .env.test.local
 .env.production.local
 
+# Google Cloud credentials
+google-cloud-key.json
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
