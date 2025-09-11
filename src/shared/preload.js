@@ -1,11 +1,4 @@
-
 const { contextBridge, ipcRenderer } = require('electron');
-
-// Expose secrets API for sensitive keys
-const chatGptApiKey = process.env.CHATGPT_API_KEY || '';
-contextBridge.exposeInMainWorld('secretsAPI', {
-  getChatGptApiKey: () => chatGptApiKey
-});
 
 // Expose a safe, limited API to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -28,9 +21,6 @@ contextBridge.exposeInMainWorld('speechAPI', {
 contextBridge.exposeInMainWorld('ollamaAPI', {
   chat: async (messages) => {
     return await ipcRenderer.invoke('ollama:chat', messages);
-  },
-  classifyIntent: async (userMessage) => {
-    return await ipcRenderer.invoke('classify-intent', userMessage);
   }
 });
 
@@ -55,9 +45,4 @@ contextBridge.exposeInMainWorld('textSimplificationAPI', {
   processPdfForSimplification: async (pdfArrayBuffer) => {
     return await ipcRenderer.invoke('process-pdf-for-simplification', pdfArrayBuffer);
   }
-});
-
-contextBridge.exposeInMainWorld('mainAPI', {
-  saveDomLog: (domJson) => ipcRenderer.invoke('save-dom-log', domJson),
-  saveLlmLog: (llmResponse) => ipcRenderer.invoke('save-llm-log', llmResponse)
 });
