@@ -107,6 +107,8 @@ window.onload = async () => {
 
   micBtn.addEventListener('click', () => {
     chatContainer.classList.remove('hidden');
+    // Focus on the chat input so user can start typing immediately
+    chatInput.focus();
   });
 
   closeChatBtn.addEventListener('click', () => {
