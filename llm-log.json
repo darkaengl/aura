@@ -1,1 +1,1 @@
-"Yes, there is a VRT calculator on the page."
+"[\n  {\n    \"action\": \"goto\",\n    \"url\": \"/en/home.aspx\"\n  },\n  {\n    \"action\": \"click\",\n    \"selector\": \".button\"\n  }\n]"

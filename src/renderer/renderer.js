@@ -129,6 +129,163 @@ window.onload = async () => {
     chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
   };
 
+  // Function to analyze current page and suggest next actions using LLM
+  const suggestNextActions = async (completedActions = []) => {
+    try {
+      addMessage('🤔 Analyzing page content to suggest next steps...', 'ai');
+      
+      // Extract DOM structure and content for LLM analysis
+      const domContext = await webview.executeJavaScript(`
+        (() => {
+          // Function to extract meaningful content from elements
+          const extractElementInfo = (element, depth = 0) => {
+            if (depth > 3) return null; // Limit recursion depth
+            if (!element || element.nodeType !== Node.ELEMENT_NODE) return null;
+            
+            const style = window.getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            
+            // Skip hidden elements
+            if (style.display === 'none' || style.visibility === 'hidden' || 
+                rect.width === 0 || rect.height === 0) return null;
+            
+            const tagName = element.tagName.toLowerCase();
+            const text = element.textContent?.trim() || '';
+            
+            // Focus on interactive and content elements
+            const isInteractive = ['a', 'button', 'input', 'select', 'textarea', 'form'].includes(tagName) ||
+                                 element.hasAttribute('onclick') || element.getAttribute('role') === 'button';
+            
+            const isContentElement = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'section', 'article', 'main'].includes(tagName);
+            
+            if (!isInteractive && !isContentElement) return null;
+            
+            const elementInfo = {
+              tag: tagName,
+              text: text.length > 200 ? text.substring(0, 200) + '...' : text,
+              id: element.id || undefined,
+              class: element.className || undefined,
+              href: element.getAttribute('href') || undefined,
+              type: element.getAttribute('type') || undefined,
+              placeholder: element.getAttribute('placeholder') || undefined,
+              value: element.value || undefined,
+              role: element.getAttribute('role') || undefined,
+              ariaLabel: element.getAttribute('aria-label') || undefined,
+              isInteractive,
+              position: {
+                top: Math.round(rect.top),
+                left: Math.round(rect.left),
+                width: Math.round(rect.width),
+                height: Math.round(rect.height)
+              }
+            };
+            
+            // Only include if it has meaningful content or is interactive
+            if ((text.length > 0 && text.length < 1000) || isInteractive) {
+              return elementInfo;
+            }
+            
+            return null;
+          };
+          
+          // Get page metadata
+          const pageInfo = {
+            url: window.location.href,
+            title: document.title,
+            description: document.querySelector('meta[name="description"]')?.getAttribute('content') || '',
+            headings: Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.textContent.trim()).filter(Boolean)
+          };
+          
+          // Extract all meaningful elements
+          const allElements = [];
+          const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_ELEMENT,
+            null,
+            false
+          );
+          
+          let node;
+          while (node = walker.nextNode()) {
+            const elementInfo = extractElementInfo(node);
+            if (elementInfo) {
+              allElements.push(elementInfo);
+            }
+          }
+          
+          // Sort by position (top to bottom, left to right) and filter
+          const sortedElements = allElements
+            .sort((a, b) => {
+              if (Math.abs(a.position.top - b.position.top) > 50) {
+                return a.position.top - b.position.top;
+              }
+              return a.position.left - b.position.left;
+            })
+            .slice(0, 20); // Limit to top 20 elements to avoid token limit
+          
+          return {
+            pageInfo,
+            elements: sortedElements
+          };
+        })();
+      `, true);
+      
+      // Create LLM prompt for DOM analysis
+      const actionContext = completedActions.length > 0 ? 
+        `\nRecent actions completed: ${completedActions.join(', ')}` : '';
+      
+      const domAnalysisPrompt = `You are a web page analyst tasked with identifying the most relevant next actions a user might want to take on this page.
+
+PAGE INFORMATION:
+URL: ${domContext.pageInfo.url}
+Title: ${domContext.pageInfo.title}
+Description: ${domContext.pageInfo.description}
+Main Headings: ${domContext.pageInfo.headings.join(', ')}${actionContext}
+
+DOM ELEMENTS (in order of appearance):
+${domContext.elements.map((el, idx) => {
+  let elementDesc = `${idx + 1}. <${el.tag}>`;
+  if (el.id) elementDesc += ` id="${el.id}"`;
+  if (el.class) elementDesc += ` class="${el.class}"`;
+  if (el.type) elementDesc += ` type="${el.type}"`;
+  if (el.href) elementDesc += ` href="${el.href}"`;
+  if (el.placeholder) elementDesc += ` placeholder="${el.placeholder}"`;
+  if (el.role) elementDesc += ` role="${el.role}"`;
+  if (el.ariaLabel) elementDesc += ` aria-label="${el.ariaLabel}"`;
+  elementDesc += ` interactive:${el.isInteractive}`;
+  if (el.text) elementDesc += `\n   Text: "${el.text}"`;
+  return elementDesc;
+}).join('\n')}
+
+TASK: Analyze this DOM structure and identify the 2-3 most important and relevant actions a user would likely want to take on this page. Consider:
+
+1. The page's primary purpose based on URL, title, and headings
+2. The most prominent and important interactive elements
+3. The logical workflow a user would follow on this page
+4. Actions that align with the page's main content and functionality
+
+Ignore generic navigation elements like "login", "sign up", "search" unless they are the main purpose of the page.
+
+Focus on actions that help users accomplish the primary task this page is designed for.
+
+Provide exactly 2 actionable suggestions in this format:
+
+💡 **Next Steps:**
+1. [First specific action based on actual page elements]
+2. [Second specific action based on actual page elements]
+
+Make sure each suggestion references specific elements or content from the DOM analysis above.`;
+
+      const response = await window.gptAPI.chat([{ role: 'user', content: domAnalysisPrompt }]);
+      addMessage(response, 'ai');
+      
+    } catch (error) {
+      console.error('Error generating LLM-based next action suggestions:', error);
+      // Fallback suggestions
+      addMessage(`💡 **Next Steps:**\n1. You can continue exploring the page by asking me to look for specific content or navigate to other sections.\n2. If you see forms or interactive elements, I can help you fill them out or interact with them.`, 'ai');
+    }
+  };
+
   // Helper function to get human-readable command descriptions
   const getCommandDescription = (command) => {
     switch (command.action) {
@@ -312,9 +469,16 @@ window.onload = async () => {
   const executeCommands = async (commands) => {
     addMessage(`📋 Executing ${commands.length} command(s)...`, 'ai');
     
+    // Track the types of actions performed for better suggestions
+    const actionTypes = new Set();
+    let executionFailed = false;
+    
     for (let i = 0; i < commands.length; i++) {
       const command = commands[i];
       console.log(`Executing command ${i + 1}/${commands.length}:`, command);
+      
+      // Track action types
+      actionTypes.add(command.action);
       
       // Add visual representation of the command
       const commandDescription = getCommandDescription(command);
@@ -462,10 +626,14 @@ window.onload = async () => {
             addMessage(`✅ Found "${result.matchedTerm}": ${result.text.substring(0, 100)}... (${result.matches} total matches)`, 'ai');
           } else {
             addMessage(`❌ Topic "${command.topic}" not found. Searched for: ${result.searchedFor.join(', ')}`, 'ai');
+            executionFailed = true;
+            break;
           }
         } catch (e) {
           console.error('Search content error:', e);
           addMessage(`❌ Error searching for "${command.topic}": ${e.message}`, 'ai');
+          executionFailed = true;
+          break;
         }
         continue;
       }
@@ -585,10 +753,14 @@ window.onload = async () => {
             addMessage(`✅ Found and clicked "${result.matchedTerm}": ${result.text}${result.href ? ' → ' + result.href : ''}`, 'ai');
           } else {
             addMessage(`❌ Could not find clickable element for "${command.topic}". Searched for: ${result.searchedFor.join(', ')}`, 'ai');
+            executionFailed = true;
+            break;
           }
         } catch (e) {
           console.error('Search and navigate error:', e);
           addMessage(`❌ Error navigating to "${command.topic}": ${e.message}`, 'ai');
+          executionFailed = true;
+          break;
         }
         continue;
       }
@@ -661,7 +833,9 @@ window.onload = async () => {
           }
         } catch (e) {
           console.error('Acknowledgment error:', e);
-          addMessage(`Error with acknowledgment: ${e.message}`, 'ai');
+          addMessage(`❌ Error with acknowledgment: ${e.message}`, 'ai');
+          executionFailed = true;
+          break;
         }
         continue;
       }
@@ -775,12 +949,16 @@ window.onload = async () => {
             console.log('Form fields:', result.fields);
             askNextFormQuestion();
           } else {
-            addMessage('No form fields found on this page. Please navigate to a form first.', 'ai');
+            addMessage('❌ No form fields found on this page. Please navigate to a form first.', 'ai');
             console.log('No form fields detected');
+            executionFailed = true;
+            break;
           }
         } catch (e) {
           console.error('Form detection error:', e);
-          addMessage(`Error detecting form fields: ${e.message}`, 'ai');
+          addMessage(`❌ Error detecting form fields: ${e.message}`, 'ai');
+          executionFailed = true;
+          break;
         }
         continue;
       }
@@ -799,10 +977,16 @@ window.onload = async () => {
             `;
             try {
               const result = await webview.executeJavaScript(script, true);
-              if (!result.success) break;
+              if (!result.success) {
+                addMessage(`❌ Traverse failed: ${result.error}`, 'ai');
+                executionFailed = true;
+                break;
+              }
               await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for navigation
             } catch (e) {
               console.error('Traverse error:', e);
+              addMessage(`❌ Traverse error: ${e.message}`, 'ai');
+              executionFailed = true;
               break;
             }
           }
@@ -819,9 +1003,17 @@ window.onload = async () => {
             })();
           `;
           try {
-            await webview.executeJavaScript(script, true);
+            const result = await webview.executeJavaScript(script, true);
+            if (result && !result.success) {
+              addMessage(`❌ Follow-link failed: ${result.error}`, 'ai');
+              executionFailed = true;
+              break;
+            }
           } catch (e) {
             console.error('Follow-link error:', e);
+            addMessage(`❌ Follow-link error: ${e.message}`, 'ai');
+            executionFailed = true;
+            break;
           }
           continue;
         }
@@ -851,17 +1043,42 @@ window.onload = async () => {
           const errorMessage = `❌ Step ${i + 1} failed: ${result.error}`;
           console.error(errorMessage);
           addMessage(errorMessage, 'ai');
+          executionFailed = true;
+          break;
         }
       } catch (e) {
         console.error('Error executing script in webview:', e);
         addMessage(`❌ Step ${i + 1} failed: ${e.message}`, 'ai');
+        executionFailed = true;
+        break;
       }
       
       // Small delay between commands for better visual feedback
       await new Promise(resolve => setTimeout(resolve, 800));
     }
     
+    // Handle execution results
+    if (executionFailed) {
+      addMessage(`⚠️ Command execution failed. Going back to the previous page...`, 'ai');
+      
+      // Go back to the previous page
+      try {
+        if (webview.canGoBack()) {
+          webview.goBack();
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for navigation
+        }
+      } catch (e) {
+        console.error('Error going back:', e);
+      }
+      
+      addMessage(`🔄 Please try a different command or approach. I'm ready to help with another task.`, 'ai');
+      return; // Don't suggest next actions
+    }
+    
     addMessage(`🎉 All ${commands.length} commands completed!`, 'ai');
+    
+    // Provide next action suggestions after automation completes successfully
+    await suggestNextActions(Array.from(actionTypes));
   };
 
   // Form filling helper functions
@@ -1330,9 +1547,12 @@ Please generate the JSON array of commands. Provide only the JSON array, with no
         const pageText = await extractVisibleTextFromWebview();
         console.log('Extracted page text:', pageText);
         const prompt = `You are an AI assistant. The user is viewing a website and has asked: "${message}"\n\nHere is the visible text from the page:\n${pageText}\n\nPlease answer the user's question using only the information from the page. If the answer is not present, say so.`;
-  const llmResponse = await window.gptAPI.chat([{ role: 'user', content: prompt }]);
+        const llmResponse = await window.gptAPI.chat([{ role: 'user', content: prompt }]);
         addMessage(llmResponse, 'ai');
         await window.mainAPI.saveLlmLog(llmResponse);
+        
+        // Provide next action suggestions after answering questions
+        await suggestNextActions();
       } else {
         addMessage("Sorry, I couldn't understand your request.", 'ai');
       }

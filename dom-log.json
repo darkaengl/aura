@@ -108,179 +108,97 @@
   },
   {
     "tag": "a",
-    "text": "Direct debit modernisation",
-    "href": "/en/starting-a-business/paying-your-tax/monthly-direct-debit/index.aspx"
+    "class": "sys_0 sys_t108",
+    "text": "Home",
+    "href": "/en/home.aspx"
   },
   {
     "tag": "a",
-    "text": "Help to Buy (HTB) Scheme",
-    "href": "/en/property/help-to-buy-incentive/index.aspx"
-  },
-  {
-    "tag": "a",
-    "text": "Local Property Tax (LPT)",
-    "href": "/en/property/local-property-tax/index.aspx"
-  },
-  {
-    "tag": "a",
-    "text": "Pensions",
-    "href": "/en/jobs-and-pensions/pension/index.aspx"
-  },
-  {
-    "tag": "button",
-    "class": "button",
-    "text": "Read more...",
-    "type": "button"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Jobs and pensions\n\nStarting work, Emergency Tax, claiming a refund, calculating your tax, understanding entitlements, pensions, being tax compliant.",
-    "href": "/en/jobs-and-pensions/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Personal tax credits, reliefs and exemptions\n\nUnderstand your tax entitlements and ensure you get what you are due.",
-    "href": "/en/personal-tax-credits-reliefs-and-exemptions/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Life events and personal circumstances\n\nMarriage, separation, having children, illness, bereavement, disability, unemployment, retirement.",
-    "href": "/en/life-events-and-personal-circumstances/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Self-assessment and self-employment\n\nPay and file, Relevant Contracts Tax, Professional Services Withholding Tax, share options, disclosure, audit.",
-    "href": "/en/self-assessment-and-self-employment/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Gains, gifts and inheritances\n\nSelling assets, paying tax on gifts and inheritances, filing returns, Probate Tax, reliefs and exemptions.",
-    "href": "/en/gains-gifts-and-inheritance/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Employing people\n\nHiring and paying employees, returns, paying tax, benefit in kind, social welfare payments, employee expenses, PAYE modernisation.",
-    "href": "/en/employing-people/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Property\n\nBuying and selling, Local Property Tax, Stamp Duty, Home Renovation Incentive, Help to Buy, rental income.",
-    "href": "/en/property/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Starting and running a business\n\nRegistering for tax, tax clearance, paying tax, initiatives for start-ups, licences, authorisations, importing and exporting goods.",
-    "href": "/en/starting-a-business/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Companies and charities\n\nCorporation tax, international tax, charities and sports bodies, excise and licences, compliance, audit, disclosures.",
-    "href": "/en/companies-and-charities/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Additional incomes\n\nBenefits from employers, social welfare payments, second jobs, employment related shares, overtime.",
-    "href": "/en/additional-incomes/index.aspx"
-  },
-  {
-    "tag": "a",
-    "class": "tile",
-    "text": "Vehicle Registration Tax (VRT)\n\nImporting a vehicle, calculating and paying VRT, reliefs, exemptions, appeals and vehicle conversions.",
+    "class": "sys_0 sys_t110",
+    "text": "Vehicle Registration Tax (VRT)",
     "href": "/en/vrt/index.aspx"
   },
   {
     "tag": "a",
-    "class": "tile",
-    "text": "Value-Added Tax (VAT)\n\nRates, registration, paying and reclaiming VAT, property and construction.",
-    "href": "/en/vat/index.aspx"
+    "text": "VRT and registration",
+    "href": "/en/vrt/vehicle-registration-tax/vrt-and-registration.aspx"
   },
   {
     "tag": "a",
-    "class": "tile",
-    "text": "Online services",
-    "href": "/en/online-services/index.aspx"
+    "text": "Procedure at the NCTS centre",
+    "href": "/en/vrt/vehicle-registration-tax/procedure-at-ncts-centre.aspx"
   },
   {
     "tag": "a",
-    "class": "tile",
-    "text": "Tax and duty professionals",
-    "href": "/en/tax-professionals/index.aspx"
+    "text": "General information on registration",
+    "href": "/en/vrt/vehicle-registration-tax/general-information-on-registration.aspx"
   },
   {
     "tag": "a",
-    "class": "tile",
-    "text": "Customs",
-    "href": "/en/customs/index.aspx"
+    "text": "Registration plates and format standards",
+    "href": "/en/vrt/vehicle-registration-tax/registration-plates-and-format-standards.aspx"
   },
   {
     "tag": "a",
-    "text": "Revenue publishes list of tax defaulters",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-tax-defaulters.aspx"
+    "text": "ZZ registrations, vintage vehicles and ZV plates",
+    "href": "/en/vrt/vehicle-registration-tax/zz-registrations-vintage-vehicles-and-zv-plates.aspx"
   },
   {
     "tag": "a",
-    "text": "Revenue concludes 2025 PAYE correspondence campaign",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090125-correspondence-campaign.aspx"
+    "text": "Format of registration plates",
+    "href": "/en/vrt/vehicle-registration-tax/format-registration-plates.aspx"
   },
   {
     "tag": "a",
-    "text": "Revenue seize contraband worth over €439,400 in various operations",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-contraband.aspx"
+    "text": "Registering machinery",
+    "href": "/en/vrt/vehicle-registration-tax/registering-machinery.aspx"
   },
   {
     "tag": "a",
-    "text": "Revenue seize €109,000 in cash and tobacco worth over €26,000 in Waterford",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090825-cash-tobacco-waterford.aspx"
+    "class": "external-links",
+    "text": "gov.ie",
+    "href": "https://www.gov.ie/en/campaigns/5e95b-e-bikes-e-mopeds-and-e-scooters/"
   },
   {
     "tag": "a",
-    "text": "Revenue seize contraband worth €262,500 in various operations",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090525-seize-contraband-various-operations.aspx"
+    "class": "external-links",
+    "text": "rsa.ie",
+    "href": "https://www.rsa.ie/road-safety/road-users/special-purpose-vehicles/powered-personal-transportation"
   },
   {
     "tag": "a",
-    "text": "View all news",
-    "href": "/en/news/index.aspx"
+    "class": "internal-links no-print",
+    "text": "Next: VRT and registration",
+    "href": "/en/vrt/vehicle-registration-tax/vrt-and-registration.aspx"
   },
   {
     "tag": "a",
-    "text": "Revenue publishes list of tax defaulters",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-tax-defaulters.aspx"
+    "class": "print",
+    "text": "Print this page",
+    "href": "javascript:window.print()"
   },
   {
     "tag": "a",
-    "text": "Revenue concludes 2025 PAYE correspondence campaign",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090125-correspondence-campaign.aspx"
+    "class": "print print-all-hub-pages",
+    "text": "Print all pages in 'Vehicle Registration Tax (VRT)'",
+    "href": "#"
+  },
+  {
+    "tag": "button",
+    "class": "button",
+    "text": "VRT calculator",
+    "type": "button"
   },
   {
     "tag": "a",
-    "text": "Revenue seize contraband worth over €439,400 in various operations",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090925-contraband.aspx"
+    "text": "Further guidance",
+    "href": "#"
   },
   {
     "tag": "a",
-    "text": "Revenue seize €109,000 in cash and tobacco worth over €26,000 in Waterford",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090825-cash-tobacco-waterford.aspx"
-  },
-  {
-    "tag": "a",
-    "text": "Revenue seize contraband worth €262,500 in various operations",
-    "href": "/en/corporate/press-office/press-releases/2025/pr-090525-seize-contraband-various-operations.aspx"
-  },
-  {
-    "tag": "a",
-    "text": "View all news",
-    "href": "/en/news/index.aspx"
+    "class": "pdf",
+    "text": "VRT Manual Section 01",
+    "href": "/en/tax-professionals/tdm/vehicle-registration-tax/vrt-manual-section-01.pdf"
   },
   {
     "tag": "a",
