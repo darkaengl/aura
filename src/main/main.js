@@ -272,7 +272,9 @@ ipcMain.handle('webview:execute-javascript', async (event, script) => {
     }
   } catch (error) {
     console.error('Error executing script in webview from main process:', error);
-    throw error;})
+    throw error;
+  }
+});
     
 // Google Cloud Speech-to-Text IPC handler
 const speech = require('@google-cloud/speech');

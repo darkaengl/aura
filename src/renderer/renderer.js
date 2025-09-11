@@ -105,6 +105,7 @@ window.onload = async () => {
   const copySimplifiedText = document.getElementById('copy-simplified-text');
   const replacePageText = document.getElementById('replace-page-text');
   const refreshSimplificationBtn = document.getElementById('refresh-simplification-btn');
+  const simplifyExtractedTextBtn = document.getElementById('simplify-extracted-text-btn');
 
   // PDF Upload to Simplify Functionality (moved inside modal context)
   const uploadPdfBtn = document.getElementById('upload-pdf-btn');
@@ -461,7 +462,7 @@ window.onload = async () => {
           currentTextData = textData; // Store for later use
 
           if (textData && textData.text) {
-            originalTextDisplay.textContent = textData.text;
+            originalTextDisplay.value = textData.text;
             originalWordCount.textContent = textData.wordCount.toLocaleString();
             showStatus(`Extracted ${textData.wordCount} words from PDF. Processing with Ollama...`, 'loading');
 
@@ -612,16 +613,21 @@ window.onload = async () => {
   /**
    * Updates button states during processing
    */
-  const setProcessingState = (processing) => {
+  const setProcessingState = (processing, buttonType = null) => {
     isProcessing = processing;
     extractTextBtn.disabled = processing;
-    simplifyTextBtn.disabled = processing;
+    simplifyExtractedTextBtn.disabled = processing;
     
     if (processing) {
-      extractTextBtn.textContent = 'Processing...';
+      if (buttonType === 'extract') {
+        extractTextBtn.textContent = 'Processing...';
+      } else if (buttonType === 'simplify') {
+        simplifyExtractedTextBtn.textContent = 'Processing...';
+      }
       simplifyTextBtn.classList.add('loading');
     } else {
-      extractTextBtn.textContent = 'Extract & Simplify Text';
+      extractTextBtn.textContent = 'Extract Text';
+      simplifyExtractedTextBtn.textContent = 'Simplify Text';
       simplifyTextBtn.classList.remove('loading');
     }
   };
@@ -858,7 +864,7 @@ window.onload = async () => {
   const updateTextDisplay = (textData, simplificationResult) => {
     console.log(`[updateTextDisplay] Called with simplificationResult:`, simplificationResult);
     // Update original text panel
-    originalTextDisplay.textContent = textData.text;
+    originalTextDisplay.value = textData.text;
     originalWordCount.textContent = textData.wordCount.toLocaleString();
     
     // Update simplified text panel
@@ -889,37 +895,77 @@ window.onload = async () => {
   /**
    * Main function to extract and simplify text
    */
-  const extractAndSimplifyText = async () => {
+  const extractText = async () => {
     if (isProcessing) return;
     
     const requestId = ++latestRequestId; // Generate a new request ID
-    console.log(`[extractAndSimplifyText] Starting new request with ID: ${requestId}`);
+    console.log(`[extractText] Starting new request with ID: ${requestId}`);
 
     try {
-      setProcessingState(true);
+      setProcessingState(true, 'extract');
       clearStatus();
       
       // Extract text from page
       const textData = await extractPageText();
       currentTextData = textData;
-      console.log(`[extractAndSimplifyText] Extracted textData:`, textData);
+      console.log(`[extractText] Extracted textData:`, textData);
 
       // Display original text immediately
-      originalTextDisplay.textContent = textData.text;
+      originalTextDisplay.value = textData.text;
       originalWordCount.textContent = textData.wordCount.toLocaleString();
       
-      showStatus(`Extracted ${textData.wordCount} words. Processing with Ollama...`, 'loading');
+      showStatus(`Extracted ${textData.wordCount} words.`, 'success');
+      
+    } catch (error) {
+      console.error('Text extraction failed:', error);
+      showStatus(`Error: ${error.message}`, 'error');
+      
+      // Show partial results if we have extracted text
+      if (currentTextData) {
+        updateTextDisplay(currentTextData, { error: true, message: error.message });
+      }
+    } finally {
+      setProcessingState(false);
+    }
+  };
+
+  const simplifyExtractedText = async () => {
+    if (isProcessing) return;
+    
+    const requestId = ++latestRequestId; // Generate a new request ID
+    console.log(`[simplifyExtractedText] Starting new request with ID: ${requestId}`);
+
+    try {
+      setProcessingState(true, 'simplify');
+      clearStatus();
+
+      const textToSimplify = originalTextDisplay.value.trim();
+      if (!textToSimplify) {
+        showStatus('No text to simplify. Please extract text first or type into the original text field.', 'error');
+        return;
+      }
+
+      // Create a textData object from the current content of originalTextDisplay
+      const textData = {
+        text: textToSimplify,
+        wordCount: textToSimplify.split(/\s+/).filter(word => word.length > 0).length,
+        title: document.title, // Use current page title
+        url: webview.getURL() // Use current webview URL
+      };
+      currentTextData = textData; // Update currentTextData for potential error display
+
+      showStatus(`Simplifying ${textData.wordCount} words. Processing with Ollama...`, 'loading');
       
       // Get selected complexity level
       const complexity = complexitySelect.value;
       
       // Process with Ollama
       const result = await processTextWithOllama(textData, { complexity }, requestId);
-      console.log(`[extractAndSimplifyText] Result from processTextWithOllama:`, result);
+      console.log(`[simplifyExtractedText] Result from processTextWithOllama:`, result);
       
       // Only update UI if this is still the latest request and result is not null (i.e., not discarded)
       if (requestId !== latestRequestId || result === null) {
-        console.log(`[extractAndSimplifyText] Discarding result for request ${requestId}. Newer request ${latestRequestId} exists or result was null.`);
+        console.log(`[simplifyExtractedText] Discarding result for request ${requestId}. Newer request ${latestRequestId} exists or result was null.`);
         return;
       }
 
@@ -967,6 +1013,7 @@ window.onload = async () => {
       showStatus('Failed to copy text to clipboard', 'error');
     }
   };
+    
 
   
 
@@ -979,7 +1026,9 @@ window.onload = async () => {
     textSimplificationModal.style.display = 'none';
   });
 
-  extractTextBtn.addEventListener('click', extractAndSimplifyText);
+  extractTextBtn.addEventListener('click', extractText);
+
+  simplifyExtractedTextBtn.addEventListener('click', simplifyExtractedText);
 
   copySimplifiedText.addEventListener('click', copyToClipboard);
 
@@ -990,7 +1039,7 @@ window.onload = async () => {
     latestRequestId++;
 
     // Clear displayed text
-    originalTextDisplay.textContent = '';
+    originalTextDisplay.value = '';
     simplifiedTextDisplay.textContent = '';
 
     // Reset word counts

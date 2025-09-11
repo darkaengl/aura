@@ -365,6 +365,21 @@
       white-space: pre-wrap;
     }
 
+    textarea.text-display {
+      resize: none; /* Prevent manual resizing */
+      font-family: inherit;
+      font-size: inherit;
+      padding: inherit;
+      border: inherit;
+      border-radius: inherit;
+      background-color: inherit;
+      color: inherit;
+      line-height: inherit;
+      word-wrap: inherit;
+      white-space: inherit;
+      outline: none; /* Remove focus outline */
+    }
+
     #original-text-display {
       background-color: #fff9f9;
     }
@@ -457,7 +472,8 @@
           <option value="moderate" selected>Moderate (Common vocabulary)</option>
           <option value="advanced">Advanced (Clear but detailed)</option>
         </select>
-        <button id="extract-text-btn" class="nav-btn">Extract & Simplify Text</button>
+        <button id="extract-text-btn" class="nav-btn">Extract Text</button>
+        <button id="simplify-extracted-text-btn" class="nav-btn">Simplify Text</button>
         <button id="upload-pdf-btn" class="nav-btn" title="Upload PDF to Simplify">⬆️ PDF</button>
         <input type="file" id="pdf-upload-input" accept="application/pdf" style="display: none;">
         <button id="refresh-simplification-btn" class="nav-btn">Refresh</button>
@@ -468,7 +484,7 @@
       <div id="text-comparison">
         <div id="original-text-panel" class="text-panel">
           <h3>Original Text (<span id="original-word-count">0</span> words)</h3>
-          <div id="original-text-display" class="text-display"></div>
+          <textarea id="original-text-display" class="text-display" contenteditable="true" spellcheck="false" placeholder="Original text will appear here..."></textarea>
         </div>
         
         <div id="simplified-text-panel" class="text-panel">
