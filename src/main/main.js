@@ -1,5 +1,43 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 const { app, BrowserWindow, ipcMain } = require('electron/main')
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+async function callOpenAI(messages, model = 'gpt-3.5-turbo') {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key is not set.');
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1000,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`OpenAI API responded with status: ${response.status} - ${errorData.error ? errorData.error.message : 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error communicating with OpenAI:', error);
+    throw error;
+  }
+}
 const path = require('node:path')
 const fs = require('node:fs/promises'); // Import Node.js file system promises API
 const { spawn } = require('child_process');
@@ -182,6 +220,7 @@ Guidelines:
 - Break long sentences into shorter ones
 - Explain complex concepts clearly
 - Maintain the logical flow of information
+- ABSOLUTELY DO NOT include any text related to cookie policies, privacy policies, or terms of service. Filter these out completely.
 - Your output MUST be ONLY the simplified content. Do NOT include any conversational filler, introductory phrases, self-referential statements, or any text other than the simplified content itself.
 - Format the simplified content using Markdown.
 ${preserveFormatting ? '- Keep basic formatting like headings and paragraphs' : '- Focus on content, formatting will be handled separately'}`;
@@ -198,24 +237,58 @@ ${text}`;
       { role: 'user', content: userPrompt }
     ];
 
-    const response = await fetch('http://localhost:11434/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama3.2',
-        messages: messages,
-        stream: false,
-      }),
-    });
+    let simplified;
+    const useOpenAI = process.env.USE_OPENAI_FOR_SIMPLIFICATION === 'true';
 
-    if (!response.ok) {
-      throw new Error(`Ollama API responded with status: ${response.status}`);
+    if (useOpenAI) {
+      try {
+        simplified = await callOpenAI(messages);
+        console.log('Text simplified using OpenAI.');
+      } catch (openaiError) {
+        console.warn('OpenAI simplification failed, falling back to Ollama:', openaiError.message);
+        // Fallback to Ollama
+        const response = await fetch('http://localhost:11434/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama3.2',
+            messages: messages,
+            stream: false,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Ollama API responded with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        simplified = data.message.content;
+        console.log('Text simplified using Ollama (fallback).');
+      }
+    } else {
+      // Use Ollama directly if OpenAI is not enabled
+      const response = await fetch('http://localhost:11434/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama3.2',
+          messages: messages,
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama API responded with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      simplified = data.message.content;
+      console.log('Text simplified using Ollama.');
     }
-
-    const data = await response.json();
-    const simplified = data.message.content;
 
     // Calculate processing metrics
     const originalWordCount = text.split(/\s+/).length;

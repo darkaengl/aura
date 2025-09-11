@@ -49,7 +49,7 @@ export const extractWebpageText = (options = {}) => {
     const extractedData = extractStructuredText(targetElement, mode === 'selection');
     
     // Add metadata
-    extractedData.title = document.title || '';
+    extractedData.title = document.querySelector('title') ? document.querySelector('title').textContent : document.title || '';
     extractedData.url = window.location.href || '';
     extractedData.extractionTime = Date.now();
     extractedData.mode = mode;
@@ -141,14 +141,23 @@ const isUIElement = (element) => {
   const className = element.className || '';
   const id = element.id || '';
   
-  // Skip very short text
-  if (text.length < 20) return true;
+  // Skip very short text or elements with specific roles/attributes
+  if (text.length < 50) return true; // Increased threshold
+
+  // Skip elements with navigation/UI indicators or cookie/privacy related content
+  const uiKeywords = ['nav', 'menu', 'header', 'footer', 'sidebar', 'ad', 'banner', 'popup', 'subscribe'];
+  const cookieKeywords = ['cookie', 'privacy', 'terms of service', 'gdpr', 'ccpa', 'data policy', 'use of cookies', 'google analytics'];
   
-  // Skip elements with navigation/UI indicators
-  const uiKeywords = ['nav', 'menu', 'header', 'footer', 'sidebar', 'ad', 'banner', 'popup', 'cookie', 'subscribe'];
-  const combined = (className + ' ' + id).toLowerCase();
+  const combinedAttributes = (className + ' ' + id).toLowerCase();
+  const combinedText = text.toLowerCase();
   
-  return uiKeywords.some(keyword => combined.includes(keyword));
+  // Check attributes for UI keywords
+  if (uiKeywords.some(keyword => combinedAttributes.includes(keyword))) return true;
+
+  // Check text content for cookie/privacy keywords
+  if (cookieKeywords.some(keyword => combinedText.includes(keyword))) return true;
+
+  return false;
 };
 
 /**
@@ -264,14 +273,23 @@ export const getTextExtractionScript = () => {
     const className = element.className || '';
     const id = element.id || '';
     
-    // Skip very short text
-    if (text.length < 20) return true;
+    // Skip very short text or elements with specific roles/attributes
+    if (text.length < 50) return true; // Increased threshold
+
+    // Skip elements with navigation/UI indicators or cookie/privacy related content
+    const uiKeywords = ['nav', 'menu', 'header', 'footer', 'sidebar', 'ad', 'banner', 'popup', 'subscribe'];
+    const cookieKeywords = ['cookie', 'privacy', 'terms of service', 'gdpr', 'ccpa', 'data policy', 'use of cookies', 'google analytics'];
     
-    // Skip elements with navigation/UI indicators
-    const uiKeywords = ['nav', 'menu', 'header', 'footer', 'sidebar', 'ad', 'banner', 'popup', 'cookie', 'subscribe'];
-    const combined = (className + ' ' + id).toLowerCase();
+    const combinedAttributes = (className + ' ' + id).toLowerCase();
+    const combinedText = text.toLowerCase();
     
-    return uiKeywords.some(keyword => combined.includes(keyword));
+    // Check attributes for UI keywords
+    if (uiKeywords.some(keyword => combinedAttributes.includes(keyword))) return true;
+
+    // Check text content for cookie/privacy keywords
+    if (cookieKeywords.some(keyword => combinedText.includes(keyword))) return true;
+
+    return false;
   };
   
   const extractStructuredText = (element, selectionMode = false) => {
@@ -373,7 +391,7 @@ export const getTextExtractionScript = () => {
       const extractedData = extractStructuredText(targetElement, mode === 'selection');
       
       // Add metadata
-      extractedData.title = document.title || '';
+      extractedData.title = document.querySelector('title') ? document.querySelector('title').textContent : document.title || '';
       extractedData.url = window.location.href || '';
       extractedData.extractionTime = Date.now();
       extractedData.mode = mode;
