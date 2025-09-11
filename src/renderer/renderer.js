@@ -870,10 +870,23 @@ Make sure each suggestion references specific elements or content from the DOM a
             console.log('Filtered form inputs:', inputs.length);
             
             inputs.forEach((input, index) => {
-              // More lenient visibility check
-              const isVisible = input.offsetParent !== null || 
-                               window.getComputedStyle(input).display !== 'none' ||
-                               window.getComputedStyle(input).visibility !== 'hidden';
+              // Enhanced visibility check - more permissive approach
+              const computedStyle = window.getComputedStyle(input);
+              const rect = input.getBoundingClientRect();
+              
+              const isVisible = (
+                input.offsetParent !== null && 
+                computedStyle.display !== 'none' && 
+                computedStyle.visibility !== 'hidden' &&
+                rect.width > 0 && 
+                rect.height > 0
+              ) || (
+                // Fallback: if element is in viewport and not explicitly hidden
+                rect.width > 0 && 
+                rect.height > 0 && 
+                computedStyle.display !== 'none' &&
+                computedStyle.visibility !== 'hidden'
+              );
               
               const isEditable = !input.disabled && !input.readOnly;
               
@@ -883,17 +896,52 @@ Make sure each suggestion references specific elements or content from the DOM a
                 isVisible: isVisible,
                 isEditable: isEditable,
                 offsetParent: input.offsetParent !== null,
-                computedDisplay: window.getComputedStyle(input).display,
-                computedVisibility: window.getComputedStyle(input).visibility
+                computedDisplay: computedStyle.display,
+                computedVisibility: computedStyle.visibility,
+                boundingRect: \`\${rect.width}x\${rect.height}\`,
+                position: \`\${rect.left},\${rect.top}\`
               });
               
-              if (isVisible && isEditable) {
-                const label = input.labels?.[0]?.textContent || 
-                             input.getAttribute('placeholder') || 
-                             input.getAttribute('aria-label') || 
-                             input.getAttribute('name') || 
-                             input.getAttribute('title') ||
-                             \`Field \${index + 1}\`;
+              // Accept more fields - either visible and editable, or just editable (for hidden fields that might become visible)
+              if ((isVisible && isEditable) || (isEditable && input.type !== 'hidden')) {
+                // Enhanced label detection
+                let label = '';
+                
+                // Try multiple methods to get a meaningful label
+                if (input.labels && input.labels.length > 0) {
+                  label = input.labels[0].textContent.trim();
+                } else if (input.getAttribute('placeholder')) {
+                  label = input.getAttribute('placeholder').trim();
+                } else if (input.getAttribute('aria-label')) {
+                  label = input.getAttribute('aria-label').trim();
+                } else if (input.getAttribute('name')) {
+                  label = input.getAttribute('name').replace(/[_-]/g, ' ').trim();
+                } else if (input.getAttribute('title')) {
+                  label = input.getAttribute('title').trim();
+                } else if (input.id) {
+                  label = input.id.replace(/[_-]/g, ' ').trim();
+                } else {
+                  // Try to find nearby text labels
+                  const parent = input.parentElement;
+                  if (parent) {
+                    const previousSibling = input.previousElementSibling;
+                    const nextSibling = input.nextElementSibling;
+                    
+                    if (previousSibling && previousSibling.textContent.trim()) {
+                      label = previousSibling.textContent.trim();
+                    } else if (nextSibling && nextSibling.textContent.trim()) {
+                      label = nextSibling.textContent.trim();
+                    } else if (parent.textContent.trim()) {
+                      // Use parent's text content but limit length
+                      label = parent.textContent.trim().substring(0, 50);
+                    }
+                  }
+                }
+                
+                // Fallback if no label found
+                if (!label) {
+                  label = \`\${input.type || input.tagName.toLowerCase()} field \${index + 1}\`;
+                }
                 
                 // Create a better selector
                 let selector = '';
@@ -942,11 +990,53 @@ Make sure each suggestion references specific elements or content from the DOM a
             currentFieldIndex = 0;
             isFillingForm = true;
             
-            addMessage(`Found ${result.fields.length} form fields. Let's fill them out!`, 'ai');
+            addMessage(`🎯 **Form Detection Complete!**\n\nFound ${result.fields.length} form fields. I'll guide you through filling them one by one.\n\n📋 **Process:**\n• I'll ask for each field value individually\n• Type "NA" to skip any field you don't have information for\n• Type "cancel" at any time to stop form filling\n\nLet's start:`, 'ai');
             console.log('Form fields:', result.fields);
             askNextFormQuestion();
           } else {
-            addMessage('❌ No form fields found on this page. Please navigate to a form first.', 'ai');
+            // Enhanced debugging for failed detection
+            addMessage('❌ No form fields found on this page.', 'ai');
+            
+            // Try a simpler detection to see what's available
+            const debugScript = `
+              (() => {
+                const allInputs = document.querySelectorAll('input, textarea, select');
+                const inputInfo = Array.from(allInputs).map((input, i) => ({
+                  index: i,
+                  tag: input.tagName,
+                  type: input.type || 'N/A',
+                  id: input.id || 'N/A',
+                  name: input.name || 'N/A',
+                  placeholder: input.placeholder || 'N/A',
+                  disabled: input.disabled,
+                  readonly: input.readOnly,
+                  display: window.getComputedStyle(input).display,
+                  visibility: window.getComputedStyle(input).visibility
+                }));
+                
+                return {
+                  totalInputs: allInputs.length,
+                  pageTitle: document.title,
+                  url: window.location.href,
+                  inputs: inputInfo
+                };
+              })();
+            `;
+            
+            try {
+              const debugResult = await webview.executeJavaScript(debugScript, true);
+              console.log('Debug info:', debugResult);
+              addMessage(`Debug: Found ${debugResult.totalInputs} total input elements on page "${debugResult.pageTitle}"`, 'ai');
+              
+              if (debugResult.inputs.length > 0) {
+                addMessage('Available inputs: ' + debugResult.inputs.map(i => 
+                  `${i.tag}(${i.type}) ${i.disabled ? '[disabled]' : ''} ${i.readonly ? '[readonly]' : ''}`
+                ).join(', '), 'ai');
+              }
+            } catch (debugError) {
+              console.error('Debug detection error:', debugError);
+            }
+            
             console.log('No form fields detected');
             executionFailed = true;
             break;
@@ -1074,35 +1164,39 @@ Make sure each suggestion references specific elements or content from the DOM a
     
     addMessage(`🎉 All ${commands.length} commands completed!`, 'ai');
     
-    // Provide next action suggestions after automation completes successfully
-    await suggestNextActions(Array.from(actionTypes));
+    // Provide next action suggestions after automation completes successfully (but not during form filling)
+    if (!isFillingForm) {
+      await suggestNextActions(Array.from(actionTypes));
+    }
   };
 
   // Form filling helper functions
   const askNextFormQuestion = () => {
     if (currentFieldIndex < currentFormFields.length) {
       const field = currentFormFields[currentFieldIndex];
-      let question = `Please provide a value for "${field.label}"`;
+      let question = `📝 **Field ${currentFieldIndex + 1} of ${currentFormFields.length}**\n\nPlease provide a value for "${field.label}"`;
       
       if (field.type === 'select' && field.options) {
-        question += ` (Options: ${field.options.join(', ')})`;
+        question += `\n\n📋 **Available options:** ${field.options.join(', ')}`;
       } else if (field.type === 'email') {
-        question += ' (Email address)';
+        question += '\n\n📧 **Format:** Email address (e.g., user@example.com)';
       } else if (field.type === 'tel') {
-        question += ' (Phone number)';
+        question += '\n\n📞 **Format:** Phone number';
       } else if (field.type === 'date') {
-        question += ' (Date format: YYYY-MM-DD)';
+        question += '\n\n📅 **Format:** Date (YYYY-MM-DD)';
       }
       
       if (field.required) {
-        question += ' *Required';
+        question += '\n\n⚠️ **This field is required**';
       }
+      
+      question += '\n\n💡 **Tip:** Type "NA" to skip this field if you don\'t have the information.';
       
       addMessage(question, 'ai');
     } else {
       // All fields completed
       isFillingForm = false;
-      addMessage('Form filling completed! All fields have been filled.', 'ai');
+      addMessage('✅ **Form filling completed!** All fields have been processed.', 'ai');
     }
   };
 
@@ -1417,11 +1511,24 @@ Make sure each suggestion references specific elements or content from the DOM a
     // Check if we're in form filling mode
     if (isFillingForm) {
       // Check for cancel commands
+      const lowerMessage = message.toLowerCase();
       if (lowerMessage.includes('cancel') || lowerMessage.includes('stop') || lowerMessage.includes('quit')) {
         isFillingForm = false;
         currentFormFields = [];
         currentFieldIndex = 0;
         addMessage('Form filling cancelled.', 'ai');
+        return;
+      }
+      
+      // Check for NA response - skip this field
+      if (lowerMessage === 'na' || lowerMessage === 'n/a' || lowerMessage === 'not applicable' || lowerMessage === 'skip') {
+        addMessage(`⏭️ Skipping "${currentFormFields[currentFieldIndex].label}"`, 'ai');
+        currentFieldIndex++;
+        
+        // Move to next field or complete form
+        setTimeout(() => {
+          askNextFormQuestion();
+        }, 500);
         return;
       }
       
@@ -1440,6 +1547,19 @@ Make sure each suggestion references specific elements or content from the DOM a
       console.log('Intent classified as:', intent, 'for message:', message);
 
       if (intent === 'action') {
+        // Check for form filling keywords first before sending to LLM
+        const lowerMessage = message.toLowerCase();
+        if (lowerMessage.includes('fill form') || 
+            lowerMessage.includes('start form') || 
+            lowerMessage.includes('form filling') ||
+            lowerMessage.includes('start filling')) {
+          console.log('Detected form filling request, using start_form_filling action');
+          const formCommands = [{ "action": "start_form_filling" }];
+          addMessage("Starting form filling process...", 'ai');
+          await executeCommands(formCommands);
+          return;
+        }
+        
         // Extract visible screen context instead of DOM
         console.log('Extracting screen context...');
         const screenContext = await extractScreenContextFromWebview();
@@ -1548,8 +1668,10 @@ Please generate the JSON array of commands. Provide only the JSON array, with no
         addMessage(llmResponse, 'ai');
         await window.mainAPI.saveLlmLog(llmResponse);
         
-        // Provide next action suggestions after answering questions
-        await suggestNextActions();
+        // Provide next action suggestions after answering questions (but not during form filling)
+        if (!isFillingForm) {
+          await suggestNextActions();
+        }
       } else {
         addMessage("Sorry, I couldn't understand your request.", 'ai');
       }
