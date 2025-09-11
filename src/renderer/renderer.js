@@ -16,6 +16,11 @@ window.onload = async () => {
   const closeReportBtn = document.getElementById('close-report-btn');
   const downloadReportBtn = document.getElementById('download-report-btn');
   const simplifyBtn = document.getElementById('simplify-btn');
+  simplifyBtn.disabled = true; // Disable by default
+
+  webview.addEventListener('did-finish-load', () => {
+    simplifyBtn.disabled = false; // Enable when webview content is loaded
+  });
 
   // Text Simplification Elements
   const simplifyTextBtn = document.getElementById('simplify-text-btn');
@@ -630,59 +635,76 @@ window.onload = async () => {
   });
   // Call the Ollama model to read and simplify the CSS of the current page
   // TODO: prompt engineering for improved output
-  simplifyBtn.addEventListener('click', () => {
-    let newCSS = webview.executeJavaScript(`
-      Array.from(document.styleSheets)
-        .map(sheet => {
-          try {
-            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
-          } catch (e) {
-            // Skip CORS-protected sheets
-            return '';
-          }
-        })
-        .filter(text => text.length)
-        .join('\n')
-      `).then(async cssText => {
-        const messages = [{
-          role: 'user',
-          content: 'Respond only with valid CSS contained within triple backticks (e.g: ``` CSS_HERE ```). Optimise the following CSS, making the resulting page simplified and more readable. CSS: ' + cssText
-        }];
-        // const schema = { 
-        //   'type': 'object', 
-        //   'properties': { 
-        //       'optimised_css': { 
-        //           'type': 'string'
-        //       } 
-        //   }, 
-        //   'required': ['optimised_css']
-        // };
-        // console.log(cssText);
-        let llmResponse = await window.ollamaAPI.chat(messages);
-        // console.log(llmResponse);
-        // console.log('\n');
-        // console.log(JSON.parse(llmResponse).optimised_css);
-        // console.log(llmResponse.split("```")[1]);
-        const escaped = llmResponse.split("```")[1].slice(4)
-                                                   .replace(/\\/g, '\\')     // escape backslashes
-                                                   .replace(/`/g, '\`')       // escape backticks
-                                                   .replace(/\$/g, '\$');     // escape dollar signs if using ${}
-
-        const script = `
-          (function() {
-            let style = document.getElementById('dynamic-style');
-            if (!style) {
-              style = document.createElement('style');
-              style.id = 'dynamic-style';
-              document.head.appendChild(style);
+  simplifyBtn.addEventListener('click', async () => {
+    try {
+      // Step 1: Extract CSS from the webview
+      const cssText = await window.electronAPI.executeWebviewJavaScript(`
+        Array.from(document.styleSheets)
+          .map(sheet => {
+            try {
+              return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+            } catch (e) {
+              // Skip CORS-protected sheets
+              console.warn('Skipping CORS-protected stylesheet:', e);
+              return '';
             }
-            style.textContent = "${escaped}";
-          })();
-        `;
+          })
+          .filter(text => text.length)
+          .join('\n')
+      `);
+      console.log('Extracted CSS:', cssText.substring(0, 500) + '...'); // Log first 500 chars
 
-        return webview.executeJavaScript(script);
-      });
-    });
+      // Step 2: Send CSS to Ollama for simplification
+      const messages = [{
+        role: 'user',
+        content: 'Respond only with valid CSS contained within triple backticks (e.g: ``` CSS_HERE ```). Optimise the following CSS, making the resulting page simplified and more readable. CSS: ' + cssText
+      }];
+      let llmResponse;
+      try {
+        llmResponse = await window.ollamaAPI.chat(messages);
+        console.log('LLM Response:', llmResponse.substring(0, 500) + '...'); // Log first 500 chars
+      } catch (llmError) {
+        console.error('Error communicating with Ollama API:', llmError);
+        alert('Error simplifying CSS: Could not get response from Ollama. Check console for details.');
+        return;
+      }
+
+      // Step 3: Extract simplified CSS from LLM response
+      let simplifiedCss = '';
+      const cssMatch = llmResponse.match(/```(?:css)?\n([\s\S]*?)\n```/);
+      if (cssMatch && cssMatch[1]) {
+        simplifiedCss = cssMatch[1].trim();
+      } else {
+        // Fallback if no code block is found, assume the whole response is CSS
+        simplifiedCss = llmResponse.trim();
+        console.warn('LLM response did not contain a CSS code block. Using full response as CSS.');
+      }
+      console.log('Simplified CSS (extracted):', simplifiedCss.substring(0, 500) + '...'); // Log first 500 chars
+
+      // Step 4: Inject simplified CSS into the webview
+      const escapedCss = JSON.stringify(simplifiedCss);
+      const script = `
+        (function() {
+          let style = document.getElementById('dynamic-style');
+          if (!style) {
+            style = document.createElement('style');
+            style.id = 'dynamic-style';
+            document.head.appendChild(style);
+          }
+          style.textContent = ${escapedCss};
+        })();
+      `;
+      console.log('Injecting script:', script.substring(0, 500) + '...'); // Log first 500 chars
+
+      await window.electronAPI.executeWebviewJavaScript(script);
+      console.log('CSS simplification script executed successfully.');
+      alert('CSS simplified successfully!');
+
+    } catch (error) {
+      console.error('An error occurred during CSS simplification:', error);
+      alert('An error occurred during CSS simplification. Check console for details.');
+    }
+  });
 
   // Initialize accessibility features
   initializeAccessibility({

@@ -3,7 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Expose a safe, limited API to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   navigateToUrl: async (url) => ipcRenderer.invoke('navigateToUrl', url),
-  onNavigateWebview: (callback) => ipcRenderer.on('navigate-webview', (event, url) => callback(url))
+  onNavigateWebview: (callback) => ipcRenderer.on('navigate-webview', (event, url) => callback(url)),
+  executeWebviewJavaScript: async (script) => ipcRenderer.invoke('webview:execute-javascript', script)
 });
 
 contextBridge.exposeInMainWorld('ollamaAPI', {

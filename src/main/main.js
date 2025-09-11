@@ -154,6 +154,22 @@ ipcMain.handle('process-pdf-for-simplification', async (event, pdfArrayBuffer) =
   }
 });
 
+ipcMain.handle('webview:execute-javascript', async (event, script) => {
+  try {
+    // Get the webContents of the webview that sent the IPC message
+    // This assumes the webview is the sender of the IPC message
+    const webContents = event.senderFrame.webContents;
+    if (webContents) {
+      return await webContents.executeJavaScript(script);
+    } else {
+      throw new Error('WebContents not found for script execution.');
+    }
+  } catch (error) {
+    console.error('Error executing script in webview from main process:', error);
+    throw error;
+  }
+});
+
 ipcMain.handle('navigateToUrl', (event, url) => {
   if (mainWindow) {
     // Load index.html first if it's not already loaded
