@@ -1,3 +1,71 @@
+// Helper: Extract visible, interactive elements for LLM context
+const extractScreenContextFromWebview = async () => {
+  return await webview.executeJavaScript(`
+    (() => {
+      function isVisible(element) {
+        if (!element) return false;
+        if (element.nodeType !== Node.ELEMENT_NODE) return false;
+        const style = window.getComputedStyle(element);
+        return style && style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+      }
+      function isInteractive(element) {
+        const tag = element.tagName.toLowerCase();
+        return (
+          tag === 'button' ||
+          tag === 'a' ||
+          tag === 'input' ||
+          tag === 'select' ||
+          tag === 'textarea' ||
+          (element.hasAttribute('role') && ['button','link','textbox','searchbox','menuitem'].includes(element.getAttribute('role')))
+        );
+      }
+      function getElementInfo(element) {
+        if (!isVisible(element) || !isInteractive(element)) return null;
+        return {
+          tag: element.tagName.toLowerCase(),
+          id: element.id || undefined,
+          class: element.className || undefined,
+          name: element.getAttribute('name') || undefined,
+          type: element.getAttribute('type') || undefined,
+          value: element.value || undefined,
+          placeholder: element.getAttribute('placeholder') || undefined,
+          ariaLabel: element.getAttribute('aria-label') || undefined,
+          role: element.getAttribute('role') || undefined,
+          text: element.innerText ? element.innerText.trim() : undefined,
+          href: element.getAttribute('href') || undefined
+        };
+      }
+      const elements = Array.from(document.querySelectorAll('a,button,input,select,textarea,[role]'));
+      const context = elements.map(getElementInfo).filter(Boolean);
+      return context;
+    })();
+  `, true);
+};
+
+// Helper: Extract all visible text from the webview
+const extractVisibleTextFromWebview = async () => {
+  return await webview.executeJavaScript(`
+    (() => {
+      function getVisibleText(element) {
+        if (!element) return '';
+        if (element.nodeType === Node.TEXT_NODE) {
+          return element.textContent.trim();
+        }
+        if (element.nodeType !== Node.ELEMENT_NODE) return '';
+        const style = window.getComputedStyle(element);
+        if (style && (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0')) {
+          return '';
+        }
+        let text = '';
+        for (const child of element.childNodes) {
+          text += getVisibleText(child) + ' ';
+        }
+        return text.trim();
+      }
+      return getVisibleText(document.body);
+    })();
+  `, true);
+};
 import { initializeAccessibility } from '../shared/accessibility.js';
 import { getTextExtractionScript } from '../shared/text-extraction.js';
 import { createSimplificationPrompt, splitTextIntoChunks, createChunkPrompt, validateOptions, estimateProcessingTime } from '../shared/simplification-prompts.js';
@@ -41,6 +109,338 @@ window.onload = async () => {
   // PDF Upload to Simplify Functionality (moved inside modal context)
   const uploadPdfBtn = document.getElementById('upload-pdf-btn');
   const pdfUploadInput = document.getElementById('pdf-upload-input');
+
+    // Chat interface elements (from aura)
+    const micBtn = document.getElementById('mic-btn');
+    const chatContainer = document.getElementById('chat-container');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const micChatBtn = document.getElementById('mic-chat-btn');
+
+    // MediaRecorder for Speech-to-Text
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    // Show chat container when mic button is clicked
+    if (micBtn && chatContainer) {
+      micBtn.addEventListener('click', () => {
+        chatContainer.classList.remove('hidden');
+      });
+    }
+
+    // Hide chat container when close button is clicked
+    if (closeChatBtn && chatContainer) {
+      closeChatBtn.addEventListener('click', () => {
+        chatContainer.classList.add('hidden');
+      });
+    }
+
+    // Chat send button event
+    if (chatSendBtn) {
+      chatSendBtn.addEventListener('click', () => sendMessage());
+    }
+
+    // Chat input 'Enter' event
+    if (chatInput) {
+      chatInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      });
+    }
+
+    // Mic chat button event for speech-to-text
+    if (micChatBtn) {
+      micChatBtn.addEventListener('click', async () => {
+        if (isRecording) {
+          mediaRecorder.stop();
+          isRecording = false;
+          micChatBtn.style.backgroundColor = '';
+          console.log('Recording stopped.');
+        } else {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+              audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              const arrayBuffer = await audioBlob.arrayBuffer();
+              const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+              const decodedAudio = await audioContext.decodeAudioData(arrayBuffer);
+
+              // Create WAV header
+              const numberOfChannels = decodedAudio.numberOfChannels;
+              const sampleRate = decodedAudio.sampleRate;
+              const format = 1; // PCM
+              const bitDepth = 16; // 16-bit
+              const byteRate = sampleRate * numberOfChannels * bitDepth / 8;
+              const blockAlign = numberOfChannels * bitDepth / 8;
+              const dataSize = decodedAudio.length * numberOfChannels * bitDepth / 8;
+
+              const buffer = new ArrayBuffer(44 + dataSize);
+              const view = new DataView(buffer);
+
+              // RIFF chunk descriptor
+              writeString(view, 0, 'RIFF');
+              view.setUint32(4, 36 + dataSize, true);
+              writeString(view, 8, 'WAVE');
+              // FMT sub-chunk
+              writeString(view, 12, 'fmt ');
+              view.setUint32(16, 16, true);
+              view.setUint16(20, format, true);
+              view.setUint16(22, numberOfChannels, true);
+              view.setUint32(24, sampleRate, true);
+              view.setUint32(28, byteRate, true);
+              view.setUint16(32, blockAlign, true);
+              view.setUint16(34, bitDepth, true);
+              // data sub-chunk
+              writeString(view, 36, 'data');
+              view.setUint32(40, dataSize, true);
+
+              // Write the PCM data
+              floatTo16BitPCM(view, 44, decodedAudio.getChannelData(0));
+              if (numberOfChannels === 2) {
+                floatTo16BitPCM(view, 44, decodedAudio.getChannelData(1));
+              }
+
+              const wavAudioBuffer = window.nodeBufferFrom(buffer);
+
+              console.log('Audio recorded, sending for transcription...');
+              console.log('Detected sample rate:', sampleRate);
+
+              try {
+                const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+                chatInput.value = transcription;
+                sendMessage();
+              } catch (error) {
+                console.error('Transcription error:', error);
+                addMessage('Sorry, transcription failed. Please try again.', 'ai');
+              }
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            micChatBtn.style.backgroundColor = '#ff0000';
+            console.log('Recording started.');
+          } catch (error) {
+            console.error('Error accessing microphone:', error);
+            addMessage('Could not access microphone. Please ensure it\'s connected and permissions are granted.', 'ai');
+          }
+        }
+      });
+    }
+
+    // Helper function to write string to DataView
+    function writeString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+
+    // Helper function to convert float to 16-bit PCM
+    function floatTo16BitPCM(output, offset, input) {
+      for (let i = 0; i < input.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, input[i]));
+        output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+    }
+
+    // Add message to chat
+    function addMessage(text, sender) {
+      if (!chatMessages) return;
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('chat-message', `${sender}-message`);
+      messageElement.innerText = text;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Send message to AI
+    async function sendMessage() {
+      if (!chatInput || !chatMessages) return;
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, 'user');
+      chatInput.value = '';
+
+      try {
+        // Classify intent first
+        const intent = await window.ollamaAPI.classifyIntent(message);
+        console.log('Intent classified as:', intent, 'for message:', message);
+
+        if (intent === 'action') {
+          // Extract visible screen context instead of DOM
+          console.log('Extracting screen context...');
+          const screenContext = await extractScreenContextFromWebview();
+          console.log('Screen context extracted:', screenContext);
+
+          if (screenContext) {
+            console.log('Saving screen context to log file...');
+            await window.mainAPI.saveDomLog(screenContext);
+            console.log('Screen context saved to log file.');
+          }
+
+          // Prompt for high-level command (search_and_navigate)
+          const navPrompt = `You are a browser assistant.\nGiven the user's command: "${message}", 
+          generate a single high-level command object in JSON format.\nIf the command is to search or navigate to a topic, use:\n{\n  action: 'search_and_navigate',
+          \n  topic: '<topic>'\n}\nIf the command is to click, fill, or interact, use:\n{\n  action: '<action>',\n  selector: '<selector>',\n  value: '<value>' // 
+          if applicable\n}\nOnly output the JSON object, no extra text.
+          `;
+          console.log('Sending navPrompt to ChatGPT...');
+          const chatGptApiKey = window.secretsAPI.getChatGptApiKey();
+          const chatGptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${chatGptApiKey}`
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: [{ role: 'user', content: navPrompt }],
+              temperature: 0.2
+            })
+          });
+          const chatGptData = await chatGptResponse.json();
+          const llmResponse = chatGptData.choices?.[0]?.message?.content || '';
+          console.log('LLM response received:', llmResponse);
+          await window.mainAPI.saveLlmLog(llmResponse);
+          try {
+            const commandObj = JSON.parse(llmResponse);
+            if (commandObj.action === 'search_and_navigate') {
+              addMessage('Executing command:', 'ai');
+            } else {
+              addMessage(`Executing command: ${JSON.stringify(commandObj)}`, 'ai');
+            }
+            // Execute search_and_navigate like aura-nav
+            if (commandObj.action === 'search_and_navigate' && commandObj.topic) {
+              console.log(`Searching and navigating to: ${commandObj.topic}`);
+              const searchAndClickScript = `
+                (() => {
+                  const searchTerm = '${commandObj.topic.replace(/'/g,"\\'")}';
+                  const searchVariations = [
+                    searchTerm.toLowerCase(),
+                    searchTerm.toLowerCase().replace(/\s+/g, ''),
+                    ...searchTerm.toLowerCase().split(' '),
+                  ];
+                  if (searchTerm.toLowerCase().includes('vehicle') || searchTerm.toLowerCase().includes('vehical')) {
+                    searchVariations.push('vrt', 'vehicle registration tax', 'motor tax');
+                  }
+                  if (searchTerm.toLowerCase().includes('tax')) {
+                    searchVariations.push('vrt', 'taxation', 'revenue');
+                  }
+                  if (searchTerm.toLowerCase().includes('registration')) {
+                    searchVariations.push('vrt', 'register', 'registration');
+                  }
+                  const clickableElements = document.querySelectorAll('a, button, [role="button"], [onclick]');
+                  const clickableMatches = [];
+                  clickableElements.forEach(element => {
+                    if (element.offsetParent !== null) {
+                      const text = element.textContent.toLowerCase();
+                      const href = element.getAttribute('href') || '';
+                      for (const variation of searchVariations) {
+                        if (variation && (text.includes(variation) || href.toLowerCase().includes(variation))) {
+                          const rect = element.getBoundingClientRect();
+                          if (rect.height > 10 && rect.width > 50) {
+                            clickableMatches.push({
+                              element: element,
+                              text: element.textContent.trim(),
+                              href: href,
+                              matchedTerm: variation,
+                              relevanceScore: calculateRelevance(text + ' ' + href, searchVariations),
+                              rect: rect
+                            });
+                            break;
+                          }
+                        }
+                      }
+                    }
+                  });
+                  clickableMatches.sort((a, b) => {
+                    if (a.relevanceScore !== b.relevanceScore) {
+                      return b.relevanceScore - a.relevanceScore;
+                    }
+                    return a.rect.top - b.rect.top;
+                  });
+                  if (clickableMatches.length > 0) {
+                    const bestMatch = clickableMatches[0];
+                    const originalStyle = bestMatch.element.style.cssText;
+                    bestMatch.element.style.backgroundColor = '#00ff00';
+                    bestMatch.element.style.transition = 'background-color 0.3s';
+                    bestMatch.element.style.border = '2px solid #0066ff';
+                    setTimeout(() => {
+                      bestMatch.element.click();
+                    }, 500);
+                    return {
+                      success: true,
+                      found: true,
+                      clicked: true,
+                      text: bestMatch.text,
+                      href: bestMatch.href,
+                      matchedTerm: bestMatch.matchedTerm,
+                      matches: clickableMatches.length
+                    };
+                  } else {
+                    return {
+                      success: true,
+                      found: false,
+                      clicked: false,
+                      message: 'No clickable element found for topic',
+                      searchedFor: searchVariations
+                    };
+                  }
+                  function calculateRelevance(text, searchTerms) {
+                    let score = 0;
+                    for (const term of searchTerms) {
+                      if (term && text.includes(term)) {
+                        score += term.length;
+                      }
+                    }
+                    return score;
+                  }
+                })();
+              `;
+              try {
+                const result = await webview.executeJavaScript(searchAndClickScript, true);
+                if (result.found && result.clicked) {
+                  addMessage(`Navigating to "${result.matchedTerm}": ${result.text}${result.href ? ' → ' + result.href : ''}`, 'ai');
+                } else {
+                  addMessage(`Could not find clickable element for "${commandObj.topic}". Searched for: ${result.searchedFor.join(', ')}`, 'ai');
+                }
+              } catch (e) {
+                console.error('Search and navigate error:', e);
+                addMessage(`Error navigating to "${commandObj.topic}": ${e.message}`, 'ai');
+              }
+            }
+          } catch (e) {
+            addMessage(llmResponse, 'ai');
+          }
+        } else if (intent === 'question') {
+          // Extract visible text from the webview
+          addMessage('Let me look that up for you...', 'ai');
+          // You may need to implement extractVisibleTextFromWebview for Aura-dev
+          const pageText = await extractVisibleTextFromWebview();
+          console.log('Extracted page text:', pageText);
+          const prompt = `You are an AI assistant. The user is viewing a website and has asked: "${message}"\n\nHere is the visible text from the page:\n${pageText}\n\nPlease answer the user's question using only the information from the page. If the answer is not present, say so.`;
+          const llmResponse = await window.ollamaAPI.chat([{ role: 'user', content: prompt }]);
+          addMessage(llmResponse, 'ai');
+          await window.mainAPI.saveLlmLog(llmResponse);
+        } else {
+          addMessage("Sorry, I couldn't understand your request.", 'ai');
+        }
+      } catch (error) {
+        console.error('Error in sendMessage:', error);
+        addMessage('Sorry, I encountered an error. Please try again later.', 'ai');
+      }
+    }
 
   uploadPdfBtn.addEventListener('click', () => {
     pdfUploadInput.click(); // Trigger the hidden file input click
@@ -161,21 +561,6 @@ window.onload = async () => {
       webview.src = url;
     }
   };
-
-  // Add event listeners for navigation buttons
-  backBtn.addEventListener('click', () => {
-    if (webview.canGoBack()) {
-      webview.goBack();
-    }
-  });
-  forwardBtn.addEventListener('click', () => {
-    if (webview.canGoForward()) {
-      webview.goForward();
-    }
-  });
-  refreshBtn.addEventListener('click', () => {
-    webview.reload();
-  });
 
   browserLogo.addEventListener('click', () => {
     window.location.href = 'homepage.html'; // Navigate to homepage.html when logo is clicked
@@ -721,4 +1106,4 @@ window.onload = async () => {
       // Optionally, display an error message in the UI
     }
   });
-};
+}
