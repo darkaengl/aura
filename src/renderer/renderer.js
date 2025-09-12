@@ -152,7 +152,7 @@ window.onload = async () => {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`🎧 [${timestamp}] Wake word monitoring - Detected speech:`, transcription || '[No speech detected]');
             
-            if (transcription && (transcription.toLowerCase().includes('hey aura') || transcription.toLowerCase().includes('hey ora'))) {
+            if (transcription && transcription.toLowerCase().includes('browser')) {
               console.log(`✅ [${timestamp}] Wake word detected in transcription:`, transcription);
               handleWakeWordDetection();
             } else if (transcription) {
@@ -205,13 +205,13 @@ window.onload = async () => {
         wakeWordToggle.title = 'Continuous mode ACTIVE - Say "stop listening" to end';
         wakeWordToggle.style.animation = 'pulse 1.5s infinite';
       } else {
-        wakeWordToggle.title = 'Wake word detection ON - Say "Hey Aura" to start';
+        wakeWordToggle.title = 'Wake word detection ON - Say "browser" to start';
         wakeWordToggle.style.animation = '';
       }
     } else {
       wakeWordToggle.classList.remove('wake-word-active');
       wakeWordToggle.classList.add('wake-word-inactive');
-      wakeWordToggle.title = 'Wake word detection OFF - Click to enable "Hey Aura"';
+      wakeWordToggle.title = 'Wake word detection OFF - Click to enable "browser"';
       wakeWordToggle.style.animation = '';
     }
   };
@@ -342,7 +342,7 @@ window.onload = async () => {
             if (isStopCommand(transcription)) {
               console.log(`🛑 [${timestamp}] Stop command detected:`, transcription);
               isContinuousMode = false;
-              addMessage(`🛑 Understood. Ending continuous mode. Say "Hey Aura" to start again.`, 'ai');
+              addMessage(`🛑 Understood. Ending continuous mode. Say "browser" to start again.`, 'ai');
               micChatBtn.style.backgroundColor = ''; // Reset color
               return; // Don't execute the stop command or restart recording
             }
@@ -448,11 +448,11 @@ window.onload = async () => {
     stopAutoRecording();
     micChatBtn.style.backgroundColor = '';
     updateWakeWordToggle(isWakeWordActive); // Update visual indicator
-    addMessage('🛑 Continuous mode ended. Say "Hey Aura" to start again.', 'ai');
+    addMessage('🛑 Continuous mode ended. Say "browser" to start again.', 'ai');
   };
 
   const handleWakeWordDetection = () => {
-    console.log('Wake word "Hey Aura" detected!');
+    console.log('Wake word "browser" detected!');
     // Open chat container
     chatContainer.classList.remove('hidden');
     chatInput.focus();
