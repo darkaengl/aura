@@ -1,0 +1,336 @@
+import {
+    getTextExtractionScript
+} from '../shared/text-extraction.js';
+import {
+    showStatus,
+    clearStatus,
+    copyToClipboard
+} from '../shared/utils.js';
+import {
+    processTextWithOllama
+} from './ollamaHandler.js';
+import {
+    marked
+} from '../../node_modules/marked/lib/marked.esm.js';
+
+/**
+ * Updates button states during processing
+ */
+export const setProcessingState = (processing, {
+    extractTextBtn,
+    simplifyTextBtn
+}) => {
+    extractTextBtn.disabled = processing;
+    simplifyTextBtn.disabled = processing;
+
+    if (processing) {
+        extractTextBtn.textContent = 'Processing...';
+        simplifyTextBtn.classList.add('loading');
+    } else {
+        extractTextBtn.textContent = 'Extract & Simplify Text';
+        simplifyTextBtn.classList.remove('loading');
+    }
+};
+
+/**
+ * Extracts text from the current webview page
+ */
+export const extractPageText = async (webview, simplificationStatus) => {
+    try {
+        showStatus(simplificationStatus, 'Extracting text from page...', 'loading');
+
+        // Inject text extraction script into webview
+        const scriptResult = await webview.executeJavaScript(getTextExtractionScript());
+        console.log('Text extraction script loaded:', scriptResult);
+
+        // Extract the text using the injected function
+        const extractionResult = await webview.executeJavaScript(`
+        (function() {
+          try {
+            return JSON.stringify(extractWebpageText({ mode: 'full' }));
+          } catch (error) {
+            return JSON.stringify({ error: true, message: error.message });
+          }
+        })();
+      `);
+
+        const textData = JSON.parse(extractionResult);
+
+        if (textData.error) {
+            throw new Error(textData.message);
+        }
+
+        if (!textData.text || textData.text.trim().length === 0) {
+            throw new Error('No text content found on this page');
+        }
+
+        return textData;
+
+    } catch (error) {
+        console.error('Text extraction failed:', error);
+        throw new Error(`Failed to extract text: ${error.message}`);
+    }
+};
+
+/**
+ * Updates the display with original and simplified text
+ */
+export const updateTextDisplay = (textData, simplificationResult, {
+    originalTextDisplay,
+    originalWordCount,
+    simplifiedTextDisplay,
+    simplifiedWordCount,
+    wordReduction,
+    copySimplifiedText,
+    replacePageText
+}) => {
+    console.log(`[updateTextDisplay] Called with simplificationResult:`, simplificationResult);
+    // Update original text panel
+    originalTextDisplay.textContent = textData.text;
+    originalWordCount.textContent = textData.wordCount.toLocaleString();
+
+    // Update simplified text panel
+    if (simplificationResult.error) {
+        simplifiedTextDisplay.innerHTML = `<p style="color: red;">Error: ${simplificationResult.message}</p>`;
+        simplifiedWordCount.textContent = '0';
+        wordReduction.textContent = '0%';
+    } else {
+        console.log(`[updateTextDisplay] Updating simplifiedTextDisplay with:`, simplificationResult.simplified);
+        simplifiedTextDisplay.innerHTML = marked.parse(simplificationResult.simplified);
+        const currentSimplifiedWordCount = simplificationResult.simplified.split(/\s+/).filter(word => word.length >
+            0).length;
+        simplifiedWordCount.textContent = currentSimplifiedWordCount.toLocaleString();
+        const originalWordCount = textData.wordCount;
+        const currentWordReductionPercent = ((originalWordCount - currentSimplifiedWordCount) / originalWordCount *
+            100).toFixed(1);
+        wordReduction.textContent = `${currentWordReductionPercent}%`;
+    }
+
+    // Enable/disable action buttons
+    copySimplifiedText.disabled = simplificationResult.error;
+    replacePageText.disabled = simplificationResult.error;
+
+    // Reset replace button text if it was previously used
+    if (replacePageText.textContent === 'Text Replaced') {
+        replacePageText.textContent = 'Replace Page Text';
+    }
+};
+
+/**
+ * Main function to extract and simplify text
+ */
+export const extractAndSimplifyText = async (deps) => {
+    const {
+        isProcessingRef,
+        latestRequestIdRef,
+        setProcessingState,
+        clearStatus,
+        extractPageText,
+        currentTextDataRef,
+        originalTextDisplay,
+        originalWordCount,
+        simplificationStatus,
+        complexitySelect,
+        processTextWithOllama,
+        updateTextDisplay,
+        simplifiedTextDisplay,
+        simplifiedWordCount,
+        wordReduction,
+        copySimplifiedText,
+        replacePageText,
+        webview
+    } = deps;
+
+    if (isProcessingRef.current) return;
+
+    const requestId = ++latestRequestIdRef.current; // Generate a new request ID
+    console.log(`[extractAndSimplifyText] Starting new request with ID: ${requestId}`);
+
+    try {
+        setProcessingState(true, {
+            extractTextBtn: deps.extractTextBtn,
+            simplifyTextBtn: deps.simplifyTextBtn
+        });
+        clearStatus(simplificationStatus);
+
+        // Extract text from page
+        const textData = await extractPageText(webview, simplificationStatus);
+        currentTextDataRef.current = textData;
+        console.log(`[extractAndSimplifyText] Extracted textData:`, textData);
+
+        // Display original text immediately
+        originalTextDisplay.textContent = textData.text;
+        originalWordCount.textContent = textData.wordCount.toLocaleString();
+
+        showStatus(simplificationStatus, `Extracted ${textData.wordCount} words. Processing with Ollama...`,
+            'loading');
+
+        // Get selected complexity level
+        const complexity = complexitySelect.value;
+
+        // Process with Ollama
+        const result = await processTextWithOllama(textData, {
+            complexity
+        }, requestId, {
+            latestRequestIdRef,
+            simplificationStatus,
+            simplifiedTextDisplay,
+            simplifiedWordCount,
+            wordReduction
+        });
+        console.log(`[extractAndSimplifyText] Result from processTextWithOllama:`, result);
+
+        // Only update UI if this is still the latest request and result is not null (i.e., not discarded)
+        if (requestId !== latestRequestIdRef.current || result === null) {
+            console.log(
+                `[extractAndSimplifyText] Discarding result for request ${requestId}. Newer request ${latestRequestIdRef.current} exists or result was null.`
+                );
+            return;
+        }
+
+        // Update display
+        updateTextDisplay(textData, result, {
+            originalTextDisplay,
+            originalWordCount,
+            simplifiedTextDisplay,
+            simplifiedWordCount,
+            wordReduction,
+            copySimplifiedText,
+            replacePageText
+        });
+
+        showStatus(simplificationStatus,
+            `Text simplified successfully! Reduced by ${result.wordReduction}% (${result.metadata.originalWordCount} → ${result.metadata.simplifiedWordCount} words)`,
+            'success');
+
+    } catch (error) {
+        console.error('Text simplification failed:', error);
+        showStatus(simplificationStatus, `Error: ${error.message}`, 'error');
+
+        // Show partial results if we have extracted text
+        if (currentTextDataRef.current) {
+            updateTextDisplay(currentTextDataRef.current, {
+                error: true,
+                message: error.message
+            }, {
+                originalTextDisplay,
+                originalWordCount,
+                simplifiedTextDisplay,
+                simplifiedWordCount,
+                wordReduction,
+                copySimplifiedText,
+                replacePageText
+            });
+        }
+    } finally {
+        setProcessingState(false, {
+            extractTextBtn: deps.extractTextBtn,
+            simplifyTextBtn: deps.simplifyTextBtn
+        });
+    }
+};
+
+export const replacePageTextWithSimplified = async (deps) => {
+    const {
+        isPageSimplifiedRef,
+        pageContentStateRef,
+        simplificationStatus,
+        webview,
+        simplifiedTextDisplay,
+        replacePageText
+    } = deps;
+    try {
+        if (isPageSimplifiedRef.current) {
+            // Revert to original
+            showStatus(simplificationStatus, 'Restoring original page text...', 'loading');
+            if (pageContentStateRef.current.length > 0 && pageContentStateRef.current[0].originalHtml) {
+                await webview.executeJavaScript(
+                    `document.body.innerHTML = ${JSON.stringify(pageContentStateRef.current[0].originalHtml)};`
+                    );
+            }
+            isPageSimplifiedRef.current = false;
+            replacePageText.textContent = 'Replace Page Text';
+            showStatus(simplificationStatus, 'Original page text restored!', 'success');
+        } else {
+            // Simplify and replace
+            const simplifiedText = simplifiedTextDisplay.textContent;
+            if (!simplifiedText || simplifiedText.startsWith('Error:')) {
+                showStatus(simplificationStatus, 'No simplified text to replace with', 'error');
+                return;
+            }
+
+            showStatus(simplificationStatus, 'Replacing page text with simplified version...', 'loading');
+
+            // Clear previous state
+            pageContentStateRef.current = [];
+
+            // Store the entire original page HTML before replacing
+            const originalPageHtml = await webview.executeJavaScript(`document.body.innerHTML;`);
+            pageContentStateRef.current = [{
+                originalHtml: originalPageHtml
+            }]; // Store as a single item
+
+            // Clear the entire page and inject simplified text
+            await webview.executeJavaScript(`
+          document.body.innerHTML = ${JSON.stringify(`
+            <div style="max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+              ${simplifiedTextDisplay.innerHTML}
+            </div>
+          `)};
+        `);
+
+            isPageSimplifiedRef.current = true;
+            replacePageText.textContent = 'Show Original';
+            showStatus(simplificationStatus, 'Page text replaced with simplified version!', 'success');
+        }
+    } catch (error) {
+        console.error('Failed to replace page text:', error);
+        showStatus(simplificationStatus, `Failed to replace text: ${error.message}`, 'error');
+    }
+};
+
+export const refreshSimplification = (deps) => {
+    const {
+        latestRequestIdRef,
+        originalTextDisplay,
+        simplifiedTextDisplay,
+        originalWordCount,
+        simplifiedWordCount,
+        wordReduction,
+        clearStatus,
+        currentTextDataRef,
+        setProcessingState,
+        replacePageText,
+        isPageSimplifiedRef,
+        extractTextBtn,
+        simplifyTextBtn
+    } = deps;
+
+    // Invalidate any ongoing simplification processes
+    latestRequestIdRef.current++;
+
+    // Clear displayed text
+    originalTextDisplay.textContent = '';
+    simplifiedTextDisplay.textContent = '';
+
+    // Reset word counts
+    originalWordCount.textContent = '0';
+    simplifiedWordCount.textContent = '0';
+    wordReduction.textContent = '0%';
+
+    // Clear status message
+    clearStatus(simplificationStatus);
+
+    // Reset currentTextData
+    currentTextDataRef.current = null;
+
+    // Ensure buttons are re-enabled
+    setProcessingState(false, {
+        extractTextBtn,
+        simplifyTextBtn
+    });
+
+    // Reset replace page text button
+    replacePageText.textContent = 'Replace Page Text';
+    isPageSimplifiedRef.current = false;
+};
