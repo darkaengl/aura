@@ -1,0 +1,11 @@
+node_modules/
+.env
+package-lock.json
+
+# Log files
+*.log
+dom-log.json
+llm-log.json
+
+# OS-specific files
+.DS_Store
