@@ -46,6 +46,10 @@ window.onload = async () => {
   let silenceDuration = 2000; // 2 seconds of silence before auto-stop
   let maxRecordingDuration = 15000; // Maximum 15 seconds of recording
 
+  // Continuous recording mode state
+  let isContinuousMode = false; // Track if we're in hands-free mode
+  let continuousRestartTimeout = null; // Timeout for restarting recording
+
   // Helper function to write string to DataView
   function writeString(view, offset, string) {
     for (let i = 0; i < string.length; i++) {
@@ -59,6 +63,27 @@ window.onload = async () => {
       let s = Math.max(-1, Math.min(1, input[i]));
       output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
     }
+  }
+
+  // Check if transcription contains stop commands
+  function isStopCommand(transcription) {
+    if (!transcription) return false;
+    
+    const lowerText = transcription.toLowerCase();
+    const stopPhrases = [
+      'stop executing commands',
+      'stop listening', 
+      'stop recording',
+      'stop aura',
+      'exit continuous mode',
+      'that\'s all',
+      'thank you aura',
+      'goodbye aura',
+      'end session',
+      'stop'
+    ];
+    
+    return stopPhrases.some(phrase => lowerText.includes(phrase));
   }
 
   // Wake word detection functions
@@ -176,11 +201,18 @@ window.onload = async () => {
     if (active) {
       wakeWordToggle.classList.remove('wake-word-inactive');
       wakeWordToggle.classList.add('wake-word-active');
-      wakeWordToggle.title = 'Wake word detection ON - Say "Hey Aura" to open chat';
+      if (isContinuousMode) {
+        wakeWordToggle.title = 'Continuous mode ACTIVE - Say "stop listening" to end';
+        wakeWordToggle.style.animation = 'pulse 1.5s infinite';
+      } else {
+        wakeWordToggle.title = 'Wake word detection ON - Say "Hey Aura" to start';
+        wakeWordToggle.style.animation = '';
+      }
     } else {
       wakeWordToggle.classList.remove('wake-word-active');
       wakeWordToggle.classList.add('wake-word-inactive');
       wakeWordToggle.title = 'Wake word detection OFF - Click to enable "Hey Aura"';
+      wakeWordToggle.style.animation = '';
     }
   };
 
@@ -306,19 +338,60 @@ window.onload = async () => {
           console.log(`🎙️ [${timestamp}] Auto-recording - Transcribed speech:`, transcription || '[No speech detected]');
           
           if (transcription && transcription.trim()) {
+            // Check for stop commands first
+            if (isStopCommand(transcription)) {
+              console.log(`🛑 [${timestamp}] Stop command detected:`, transcription);
+              isContinuousMode = false;
+              addMessage(`🛑 Understood. Ending continuous mode. Say "Hey Aura" to start again.`, 'ai');
+              micChatBtn.style.backgroundColor = ''; // Reset color
+              return; // Don't execute the stop command or restart recording
+            }
+            
             console.log(`✅ [${timestamp}] Auto-recording - Valid command received:`, transcription);
             chatInput.value = transcription;
             addMessage(`📝 I heard: "${transcription}"`, 'ai');
-            sendMessage(); // Automatically send the message
+            
+            // Send the message and schedule restart for continuous mode
+            await sendMessage();
+            
+            // If in continuous mode, restart recording after a short delay
+            if (isContinuousMode) {
+              console.log(`🔄 [${timestamp}] Continuous mode - Scheduling next recording session`);
+              addMessage('🎙️ Ready for next command...', 'ai');
+              
+              continuousRestartTimeout = setTimeout(() => {
+                console.log('🔄 Restarting recording for continuous mode');
+                startAutoRecording();
+              }, 3000); // 3 second delay to allow AI response processing
+            }
           } else {
             console.log(`❌ [${timestamp}] Auto-recording - No valid speech detected`);
-            addMessage('🤔 Sorry, I didn\'t catch that. Please try again or click the microphone button.', 'ai');
+            if (isContinuousMode) {
+              addMessage('🤔 I didn\'t catch that. Ready for next command...', 'ai');
+              // Restart recording even if no speech was detected
+              continuousRestartTimeout = setTimeout(() => {
+                console.log('🔄 Restarting recording after no speech detected');
+                startAutoRecording();
+              }, 2000);
+            } else {
+              addMessage('🤔 Sorry, I didn\'t catch that. Please try again or click the microphone button.', 'ai');
+            }
           }
         } catch (error) {
           console.error('Auto-transcription error:', error);
           addMessage('❌ Sorry, transcription failed. Please try again.', 'ai');
+          
+          // Even on error, restart if in continuous mode
+          if (isContinuousMode) {
+            continuousRestartTimeout = setTimeout(() => {
+              console.log('🔄 Restarting recording after transcription error');
+              startAutoRecording();
+            }, 3000);
+          }
         } finally {
-          micChatBtn.style.backgroundColor = ''; // Reset color
+          if (!isContinuousMode) {
+            micChatBtn.style.backgroundColor = ''; // Reset color only if not continuing
+          }
         }
 
         audioContextForProcessing.close();
@@ -326,13 +399,18 @@ window.onload = async () => {
 
       mediaRecorder.start();
       isRecording = true;
-      micChatBtn.style.backgroundColor = '#ff0000'; // Red for recording
+      // Different colors for continuous vs single mode
+      micChatBtn.style.backgroundColor = isContinuousMode ? '#ff6600' : '#ff0000'; // Orange-red for continuous, red for single
       console.log('Auto-recording started with silence detection.');
 
       // Set maximum recording timeout (fallback safety)
       maxRecordingTimeout = setTimeout(() => {
         console.log('Auto-stopping recording due to maximum duration reached');
-        addMessage('⏱️ Maximum recording time reached. Processing your command...', 'ai');
+        if (isContinuousMode) {
+          addMessage('⏱️ Maximum recording time reached. Ready for next command...', 'ai');
+        } else {
+          addMessage('⏱️ Maximum recording time reached. Processing your command...', 'ai');
+        }
         stopAutoRecording();
       }, maxRecordingDuration);
 
@@ -358,6 +436,19 @@ window.onload = async () => {
       clearTimeout(maxRecordingTimeout);
       maxRecordingTimeout = null;
     }
+    if (continuousRestartTimeout) {
+      clearTimeout(continuousRestartTimeout);
+      continuousRestartTimeout = null;
+    }
+  };
+
+  const stopContinuousMode = () => {
+    console.log('🛑 Stopping continuous mode');
+    isContinuousMode = false;
+    stopAutoRecording();
+    micChatBtn.style.backgroundColor = '';
+    updateWakeWordToggle(isWakeWordActive); // Update visual indicator
+    addMessage('🛑 Continuous mode ended. Say "Hey Aura" to start again.', 'ai');
   };
 
   const handleWakeWordDetection = () => {
@@ -366,8 +457,16 @@ window.onload = async () => {
     chatContainer.classList.remove('hidden');
     chatInput.focus();
     
+    // Enable continuous mode
+    isContinuousMode = true;
+    console.log('🔄 Enabling continuous mode');
+    
+    // Update visual indicator for continuous mode
+    updateWakeWordToggle(isWakeWordActive);
+    
     // Show feedback message
-    addMessage('🎙️ Listening... Speak your command!', 'ai');
+    addMessage('🎙️ Continuous mode activated! Listening for commands...', 'ai');
+    addMessage('💡 Say "stop listening" or "stop executing commands" when done.', 'ai');
     
     // Start automatic recording with silence detection
     if (!isRecording) {

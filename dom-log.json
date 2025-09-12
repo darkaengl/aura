@@ -1,116 +1,283 @@
 [
   {
     "tag": "a",
-    "id": "toggleContrast",
-    "text": "Toggle Contrast",
+    "text": "Cookie Statement",
+    "href": "https://revenue.ie/en/online-services/support/data-and-security/privacy/use-of-cookies.aspx"
+  },
+  {
+    "tag": "button",
+    "class": "cookie-button",
+    "text": "Save and close",
+    "type": "button"
+  },
+  {
+    "tag": "a",
+    "text": "Cookie Statement",
+    "href": "https://revenue.ie/en/online-services/support/data-and-security/privacy/use-of-cookies.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "YouTube's own cookies policy",
+    "href": "https://policies.google.com/technologies/types?hl=en"
+  },
+  {
+    "tag": "button",
+    "class": "cookie-button",
+    "text": "Save and close",
+    "type": "button"
+  },
+  {
+    "tag": "a",
+    "text": "update your browser",
+    "href": "https://browser-update.org/update-browser.html"
+  },
+  {
+    "tag": "a",
+    "class": "top-alert__close-link",
+    "text": "Close",
     "href": "#"
   },
   {
     "tag": "a",
+    "class": "changeLang links nopadding",
     "text": "Gaeilge",
-    "href": "/evrt-enquiry/vrtenquiry.html;jsessionid_evrt-enquiry-web=5EDDD4C96D57EAEE39F7D41075528BFD?execution=e1s2&_eventId=changeLocale&locale=ga"
+    "href": "#"
   },
   {
     "tag": "a",
-    "class": "icon icon-Revenue-logo",
-    "href": "http://www.revenue.ie"
+    "class": "links nopadding",
+    "text": "myAccount",
+    "href": "https://www.ros.ie/myaccount-web/sign_in.html?execution=e1s1&lang=en"
   },
   {
     "tag": "a",
-    "text": "VRT Home",
-    "href": "/evrt-enquiry"
+    "class": "links nopadding",
+    "text": "ROS",
+    "href": "https://www.ros.ie/oidc/login?lang=en&client_id=rosint_rp"
+  },
+  {
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "LPT online",
+    "href": "https://lpt.revenue.ie/lpt-web/views/login.html?execution=e1s1&_eventId=changeLocale&locale=en"
+  },
+  {
+    "tag": "a",
+    "class": "revenueLogo float-left",
+    "href": "/en/home.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "myAccount",
+    "href": "https://www.ros.ie/myaccount-web/sign_in.html?execution=e1s1&lang=en"
+  },
+  {
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "ROS",
+    "href": "https://www.ros.ie/oidc/login?lang=en&client_id=rosint_rp"
+  },
+  {
+    "tag": "a",
+    "class": "links nopadding",
+    "text": "LPT online",
+    "href": "https://lpt.revenue.ie/lpt-web/views/login.html?execution=e1s1&_eventId=changeLocale&locale=en"
+  },
+  {
+    "tag": "a",
+    "class": "changeLang links nopadding",
+    "text": "Gaeilge",
+    "href": "#"
   },
   {
     "tag": "input",
-    "id": "statCode",
-    "class": "form-control",
-    "name": "statCodeSearch",
+    "id": "searchInput",
+    "class": "input-group-field ui-autocomplete-input",
+    "name": "searchInput",
+    "ariaLabel": "Search",
+    "placeholder": "Search",
     "type": "text"
   },
   {
-    "tag": "select",
-    "id": "startYear",
-    "class": "form-control",
-    "name": "startYear",
-    "text": "Please Select\n2025\n2024\n2023\n2022\n2021\n2020\n2019\n2018\n2017\n2016\n2015\n2014\n2013\n2012\n2011\n2010\n2009\n2008\n2007\n2006\n2005\n2004\n2003\n2002\n2001\n2000\n1999\n1998\n1997\n1996\n1995\n1994 or before"
-  },
-  {
-    "tag": "select",
-    "id": "startMonth",
-    "class": "form-control",
-    "name": "startMonth",
-    "text": "Please Select\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
-  },
-  {
     "tag": "button",
-    "id": "statCodeSearchButton",
-    "class": "button btn-primary",
-    "name": "statCodeSearchButton",
-    "text": "Enter",
-    "type": "submit"
-  },
-  {
-    "tag": "button",
-    "id": "updateButton",
-    "class": "button btn-primary",
-    "name": "_eventId_update",
-    "text": "Next",
-    "type": "submit"
-  },
-  {
-    "tag": "input",
-    "id": "cancelButton",
-    "class": "button btn-secondary",
-    "name": "_eventId_home",
-    "type": "submit"
-  },
-  {
-    "tag": "button",
-    "class": "close",
-    "text": "",
-    "type": "button"
-  },
-  {
-    "tag": "button",
-    "class": "button btn-primary",
-    "text": "Cancel",
-    "type": "button"
-  },
-  {
-    "tag": "button",
-    "id": "confirm",
-    "class": "button btn-primary",
-    "text": "yes",
+    "id": "btnSearch",
+    "class": "button icon-button",
+    "text": "Search",
     "type": "button"
   },
   {
     "tag": "a",
+    "text": "Back to homepage",
+    "href": "/en/home.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Vehicle Registration Tax (VRT)",
+    "href": "/en/vrt/vehicle-registration-tax/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Calculating Vehicle Registration Tax (VRT)",
+    "href": "/en/vrt/calculating-vrt/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Reliefs and exemptions",
+    "href": "/en/vrt/reliefs-and-exemptions/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Proportionate payment of VRT on leased vehicles",
+    "href": "/en/vrt/proportionate-payment-of-vrt-on-leased-vehicles/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Export Repayment Scheme",
+    "href": "/en/vrt/export-repayment-scheme/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Conversions",
+    "href": "/en/vrt/conversions/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "VRT appeals",
+    "href": "/en/vrt/appeals/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Authorised traders and processes",
+    "href": "/en/vrt/authorised-dealers-and-processes/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Importing vehicles from Great Britain and Northern Ireland",
+    "href": "/en/vrt/registration-of-imported-used-vehicles/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Back to homepage",
+    "href": "/en/home.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "back-to-top",
     "text": "Back to top",
-    "href": "#top"
+    "href": "#"
   },
   {
     "tag": "a",
-    "text": "Revenue Home",
-    "href": "http://www.revenue.ie"
+    "text": "Careers",
+    "href": "/en/corporate/information-about-revenue/careers/index.aspx"
   },
   {
     "tag": "a",
-    "text": "Help",
-    "href": "https://www.ros.ie/helpcentre/help.html"
+    "text": "Customer service",
+    "href": "/en/corporate/information-about-revenue/customer-service/index.aspx"
   },
   {
     "tag": "a",
+    "text": "Press office",
+    "href": "/en/corporate/press-office/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Information about Revenue",
+    "href": "/en/corporate/information-about-revenue/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Revenue museum",
+    "href": "/en/corporate/information-about-revenue/revenue-museum/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Assist us",
+    "href": "/en/corporate/assist-us/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Consultations and submissions",
+    "href": "/en/corporate/consultations-and-submissions/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Contact us",
+    "href": "/en/contact-us/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Statistics and research",
+    "href": "/en/corporate/information-about-revenue/statistics/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Tax education",
+    "href": "/en/tax-education/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Using revenue.ie",
+    "href": "/en/corporate/using-revenue/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Communications",
+    "href": "/en/corporate/communications/index.aspx"
+  },
+  {
+    "tag": "a",
+    "text": "Central Register of Beneficial Ownership of Trusts (CRBOT)",
+    "href": "/en/crbot/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": " bold-link normal-link::after",
     "text": "Accessibility",
-    "href": "https://www.revenue.ie/en/accessibility-statement.html"
+    "href": "/en/online-services/support/technical-requirements/accessibility-statement/index.aspx"
   },
   {
     "tag": "a",
-    "text": "Terms & Conditions",
-    "href": "http://www.ros.ie/info/terms.html"
+    "class": " bold-link normal-link::after",
+    "text": "Statutory obligations",
+    "href": "/en/corporate/statutory-obligations/index.aspx"
   },
   {
     "tag": "a",
-    "text": "Privacy Policy",
-    "href": "http://www.revenue.ie/en/privacy.html"
+    "class": " bold-link normal-link::after",
+    "text": "Privacy",
+    "href": "/en/online-services/support/data-and-security/privacy/index.aspx"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "Website feedback",
+    "href": "https://revenue.eu.qualtrics.com/jfe/form/SV_3EpTMqX6iaPuoYJ"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "WhoDoesWhat (English)",
+    "href": "https://www.gov.ie/en/organisation-information/467cb-who-does-what-office-of-the-revenue-commissioners/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "WhoDoesWhat (Irish)",
+    "href": "https://www.gov.ie/ga/oifig-na-gcoimisin%C3%A9ir%C3%AD-ioncaim/eolas-eagraiochta/revenue-commissioners-who-does-what/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "gov.ie (English)",
+    "href": "http://www.gov.ie/en/"
+  },
+  {
+    "tag": "a",
+    "class": "class=external-links-white normal-link normal-link::after",
+    "text": "gov.ie (Irish)",
+    "href": "https://www.gov.ie/ga/"
   }
 ]
