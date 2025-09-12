@@ -41,3 +41,15 @@ contextBridge.exposeInMainWorld('mainAPI', {
   saveDomLog: (domJson) => ipcRenderer.invoke('save-dom-log', domJson),
   saveLlmLog: (llmResponse) => ipcRenderer.invoke('save-llm-log', llmResponse)
 });
+
+// Expose nodeBufferFrom for converting ArrayBuffer to Node.js Buffer
+contextBridge.exposeInMainWorld('nodeBufferFrom', (arrayBuffer) => {
+  return Buffer.from(arrayBuffer);
+});
+
+// Expose speechAPI for Google Speech-to-Text
+contextBridge.exposeInMainWorld('speechAPI', {
+  transcribeAudio: async (audioBuffer, sampleRate) => {
+    return await ipcRenderer.invoke('transcribe-audio', audioBuffer, sampleRate);
+  }
+});

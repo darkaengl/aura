@@ -8,6 +8,12 @@ const openai = new OpenAI({
   apiKey: process.env.CHATGPT_API_KEY,
 });
 
+// Google Cloud Speech-to-Text
+const speech = require('@google-cloud/speech');
+const speechClient = new speech.SpeechClient({
+  keyFilename: path.join(__dirname, '../../google-cloud-key.json')
+});
+
 app.setName('Aura');
 
 // IPC handler to classify user input as 'question' or 'action' using GPT
@@ -88,6 +94,35 @@ ipcMain.handle('save-llm-log', async (event, llmResponse) => {
   } catch (error) {
     console.error('Failed to save LLM log:', error);
     throw new Error(`Failed to save LLM log: ${error.message}`);
+  }
+});
+
+// Google Cloud Speech-to-Text IPC handler
+ipcMain.handle('transcribe-audio', async (event, audioBuffer, sampleRate) => {
+  try {
+    const nodeBuffer = Buffer.from(audioBuffer);
+
+    const audio = {
+      content: nodeBuffer.toString('base64'),
+    };
+    const config = {
+      encoding: 'LINEAR16', // Changed to LINEAR16 for WAV
+      sampleRateHertz: sampleRate, // Use the dynamic sample rate
+      languageCode: 'en-US', // Or your desired language
+    };
+    const request = {
+      audio: audio,
+      config: config,
+    };
+
+    const [response] = await speechClient.recognize(request);
+    const transcription = response.results
+      .map(result => result.alternatives[0].transcript)
+      .join('\n');
+    return transcription;
+  } catch (error) {
+    console.error('Google Cloud Speech-to-Text error:', error);
+    throw new Error(`Speech-to-Text failed: ${error.message}`);
   }
 });
 

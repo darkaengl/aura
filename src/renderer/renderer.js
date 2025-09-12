@@ -26,48 +26,108 @@ window.onload = async () => {
   let currentFormFields = [];
   let currentFieldIndex = 0;
 
-  // Speech Recognition
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
-  console.log('SpeechRecognition initialized.');
-  recognition.continuous = false; // Listen for a single utterance
-  recognition.lang = 'en-US';
+  // MediaRecorder for Speech-to-Text using Google Cloud Speech API
+  let mediaRecorder;
+  let audioChunks = [];
+  let isRecording = false;
 
-  let isListening = false;
+  // Helper function to write string to DataView
+  function writeString(view, offset, string) {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  }
 
-  micChatBtn.addEventListener('click', () => {
-    if (isListening) {
-      recognition.stop();
-      isListening = false;
-      micChatBtn.style.backgroundColor = ''; // Reset button color
-      console.log('Speech recognition stopped.');
+  // Helper function to convert float to 16-bit PCM
+  function floatTo16BitPCM(output, offset, input) {
+    for (let i = 0; i < input.length; i++, offset += 2) {
+      let s = Math.max(-1, Math.min(1, input[i]));
+      output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+  }
+
+  micChatBtn.addEventListener('click', async () => {
+    if (isRecording) {
+      mediaRecorder.stop();
+      isRecording = false;
+      micChatBtn.style.backgroundColor = '';
+      console.log('Recording stopped.');
     } else {
-      recognition.start();
-      isListening = true;
-      micChatBtn.style.backgroundColor = '#ff0000'; // Change button color to red when listening
-      console.log('Speech recognition started.');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const arrayBuffer = await audioBlob.arrayBuffer();
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const decodedAudio = await audioContext.decodeAudioData(arrayBuffer);
+
+          // Create WAV header
+          const numberOfChannels = decodedAudio.numberOfChannels;
+          const sampleRate = decodedAudio.sampleRate;
+          const format = 1; // PCM
+          const bitDepth = 16; // 16-bit
+          const byteRate = sampleRate * numberOfChannels * bitDepth / 8;
+          const blockAlign = numberOfChannels * bitDepth / 8;
+          const dataSize = decodedAudio.length * numberOfChannels * bitDepth / 8;
+
+          const buffer = new ArrayBuffer(44 + dataSize);
+          const view = new DataView(buffer);
+
+          // RIFF chunk descriptor
+          writeString(view, 0, 'RIFF');
+          view.setUint32(4, 36 + dataSize, true);
+          writeString(view, 8, 'WAVE');
+          // FMT sub-chunk
+          writeString(view, 12, 'fmt ');
+          view.setUint32(16, 16, true);
+          view.setUint16(20, format, true);
+          view.setUint16(22, numberOfChannels, true);
+          view.setUint32(24, sampleRate, true);
+          view.setUint32(28, byteRate, true);
+          view.setUint16(32, blockAlign, true);
+          view.setUint16(34, bitDepth, true);
+          // data sub-chunk
+          writeString(view, 36, 'data');
+          view.setUint32(40, dataSize, true);
+
+          // Write the PCM data
+          floatTo16BitPCM(view, 44, decodedAudio.getChannelData(0));
+          if (numberOfChannels === 2) {
+            floatTo16BitPCM(view, 44, decodedAudio.getChannelData(1));
+          }
+
+          const wavAudioBuffer = window.nodeBufferFrom(buffer);
+
+          console.log('Audio recorded, sending for transcription...');
+          console.log('Detected sample rate:', sampleRate);
+
+          try {
+            const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+            chatInput.value = transcription;
+            sendMessage();
+          } catch (error) {
+            console.error('Transcription error:', error);
+            addMessage('Sorry, transcription failed. Please try again.', 'ai');
+          }
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        micChatBtn.style.backgroundColor = '#ff0000';
+        console.log('Recording started.');
+      } catch (error) {
+        console.error('Error accessing microphone:', error);
+        addMessage('Could not access microphone. Please ensure it\'s connected and permissions are granted.', 'ai');
+      }
     }
   });
-
-  recognition.onresult = (event) => {
-    console.log('Speech recognition result received.', event);
-    const transcript = event.results[0][0].transcript;
-    chatInput.value = transcript;
-    sendMessage(); // Send the message after speech input
-  };
-
-  recognition.onerror = (event) => {
-    console.error('Speech recognition error:', event.error, event);
-    isListening = false;
-    micChatBtn.style.backgroundColor = ''; // Reset button color
-    addMessage('Speech recognition failed. Please try again.', 'ai');
-  };
-
-  recognition.onend = () => {
-    console.log('Speech recognition ended.');
-    isListening = false;
-    micChatBtn.style.backgroundColor = ''; // Reset button color
-  };
 
   /**``
    * Navigates the webview to the URL in the input field.
