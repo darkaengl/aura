@@ -80,16 +80,19 @@ const processViolations = (failures) => {
 
   if (totalDisplayableNodes > 0) {
     itemsWithDisplayableNodes.forEach(item => {
-      result += `${item.id}: ${item.description}\n`;
+      result += `${item.id}: ${item.description} `;
       if (item.nodes && item.nodes.length > 0) {
         item.nodes.forEach(node => {
-          result += result.includes(node.failureSummary) ? '' : ('\n' + node.failureSummary)
+          result += result.includes(node.failureSummary) ? '' : ('\n' + node.failureSummary + ' ')
         });
       }
     });
   }
-
-  return result;
+  result = result.replace(/Fix (any|all) of the following:/g, '');
+  result = result.replace(/  /g, '');
+  result = result.replace(/\n\n\n/g, '\n\n');
+  console.log(result)
+  return result
 }
 
 // Function to download JSON report

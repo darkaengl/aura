@@ -44,7 +44,7 @@ window.onload = async () => {
     console.log('[processCssInChunks] Violations=', violations)
     const pieces = currentCss.split('}\n}\n');
 
-    let limit = 5000;  // character limit
+    let limit = 10000;  // character limit
     let chunks = [];
     let chunk = '';
 
@@ -85,7 +85,7 @@ window.onload = async () => {
       const text = chunks[i];
       const messages = [{
         role: 'user',
-        content: 'Respond ONLY with valid CSS contained within triple backticks (e.g: ``` CSS_HERE ```). Optimise the CSS below, to make text/clickable items larger, bolder, more contrasting, and more readable for those with visual impairments:\n\n' + text + '\n\nEND CSS\n\nAccount for the following WCAG violations (if any) wherever possible: ' + violations
+        content: 'Respond ONLY with valid CSS contained within triple backticks (e.g: ``` CSS_HERE ```). Update the CSS below to make resulting page simplified for users with visual impairments. Make the page clear and high-contrast. Do NOT change image content - only adjust image size and placement where necessary. Make all text very big and bold. Enlargen clickable items. CSS below: \n\n' + text
       }];
       llmRequests.push(window.gptAPI.chat(messages));
     }
