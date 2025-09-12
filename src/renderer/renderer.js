@@ -39,6 +39,13 @@ window.onload = async () => {
   let wakeWordMediaRecorder = null;
   let wakeWordStream = null;
 
+  // Auto-stop recording state
+  let autoStopTimeout = null;
+  let maxRecordingTimeout = null;
+  let silenceThreshold = -50; // dB threshold for silence detection
+  let silenceDuration = 2000; // 2 seconds of silence before auto-stop
+  let maxRecordingDuration = 15000; // Maximum 15 seconds of recording
+
   // Helper function to write string to DataView
   function writeString(view, offset, string) {
     for (let i = 0; i < string.length; i++) {
@@ -117,9 +124,14 @@ window.onload = async () => {
             
             // Use regular transcription instead of streaming
             const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`🎧 [${timestamp}] Wake word monitoring - Detected speech:`, transcription || '[No speech detected]');
+            
             if (transcription && (transcription.toLowerCase().includes('hey aura') || transcription.toLowerCase().includes('hey ora'))) {
-              console.log('Wake word detected in transcription:', transcription);
+              console.log(`✅ [${timestamp}] Wake word detected in transcription:`, transcription);
               handleWakeWordDetection();
+            } else if (transcription) {
+              console.log(`ℹ️ [${timestamp}] Speech detected but not wake word:`, transcription);
             }
           } catch (error) {
             // Silently ignore transcription errors for wake word detection
@@ -172,15 +184,194 @@ window.onload = async () => {
     }
   };
 
+  // Auto-recording function with silence detection for wake word
+  const startAutoRecording = async () => {
+    try {
+      console.log('Starting auto-recording with silence detection...');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      audioChunks = [];
+
+      // Audio context for volume analysis
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const microphone = audioContext.createMediaStreamSource(stream);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      microphone.connect(analyser);
+      analyser.fftSize = 512;
+
+      // Function to check audio levels for silence detection
+      const checkAudioLevel = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / dataArray.length;
+        
+        // Convert to decibels (approximate)
+        const decibels = average > 0 ? 20 * Math.log10(average / 255) : -Infinity;
+        
+        if (decibels > silenceThreshold) {
+          // Sound detected, reset silence timer
+          if (autoStopTimeout) {
+            clearTimeout(autoStopTimeout);
+            autoStopTimeout = null;
+          }
+        } else {
+          // Silence detected, start countdown to auto-stop
+          if (!autoStopTimeout && isRecording) {
+            autoStopTimeout = setTimeout(() => {
+              console.log('Auto-stopping recording due to silence');
+              stopAutoRecording();
+            }, silenceDuration);
+          }
+        }
+
+        // Continue monitoring if still recording
+        if (isRecording) {
+          requestAnimationFrame(checkAudioLevel);
+        }
+      };
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Clean up audio context
+        audioContext.close();
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Clear any pending timeouts
+        if (autoStopTimeout) {
+          clearTimeout(autoStopTimeout);
+          autoStopTimeout = null;
+        }
+        if (maxRecordingTimeout) {
+          clearTimeout(maxRecordingTimeout);
+          maxRecordingTimeout = null;
+        }
+
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const audioContextForProcessing = new (window.AudioContext || window.webkitAudioContext)();
+        const decodedAudio = await audioContextForProcessing.decodeAudioData(arrayBuffer);
+
+        // Create WAV header
+        const numberOfChannels = decodedAudio.numberOfChannels;
+        const sampleRate = decodedAudio.sampleRate;
+        const format = 1; // PCM
+        const bitDepth = 16; // 16-bit
+        const byteRate = sampleRate * numberOfChannels * bitDepth / 8;
+        const blockAlign = numberOfChannels * bitDepth / 8;
+        const dataSize = decodedAudio.length * numberOfChannels * bitDepth / 8;
+
+        const buffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(buffer);
+
+        // RIFF chunk descriptor
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeString(view, 8, 'WAVE');
+        // FMT sub-chunk
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, format, true);
+        view.setUint16(22, numberOfChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitDepth, true);
+        // data sub-chunk
+        writeString(view, 36, 'data');
+        view.setUint32(40, dataSize, true);
+
+        // Write the PCM data
+        floatTo16BitPCM(view, 44, decodedAudio.getChannelData(0));
+        if (numberOfChannels === 2) {
+          floatTo16BitPCM(view, 44, decodedAudio.getChannelData(1));
+        }
+
+        const wavAudioBuffer = window.nodeBufferFrom(buffer);
+
+        console.log('Auto-recorded audio, sending for transcription...');
+        micChatBtn.style.backgroundColor = '#ffaa00'; // Orange for processing
+        addMessage('🔄 Processing your command...', 'ai');
+
+        try {
+          const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+          const timestamp = new Date().toLocaleTimeString();
+          console.log(`🎙️ [${timestamp}] Auto-recording - Transcribed speech:`, transcription || '[No speech detected]');
+          
+          if (transcription && transcription.trim()) {
+            console.log(`✅ [${timestamp}] Auto-recording - Valid command received:`, transcription);
+            chatInput.value = transcription;
+            addMessage(`📝 I heard: "${transcription}"`, 'ai');
+            sendMessage(); // Automatically send the message
+          } else {
+            console.log(`❌ [${timestamp}] Auto-recording - No valid speech detected`);
+            addMessage('🤔 Sorry, I didn\'t catch that. Please try again or click the microphone button.', 'ai');
+          }
+        } catch (error) {
+          console.error('Auto-transcription error:', error);
+          addMessage('❌ Sorry, transcription failed. Please try again.', 'ai');
+        } finally {
+          micChatBtn.style.backgroundColor = ''; // Reset color
+        }
+
+        audioContextForProcessing.close();
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+      micChatBtn.style.backgroundColor = '#ff0000'; // Red for recording
+      console.log('Auto-recording started with silence detection.');
+
+      // Set maximum recording timeout (fallback safety)
+      maxRecordingTimeout = setTimeout(() => {
+        console.log('Auto-stopping recording due to maximum duration reached');
+        addMessage('⏱️ Maximum recording time reached. Processing your command...', 'ai');
+        stopAutoRecording();
+      }, maxRecordingDuration);
+
+      // Start monitoring audio levels
+      checkAudioLevel();
+
+    } catch (error) {
+      console.error('Error starting auto-recording:', error);
+      addMessage('Could not start recording. Please ensure microphone permissions are granted.', 'ai');
+    }
+  };
+
+  const stopAutoRecording = () => {
+    if (isRecording && mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      isRecording = false;
+    }
+    if (autoStopTimeout) {
+      clearTimeout(autoStopTimeout);
+      autoStopTimeout = null;
+    }
+    if (maxRecordingTimeout) {
+      clearTimeout(maxRecordingTimeout);
+      maxRecordingTimeout = null;
+    }
+  };
+
   const handleWakeWordDetection = () => {
     console.log('Wake word "Hey Aura" detected!');
     // Open chat container
     chatContainer.classList.remove('hidden');
     chatInput.focus();
     
-    // Automatically start speech recognition
+    // Show feedback message
+    addMessage('🎙️ Listening... Speak your command!', 'ai');
+    
+    // Start automatic recording with silence detection
     if (!isRecording) {
-      micChatBtn.click(); // Trigger the existing speech-to-text functionality
+      startAutoRecording();
     }
   };
 
@@ -261,6 +452,15 @@ window.onload = async () => {
 
           try {
             const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`🎤 [${timestamp}] Manual recording - Transcribed speech:`, transcription || '[No speech detected]');
+            
+            if (transcription && transcription.trim()) {
+              console.log(`✅ [${timestamp}] Manual recording - Valid speech received:`, transcription);
+            } else {
+              console.log(`⚠️ [${timestamp}] Manual recording - Empty or no speech detected`);
+            }
+            
             chatInput.value = transcription;
             sendMessage();
           } catch (error) {
