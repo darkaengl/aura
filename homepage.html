@@ -18,6 +18,51 @@
       align-items: center;
       justify-content: flex-start;
     }
+    #address-bar {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      box-sizing: border-box;
+      background: #f0f0f0;
+      align-items: center;
+      width: 100%;
+    }
+
+    .nav-btn {
+      padding: 8px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #4a90e2;
+      color: white;
+      transition: background-color 0.3s;
+    }
+
+    #url-input {
+      flex: 3 1 0;
+      font-size: 23px;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      outline: none;
+    }
+    .favorites-section, .suggested-section {
+      background: #e0e4ed;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 20px;
+      box-shadow: 0 2px 10px rgba(74,144,226,0.08);
+      text-align: center;
+    }
+    .favorites-section h2, .suggested-section h2 {
+      font-size: 0.8rem;
+      color: #357abd;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
     .favorites-bar {
       width: 100%;
       max-width: 700px;
@@ -25,8 +70,6 @@
       justify-content: center;
       align-items: center;
       gap: 32px;
-      margin-top: 32px;
-      margin-bottom: 0;
       z-index: 2;
       position: relative;
     }
@@ -53,141 +96,132 @@
     .logo-bg {
       position: fixed;
       left: 50%;
-      top: 50%;
+      top: 40%;
       transform: translate(-50%, -50%);
-      width: 720px;
-      height: 720px;
+      width: 540px;
+      height: 540px;
       opacity: 0.78;
       z-index: 0;
       pointer-events: none;
       user-select: none;
     }
-    .suggested-section {
-      width: 100%;
-      max-width: 700px;
+    .bottom-container {
       position: fixed;
+      bottom: 20px;
       left: 50%;
-      bottom: 0;
       transform: translateX(-50%);
-      padding-bottom: 24px;
-      z-index: 2;
-    }
-    .section-title {
-      font-size: 1.1rem;
-      color: #357abd;
-      font-weight: 700;
-      margin-bottom: 10px;
-      margin-top: 0;
-      text-align: left;
-      letter-spacing: 0.5px;
-    }
-    .suggested-grid {
       display: flex;
-      flex-direction: row;
-      gap: 24px;
-      justify-content: center;
+      gap: 20px;
+    }
+    .search-container {
+      position: fixed;
+      top: 65%;
+      left: 50%;
+      transform: translateX(-50%);
       width: 100%;
+      max-width: 600px;
     }
-    .shortcut-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(74,144,226,0.08);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 18px 12px 14px 12px;
-      transition: box-shadow 0.2s, transform 0.2s;
-      cursor: pointer;
-      border: 2px solid transparent;
-      min-width: 180px;
-      max-width: 220px;
-      position: relative;
-      z-index: 1;
-    }
-    .shortcut-card:focus,
-    .shortcut-card:hover {
-      box-shadow: 0 4px 18px rgba(74,144,226,0.18);
-      border-color: #4a90e2;
-      transform: translateY(-2px) scale(1.03);
-      outline: none;
-    }
-    .shortcut-icon {
-      font-size: 1.7rem;
-      margin-bottom: 8px;
-      color: #4a90e2;
-    }
-    .shortcut-label {
-      font-size: 1rem;
-      color: #357abd;
-      font-weight: 600;
-      margin-bottom: 4px;
-      text-align: center;
-    }
-    .shortcut-url {
-      font-size: 0.85rem;
-      color: #888;
-      word-break: break-all;
-      text-align: center;
+    #search-input {
+      width: 100%;
+      padding: 15px;
+      font-size: 20px;
+      border-radius: 25px;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     @media (max-width: 700px) {
-      .favorites-bar, .suggested-grid {
+      .favorites-bar, .suggested-bar {
         gap: 12px;
       }
       .logo-bg { width: 180px; height: 180px; }
-      .shortcut-card { min-width: 120px; max-width: 150px; padding: 10px 4px 8px 4px; }
-      .suggested-section { padding-bottom: 8px; }
     }
     @media (max-width: 500px) {
-      .favorites-bar, .suggested-grid {
+      .favorites-bar, .suggested-bar {
         flex-direction: column;
         align-items: center;
       }
-      .suggested-section { position: static; transform: none; }
+      .bottom-container { position: static; transform: none; flex-direction: column; }
     }
   </style>
 </head>
 <body>
+  <div id="address-bar">
+    <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo" style="height: 62px; margin-right: 8px;">
+    <input id="url-input" type="text" placeholder="Enter URL" />
+  </div>
   <!-- Aura logo as faded background -->
   <img src="./assets/brand/IMG_3414.png" alt="Aura Logo" class="logo-bg" />
-  <nav class="favorites-bar">
-    <a class="fav-link" tabindex="0" data-url="https://www.google.com" aria-label="Open Google.com">
-      <span class="fav-icon">🔎</span>
-      Google
-    </a>
-    <a class="fav-link" tabindex="0" data-url="https://www.rte.ie" aria-label="Open RTE.ie">
-      <span class="fav-icon">📰</span>
-      RTE
-    </a>
-    <a class="fav-link" tabindex="0" data-url="https://www.gmail.com" aria-label="Open Gmail.com">
-      <span class="fav-icon">✉️</span>
-      Gmail
-    </a>
-  </nav>
-  <main>
-    <section class="suggested-section">
-      <h2 class="section-title">Suggested</h2>
-      <div class="suggested-grid">
-        <div class="shortcut-card" tabindex="0" data-url="https://www.revenue.ie" aria-label="Open Revenue.ie">
-          <div class="shortcut-icon">💼</div>
-          <div class="shortcut-label">Revenue.ie</div>
-          <div class="shortcut-url">www.revenue.ie</div>
-        </div>
-        <div class="shortcut-card" tabindex="0" data-url="https://www.hse.ie" aria-label="Open HSE.ie">
-          <div class="shortcut-icon">🏥</div>
-          <div class="shortcut-label">HSE.ie</div>
-          <div class="shortcut-url">www.hse.ie</div>
-        </div>
-        <div class="shortcut-card" tabindex="0" data-url="https://www.citizensinformation.ie" aria-label="Open Citizens Information">
-          <div class="shortcut-icon">📚</div>
-          <div class="shortcut-label">Citizens Information</div>
-          <div class="shortcut-url">www.citizensinformation.ie</div>
-        </div>
-      </div>
-    </section>
-  </main>
+  <div class="search-container">
+    <input type="text" id="search-input" placeholder="Search with Google">
+  </div>
+
+  <div class="bottom-container">
+    <div class="favorites-section">
+      <h2>Favorites</h2>
+      <nav class="favorites-bar">
+        <a class="fav-link" tabindex="0" data-url="https://www.google.com" aria-label="Open Google.com">
+          <span class="fav-icon">🔎</span>
+          Google
+        </a>
+        <a class="fav-link" tabindex="0" data-url="https://www.rte.ie" aria-label="Open RTE.ie">
+          <span class="fav-icon">📰</span>
+          RTE
+        </a>
+        <a class="fav-link" tabindex="0" data-url="https://www.gmail.com" aria-label="Open Gmail.com">
+          <span class="fav-icon">✉️</span>
+          Gmail
+        </a>
+      </nav>
+    </div>
+    <div class="suggested-section">
+      <h2>Suggested</h2>
+      <nav class="favorites-bar suggested-bar">
+        <a class="fav-link" tabindex="0" data-url="https://www.revenue.ie" aria-label="Open Revenue.ie">
+          <span class="fav-icon">💼</span>
+          Revenue.ie
+        </a>
+        <a class="fav-link" tabindex="0" data-url="https://www.hse.ie" aria-label="Open HSE.ie">
+          <span class="fav-icon">🏥</span>
+          HSE.ie
+        </a>
+        <a class="fav-link" tabindex="0" data-url="https://www.citizensinformation.ie" aria-label="Open Citizens Information">
+          <span class="fav-icon">📚</span>
+          Citizens Information
+        </a>
+      </nav>
+    </div>
+  </div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Favorites
+      const urlInput = document.getElementById('url-input');
+      urlInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          let url = urlInput.value.trim();
+          if (url) {
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+              url = 'https://' + url;
+            }
+            if (window.electronAPI && window.electronAPI.sendNavigate) {
+              window.electronAPI.sendNavigate(url);
+            }
+          }
+        }
+      });
+
+      const searchInput = document.getElementById('search-input');
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          const query = searchInput.value.trim();
+          if (query) {
+            const searchURL = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            if (window.electronAPI && window.electronAPI.sendNavigate) {
+              window.electronAPI.sendNavigate(searchURL);
+            }
+          }
+        }
+      });
+
+      // Handle clicks on all fav-links
       const favLinks = document.querySelectorAll('.fav-link');
       favLinks.forEach(link => {
         link.addEventListener('click', () => {
@@ -199,21 +233,6 @@
         link.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             link.click();
-          }
-        });
-      });
-      // Suggested
-      const shortcuts = document.querySelectorAll('.shortcut-card');
-      shortcuts.forEach(card => {
-        card.addEventListener('click', () => {
-          const url = card.dataset.url;
-          if (url && window.electronAPI && window.electronAPI.navigateToUrl) {
-            window.electronAPI.navigateToUrl(url);
-          }
-        });
-        card.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            card.click();
           }
         });
       });

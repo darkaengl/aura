@@ -164,6 +164,18 @@ window.onload = async () => {
         }
     };
 
+    backBtn.addEventListener('click', () => {
+        webview.goBack();
+    });
+
+    forwardBtn.addEventListener('click', () => {
+        webview.goForward();
+    });
+
+    refreshBtn.addEventListener('click', () => {
+        webview.reload();
+    });
+
     browserLogo.addEventListener('click', () => {
         window.location.href = 'homepage.html'; // Navigate to homepage.html when logo is clicked
     });

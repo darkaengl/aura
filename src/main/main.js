@@ -309,6 +309,18 @@ ipcMain.handle('navigateToUrl', (event, url) => {
   }
 });
 
+ipcMain.on('navigate-from-homepage', (event, url) => {
+  if (mainWindow) {
+    if (mainWindow.webContents.getURL().includes('homepage.html')) {
+      mainWindow.loadFile('index.html').then(() => {
+        mainWindow.webContents.send('navigate-webview', url);
+      });
+    } else {
+      mainWindow.webContents.send('navigate-webview', url);
+    }
+  }
+});
+
 let mainWindow; // Declare mainWindow globally
 
 const createWindow = () => {

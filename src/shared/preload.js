@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('secretsAPI', {
 // Expose a safe, limited API to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   navigateToUrl: async (url) => ipcRenderer.invoke('navigateToUrl', url),
+  sendNavigate: (url) => ipcRenderer.send('navigate-from-homepage', url),
   onNavigateWebview: (callback) => ipcRenderer.on('navigate-webview', (event, url) => callback(url))
 });
 
