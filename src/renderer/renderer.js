@@ -13,6 +13,9 @@ window.onload = async () => {
   const downloadReportBtn = document.getElementById('download-report-btn');
   const micBtn = document.getElementById('mic-btn');
 
+  // Wake word detection elements
+  const wakeWordToggle = document.getElementById('wake-word-toggle');
+
   // Chat interface elements
   const chatContainer = document.getElementById('chat-container');
   const closeChatBtn = document.getElementById('close-chat-btn');
@@ -31,6 +34,11 @@ window.onload = async () => {
   let audioChunks = [];
   let isRecording = false;
 
+  // Wake word detection state
+  let isWakeWordActive = true; // Start with wake word detection enabled
+  let wakeWordMediaRecorder = null;
+  let wakeWordStream = null;
+
   // Helper function to write string to DataView
   function writeString(view, offset, string) {
     for (let i = 0; i < string.length; i++) {
@@ -45,6 +53,149 @@ window.onload = async () => {
       output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
     }
   }
+
+  // Wake word detection functions
+  const startWakeWordDetection = async () => {
+    try {
+      console.log('Starting wake word detection...');
+      wakeWordStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: { 
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+      
+      wakeWordMediaRecorder = new MediaRecorder(wakeWordStream, { mimeType: 'audio/webm' });
+      
+      wakeWordMediaRecorder.ondataavailable = async (event) => {
+        if (event.data.size > 0 && isWakeWordActive) {
+          // Use a simpler approach - just transcribe the chunk directly
+          const audioBlob = new Blob([event.data], { type: 'audio/webm' });
+          const arrayBuffer = await audioBlob.arrayBuffer();
+          
+          try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const decodedAudio = await audioContext.decodeAudioData(arrayBuffer);
+            
+            // Create WAV header for direct transcription (not streaming)
+            const numberOfChannels = decodedAudio.numberOfChannels;
+            const sampleRate = decodedAudio.sampleRate;
+            const format = 1; // PCM
+            const bitDepth = 16; // 16-bit
+            const byteRate = sampleRate * numberOfChannels * bitDepth / 8;
+            const blockAlign = numberOfChannels * bitDepth / 8;
+            const dataSize = decodedAudio.length * numberOfChannels * bitDepth / 8;
+
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            // FMT sub-chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, format, true);
+            view.setUint16(22, numberOfChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            // data sub-chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            // Write the PCM data
+            floatTo16BitPCM(view, 44, decodedAudio.getChannelData(0));
+            if (numberOfChannels === 2) {
+              floatTo16BitPCM(view, 44, decodedAudio.getChannelData(1));
+            }
+
+            const wavAudioBuffer = window.nodeBufferFrom(buffer);
+            
+            // Use regular transcription instead of streaming
+            const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+            if (transcription && (transcription.toLowerCase().includes('hey aura') || transcription.toLowerCase().includes('hey ora'))) {
+              console.log('Wake word detected in transcription:', transcription);
+              handleWakeWordDetection();
+            }
+          } catch (error) {
+            // Silently ignore transcription errors for wake word detection
+            console.debug('Wake word transcription error (expected):', error.message);
+          }
+        }
+      };
+      
+      // Record in smaller chunks for more frequent checking
+      wakeWordMediaRecorder.start(2000); // 2 second chunks
+      
+      console.log('Wake word detection started successfully');
+    } catch (error) {
+      console.error('Failed to start wake word detection:', error);
+      updateWakeWordToggle(false);
+    }
+  };
+
+  const stopWakeWordDetection = async () => {
+    try {
+      console.log('Stopping wake word detection...');
+      
+      if (wakeWordMediaRecorder && wakeWordMediaRecorder.state !== 'inactive') {
+        wakeWordMediaRecorder.stop();
+      }
+      
+      if (wakeWordStream) {
+        wakeWordStream.getTracks().forEach(track => track.stop());
+        wakeWordStream = null;
+      }
+      
+      wakeWordMediaRecorder = null;
+      
+      console.log('Wake word detection stopped');
+    } catch (error) {
+      console.error('Failed to stop wake word detection:', error);
+    }
+  };
+
+  const updateWakeWordToggle = (active) => {
+    isWakeWordActive = active;
+    if (active) {
+      wakeWordToggle.classList.remove('wake-word-inactive');
+      wakeWordToggle.classList.add('wake-word-active');
+      wakeWordToggle.title = 'Wake word detection ON - Say "Hey Aura" to open chat';
+    } else {
+      wakeWordToggle.classList.remove('wake-word-active');
+      wakeWordToggle.classList.add('wake-word-inactive');
+      wakeWordToggle.title = 'Wake word detection OFF - Click to enable "Hey Aura"';
+    }
+  };
+
+  const handleWakeWordDetection = () => {
+    console.log('Wake word "Hey Aura" detected!');
+    // Open chat container
+    chatContainer.classList.remove('hidden');
+    chatInput.focus();
+    
+    // Automatically start speech recognition
+    if (!isRecording) {
+      micChatBtn.click(); // Trigger the existing speech-to-text functionality
+    }
+  };
+
+  // Wake word toggle button event listener
+  wakeWordToggle.addEventListener('click', async () => {
+    if (isWakeWordActive) {
+      await stopWakeWordDetection();
+      updateWakeWordToggle(false);
+    } else {
+      updateWakeWordToggle(true);
+      await startWakeWordDetection();
+    }
+  });
+
+
 
   micChatBtn.addEventListener('click', async () => {
     if (isRecording) {
@@ -1763,4 +1914,8 @@ Please generate the JSON array of commands. Provide only the JSON array, with no
       // Optionally, display an error message in the UI
     }
   });
+
+  // Initialize wake word detection on page load (enabled by default)
+  updateWakeWordToggle(true);
+  startWakeWordDetection();
 };

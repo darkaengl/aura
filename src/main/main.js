@@ -126,6 +126,8 @@ ipcMain.handle('transcribe-audio', async (event, audioBuffer, sampleRate) => {
   }
 });
 
+
+
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
