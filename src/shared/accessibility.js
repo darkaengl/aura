@@ -7,6 +7,7 @@ let reportDetails = null;
 let closeReportBtn = null;
 let downloadReportBtn = null;
 let webview = null;
+export let wcagViolations = null;
 
 /**
  * Formats axe-core results into a readable HTML string.
@@ -61,6 +62,35 @@ const formatAxeResults = (results) => {
   }
   return html;
 };
+
+
+const processViolations = (failures) => {
+  let result = '';
+  let totalDisplayableNodes = 0;
+  const itemsWithDisplayableNodes = failures.map(item => {
+    if (item.nodes) {
+      const filteredNodes = item.nodes.filter(node => node.impact && node.impact !== 'N/A');
+      if (filteredNodes.length > 0) {
+        totalDisplayableNodes += filteredNodes.length;
+        return { ...item, nodes: filteredNodes };
+      }
+    }
+    return null;
+  }).filter(item => item !== null);
+
+  if (totalDisplayableNodes > 0) {
+    itemsWithDisplayableNodes.forEach(item => {
+      result += `${item.id}: ${item.description}\n`;
+      if (item.nodes && item.nodes.length > 0) {
+        item.nodes.forEach(node => {
+          result += result.includes(node.failureSummary) ? '' : ('\n' + node.failureSummary)
+        });
+      }
+    });
+  }
+
+  return result;
+}
 
 // Function to download JSON report
 const downloadJsonReport = (data, filename) => {
@@ -213,6 +243,9 @@ export const initializeAccessibility = async (elements, webviewInstance) => {
         wcagScoreLabel.innerText = `WCAG: ${score}`;
         wcagScoreLabel.style.backgroundColor = color;
       }
+
+      // Populate Violation text for CSS-optimisation prompt
+      wcagViolations = processViolations(currentAxeResults.violations);
     });
   }
 };
