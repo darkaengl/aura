@@ -289,7 +289,7 @@ window.onload = async () => {
 
     refreshSimplificationBtn.addEventListener('click', () => refreshSimplification(simplificationDeps));
 
-    simplifyParagraphsInPlaceBtn.addEventListener('click', () => simplifyParagraphsInPlace(simplificationDeps));
+    
     // Call the Ollama model to read and simplify the CSS of the current page
     // TODO: prompt engineering for improved output
     simplifyBtn.addEventListener('click', () => {
