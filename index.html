@@ -15,98 +15,99 @@
       flex-direction: column;
       font-family: Arial, sans-serif;
     }
-      /* Chat Interface Styles */
-      .hidden {
-        display: none !important;
-      }
 
-      #chat-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 400px;
-        height: 600px;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        z-index: 1001;
-      }
+    /* Chat Interface Styles */
+    .hidden {
+      display: none !important;
+    }
 
-      #chat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 20px;
-        background-color: #f1f1f1;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-      }
+    #chat-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 400px;
+      height: 600px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      z-index: 1001;
+    }
 
-      #chat-header h3 {
-        margin: 0;
-        font-size: 18px;
-      }
+    #chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #f1f1f1;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
 
-      #close-chat-btn {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-      }
+    #chat-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
 
-      #chat-messages {
-        flex-grow: 1;
-        padding: 20px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
+    #close-chat-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
 
-      .chat-message {
-        padding: 10px 15px;
-        border-radius: 18px;
-        max-width: 80%;
-      }
+    #chat-messages {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-      .user-message {
-        background-color: #4a90e2;
-        color: white;
-        align-self: flex-end;
-      }
+    .chat-message {
+      padding: 10px 15px;
+      border-radius: 18px;
+      max-width: 80%;
+    }
 
-      .ai-message {
-        background-color: #f1f1f1;
-        color: black;
-        align-self: flex-start;
-      }
+    .user-message {
+      background-color: #4a90e2;
+      color: white;
+      align-self: flex-end;
+    }
 
-      #chat-input-container {
-        display: flex;
-        padding: 20px;
-        border-top: 1px solid #f1f1f1;
-      }
+    .ai-message {
+      background-color: #f1f1f1;
+      color: black;
+      align-self: flex-start;
+    }
 
-      #chat-input {
-        flex-grow: 1;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 10px;
-        font-size: 16px;
-      }
+    #chat-input-container {
+      display: flex;
+      padding: 20px;
+      border-top: 1px solid #f1f1f1;
+    }
 
-      #chat-send-btn {
-        margin-left: 10px;
-        background-color: #4a90e2;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 10px 20px;
-        cursor: pointer;
-        font-size: 16px;
-      }
+    #chat-input {
+      flex-grow: 1;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    #chat-send-btn {
+      margin-left: 10px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+    }
 
 
 
@@ -131,8 +132,8 @@
     }
 
     .nav-btn:disabled {
-      background-color: #a0a0a0;
-      cursor: default;
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .large-button {
@@ -145,7 +146,7 @@
 
     .floating-btn {
       background-color: transparent;
-      transform: scale(1.5);
+      transform: scale(1.275);
     }
 
     .nav-btn:hover:not(:disabled) {
@@ -406,9 +407,11 @@
       0% {
         opacity: 1;
       }
+
       50% {
         opacity: 0.5;
       }
+
       100% {
         opacity: 1;
       }
@@ -419,11 +422,11 @@
       #text-comparison {
         flex-direction: column;
       }
-      
+
       .text-panel {
         max-height: 300px;
       }
-      
+
       #text-simplification-content {
         width: 98%;
         height: 95%;
@@ -446,17 +449,30 @@
 
 <body>
   <div id="address-bar">
-  <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo" style="height: 62px; margin-right: 8px;">
-  <button id="back-btn" class="nav-btn image-button"><img src="assets/buttons/Back.png" alt="Back" style="height: 24px;" /></button>
-  <button id="forward-btn" class="nav-btn image-button"><img src="assets/buttons/Forward.PNG" alt="Forward" style="height: 24px;" /></button>
-  <button id="refresh-btn" class="nav-btn image-button"><img src="assets/buttons/Refresh.png" alt="Refresh" style="height: 24px;" /></button>
-  <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" style="flex: 3 1 0; font-size: 23px;" />
-  <button id="wcag-btn" class="nav-btn large-button"><img src="assets/buttons/WCAG.png" alt="WCAG" style="height: 24px;" /></button>
+    <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo"
+      style="height: 62px; margin-right: 8px;">
+    <button id="back-btn" class="nav-btn image-button"><img src="assets/buttons/Back.png" alt="Back"
+        style="height: 24px;" /></button>
+    <button id="forward-btn" class="nav-btn image-button"><img src="assets/buttons/Forward.PNG" alt="Forward"
+        style="height: 24px;" /></button>
+    <button id="refresh-btn" class="nav-btn image-button"><img src="assets/buttons/Refresh.png" alt="Refresh"
+        style="height: 24px;" /></button>
+    <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com"
+      style="flex: 3 1 0; font-size: 23px;" />
+    <button id="wcag-btn" class="nav-btn large-button"><img src="assets/buttons/WCAG.png" alt="WCAG"
+        style="height: 24px;" /></button>
   </div>
   <div id="floating-widget">
-    <button id="mic-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Navigator_AI.png" alt="Mic" style="height: 24px;" /></button>
-    <button id="simplify-text-btn" class="nav-btn large-button floating-btn" title="Simplify page text"><img src="assets/buttons/Cognitive_Augmentation.png" alt="Simplify text" style="height: 24px;" /></button>
-    <button id="simplify-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Focus_Mode.png" alt="Simplify" style="height: 24px;" /></button>
+    <button id="mic-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Navigator_AI.png" alt="Mic"
+        style="height: 24px;" /></button>
+    <button id="simplify-text-btn" class="nav-btn large-button floating-btn" title="Simplify page text"><img
+        src="assets/buttons/Cognitive_Augmentation.png" alt="Simplify text" style="height: 24px;" /></button>
+    <button id="simplify-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Adaptive_UI.png"
+        alt="Simplify" style="height: 24px;" /></button>
+    <button id="focus-btn" class="nav-btn large-button floating-btn" disabled><img src="assets/buttons/Focus_Mode.png"
+        alt="Focus" style="height: 24px;" /></button>
+    <button id="calm-btn" class="nav-btn large-button floating-btn" disabled><img src="assets/buttons/Calm_Mode.png"
+        alt="Calm" style="height: 24px;" /></button>
   </div>
   <div id="container">
     <webview id="webview" src="about:blank" allowpopups></webview>
@@ -475,7 +491,7 @@
     <div id="text-simplification-content">
       <button id="close-simplification-btn">×</button>
       <h2>Text Simplification</h2>
-      
+
       <div id="simplification-controls">
         <label for="complexity-select">Complexity Level:</label>
         <select id="complexity-select" class="control-input">
@@ -490,15 +506,16 @@
       </div>
 
       <div id="simplification-status" class="status-message"></div>
-      
+
       <div id="text-comparison">
         <div id="original-text-panel" class="text-panel">
           <h3>Original Text (<span id="original-word-count">0</span> words)</h3>
           <div id="original-text-display" class="text-display"></div>
         </div>
-        
+
         <div id="simplified-text-panel" class="text-panel">
-          <h3>Simplified Text (<span id="simplified-word-count">0</span> words, <span id="word-reduction">0%</span> reduction)</h3>
+          <h3>Simplified Text (<span id="simplified-word-count">0</span> words, <span id="word-reduction">0%</span>
+            reduction)</h3>
           <div id="simplified-text-display" class="text-display"></div>
           <div id="simplified-text-actions">
             <button id="copy-simplified-text" class="nav-btn">Copy Simplified Text</button>
@@ -510,18 +527,20 @@
   </div>
 
   <script type="module" src="./src/renderer/renderer.js"></script>
-    <div id="chat-container" class="hidden">
-      <div id="chat-header">
-        <h3>Aura Chat</h3>
-  <button id="close-chat-btn" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: #333; z-index: 1002;">×</button>
-      </div>
-      <div id="chat-messages"></div>
-      <div id="chat-input-container">
-        <input type="text" id="chat-input" placeholder="Ask Aura anything...">
-  <button id="mic-chat-btn" class="action-btn" style="margin-left: 8px;">🎤</button>
-        <button id="chat-send-btn">Send</button>
-      </div>
+  <div id="chat-container" class="hidden">
+    <div id="chat-header">
+      <h3>Aura Chat</h3>
+      <button id="close-chat-btn"
+        style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: #333; z-index: 1002;">×</button>
     </div>
+    <div id="chat-messages"></div>
+    <div id="chat-input-container">
+      <input type="text" id="chat-input" placeholder="Ask Aura anything...">
+      <button id="mic-chat-btn" class="action-btn" style="margin-left: 8px;">🎤</button>
+      <button id="chat-send-btn">Send</button>
+    </div>
+  </div>
 
 </body>
+
 </html>
