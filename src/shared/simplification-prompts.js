@@ -156,35 +156,28 @@ export const createChunkPrompt = (chunk, chunkIndex, totalChunks, options = {}) 
  * @returns {Array<string>} Array of text chunks
  */
 export const splitTextIntoChunks = (text, maxChunkSize = 3000) => {
-  if (text.length <= maxChunkSize) {
-    return [text];
-  }
-
   const chunks = [];
-  const sentences = text.split(/[.!?]+(?:\s+|$)/);
   let currentChunk = '';
+  const sentences = text.split(/(?<=[.!?])\s+/); // Split by sentence-ending punctuation followed by space
 
   for (const sentence of sentences) {
-    const trimmedSentence = sentence.trim();
-    if (!trimmedSentence) continue;
-
-    const sentenceWithPunctuation = trimmedSentence + (sentence.match(/[.!?]+\s*$/) ? '' : '.');
-    
-    // If adding this sentence would exceed the limit, start a new chunk
-    if (currentChunk.length + sentenceWithPunctuation.length > maxChunkSize && currentChunk.length > 0) {
-      chunks.push(currentChunk.trim());
-      currentChunk = sentenceWithPunctuation + ' ';
+    if ((currentChunk + sentence).length <= maxChunkSize) {
+      currentChunk += (currentChunk.length > 0 ? ' ' : '') + sentence;
     } else {
-      currentChunk += sentenceWithPunctuation + ' ';
+      if (currentChunk.length > 0) {
+        chunks.push(currentChunk);
+      }
+      currentChunk = sentence;
     }
   }
-
-  // Add the remaining chunk
-  if (currentChunk.trim().length > 0) {
-    chunks.push(currentChunk.trim());
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk);
   }
+  return chunks;
+};
 
-  return chunks.length > 0 ? chunks : [text]; // Fallback to original text if no chunks created
+export const countWords = (text) => {
+  return text.trim() ? text.trim().split(/[.!?]+(?:\s+|$)/).length : 0;
 };
 
 /**

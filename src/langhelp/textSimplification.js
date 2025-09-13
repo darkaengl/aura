@@ -13,6 +13,9 @@ import {
     getOpenAIChatCompletion
 } from '../helpers/openai.js';
 import {
+    countWords
+} from '../shared/simplification-prompts.js'; // New import
+import {
     marked
 } from '../../node_modules/marked/lib/marked.esm.js';
 
@@ -346,15 +349,18 @@ export const replacePageTextWithSimplified = async (deps) => {
     try {
         if (isPageSimplifiedRef.current) {
             // Revert to original
-            showStatus(simplificationStatus, 'Restoring original page text...', 'loading');
-            if (pageContentStateRef.current.length > 0 && pageContentStateRef.current[0].originalHtml) {
+            showStatus(simplificationStatus, 'Restoring original page...', 'loading');
+            if (pageContentStateRef.current.length > 0 && pageContentStateRef.current[0].originalUrl) {
+                webview.loadURL(pageContentStateRef.current[0].originalUrl);
+            } else {
+                // Fallback to restoring HTML if URL is not available (shouldn't happen if logic is correct)
                 await webview.executeJavaScript(
                     `document.body.innerHTML = ${JSON.stringify(pageContentStateRef.current[0].originalHtml)};`
-                    );
+                );
             }
             isPageSimplifiedRef.current = false;
             replacePageText.textContent = 'Replace Page Text';
-            showStatus(simplificationStatus, 'Original page text restored!', 'success');
+            showStatus(simplificationStatus, 'Original page restored!', 'success');
         } else {
             // Simplify and replace
             const simplifiedText = simplifiedTextDisplay.textContent;
@@ -368,11 +374,13 @@ export const replacePageTextWithSimplified = async (deps) => {
             // Clear previous state
             pageContentStateRef.current = [];
 
-            // Store the entire original page HTML before replacing
+            // Store the entire original page HTML and URL before replacing
             const originalPageHtml = await webview.executeJavaScript(`document.body.innerHTML;`);
+            const originalPageUrl = webview.getURL(); // Get the current URL
             pageContentStateRef.current = [{
-                originalHtml: originalPageHtml
-            }]; // Store as a single item
+                originalHtml: originalPageHtml,
+                originalUrl: originalPageUrl
+            }]; // Store HTML and URL
 
             // Clear the entire page and inject simplified text
             await webview.executeJavaScript(`
@@ -437,4 +445,129 @@ export const refreshSimplification = (deps) => {
     // Reset replace page text button
     replacePageText.textContent = 'Replace Page Text';
     isPageSimplifiedRef.current = false;
+};
+
+export const simplifyParagraphsInPlace = async (deps) => {
+    const {
+        isProcessingRef,
+        setProcessingState,
+        simplificationStatus,
+        complexitySelect,
+        webview,
+        useOpenAI,
+        extractTextBtn,
+        simplifyTextBtn,
+        simplifyTextBtn2,
+        simplifyParagraphsInPlaceBtn // New dependency
+    } = deps;
+
+    if (isProcessingRef.current) return;
+
+    try {
+        setProcessingState(true, {
+            extractTextBtn,
+            simplifyTextBtn,
+            simplifyTextBtn2,
+            simplifyParagraphsInPlaceBtn // Disable this button too
+        });
+        showStatus(simplificationStatus, 'Extracting paragraphs for in-place simplification...', 'loading');
+
+        // 1. Get all <p> tags from the webview
+        const paragraphData = await webview.executeJavaScript(`
+            (function() {
+                const paragraphs = Array.from(document.querySelectorAll('p'));
+                const visibleParagraphs = paragraphs.filter(p => {
+                    const style = window.getComputedStyle(p);
+                    return style.display !== 'none' && style.visibility !== 'hidden' && p.offsetHeight > 0 && p.offsetWidth > 0;
+                });
+                return visibleParagraphs.map((p, index) => {
+                    const id = 'aura-p-' + index;
+                    p.id = id; // Set the ID on the DOM element
+                    return {
+                        id: id,
+                        originalText: p.textContent,
+                        originalHtml: p.innerHTML
+                    };
+                });
+            })();
+        `);
+
+        if (!paragraphData || paragraphData.length === 0) {
+            showStatus(simplificationStatus, 'No paragraphs found on the page.', 'error');
+            return;
+        }
+
+        const complexity = complexitySelect.value;
+        let simplifiedParagraphs = [];
+
+        for (let i = 0; i < paragraphData.length; i++) {
+            const { id, originalText } = paragraphData[i];
+            const wordCount = countWords(originalText);
+
+            if (wordCount < 50) {
+                console.log(`Skipping simplification for paragraph ${i + 1} (less than 50 words).`);
+                simplifiedParagraphs.push({ id, simplifiedText: originalText });
+                continue; // Skip to the next paragraph
+            }
+
+            showStatus(simplificationStatus, `Simplifying paragraph ${i + 1} of ${paragraphData.length}...`, 'loading');
+
+            let simplifiedText = '';
+            try {
+                if (useOpenAI) {
+                    const result = await processTextWithOpenAI({ text: originalText }, { complexity });
+                    simplifiedText = result.simplified;
+                } else {
+                    // For Ollama, we need to mock the requestId and other deps for processTextWithOllama
+                    // Since we are simplifying in place, we don't need to update the modal display
+                    // We will pass dummy values for latestRequestIdRef, simplifiedTextDisplay, etc.
+                    const dummyDeps = {
+                        latestRequestIdRef: { current: 0 },
+                        simplificationStatus: null, // Not used for status updates in this context
+                        simplifiedTextDisplay: null,
+                        simplifiedWordCount: null,
+                        wordReduction: null
+                    };
+                    const result = await processTextWithOllama({ text: originalText }, { complexity }, 0, dummyDeps, true); // forceNoChunking = true
+                    simplifiedText = result.simplified;
+                }
+                simplifiedParagraphs.push({ id, simplifiedText });
+            } catch (error) {
+                console.error(`Failed to simplify paragraph ${id}:`, error);
+                simplifiedParagraphs.push({ id, simplifiedText: originalText }); // Keep original if simplification fails
+                showStatus(simplificationStatus, `Failed to simplify paragraph ${i + 1}. Keeping original.`, 'error');
+            }
+        }
+
+        showStatus(simplificationStatus, 'Replacing paragraphs on page...', 'loading');
+
+        // 3. Replace original <p> tags with simplified versions in the webview
+        const replacementScript = `
+            (function() {
+                const paragraphs = Array.from(document.querySelectorAll('p'));
+                const simplifiedData = ${JSON.stringify(simplifiedParagraphs)};
+                
+                simplifiedData.forEach(data => {
+                    const p = paragraphs.find(p => p.id === data.id); // Find by assigned ID
+                    if (p) {
+                        p.innerHTML = data.simplifiedText;
+                    }
+                });
+            })();
+        `;
+        await webview.executeJavaScript(replacementScript);
+
+        showStatus(simplificationStatus, 'Paragraphs simplified in place!', 'success');
+
+    } catch (error) {
+        console.error('In-place paragraph simplification failed:', error);
+        showStatus(simplificationStatus, `Error: ${error.message}`, 'error');
+    } finally {
+        setProcessingState(false, {
+            extractTextBtn,
+            simplifyTextBtn,
+            simplifyTextBtn2,
+            simplifyParagraphsInPlaceBtn
+        });
+    }
 };

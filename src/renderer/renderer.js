@@ -34,7 +34,8 @@ import {
     extractText,
     simplifyText,
     replacePageTextWithSimplified,
-    refreshSimplification
+    refreshSimplification,
+    simplifyParagraphsInPlace
 } from '../langhelp/textSimplification.js';
 
 window.onload = async () => {
@@ -66,6 +67,7 @@ window.onload = async () => {
     const copySimplifiedText = document.getElementById('copy-simplified-text');
     const replacePageText = document.getElementById('replace-page-text');
     const refreshSimplificationBtn = document.getElementById('refresh-simplification-btn');
+    const simplifyParagraphsInPlaceBtn = document.getElementById('simplify-paragraphs-in-place-btn');
 
     // PDF Upload Elements
     const uploadPdfBtn = document.getElementById('upload-pdf-btn');
@@ -232,6 +234,7 @@ window.onload = async () => {
         textSimplificationModal,
         closeSimplificationBtn,
         refreshSimplificationBtn,
+        simplifyParagraphsInPlaceBtn, // New dependency
         useOpenAI: useOpenAICheckbox.checked
     };
 
@@ -252,6 +255,8 @@ window.onload = async () => {
     replacePageText.addEventListener('click', () => replacePageTextWithSimplified(simplificationDeps));
 
     refreshSimplificationBtn.addEventListener('click', () => refreshSimplification(simplificationDeps));
+
+    simplifyParagraphsInPlaceBtn.addEventListener('click', () => simplifyParagraphsInPlace(simplificationDeps));
 
     // Close modal when clicking outside
     textSimplificationModal.addEventListener('click', (event) => {
