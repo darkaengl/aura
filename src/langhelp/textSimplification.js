@@ -23,22 +23,22 @@ import {
  * Updates button states during processing
  */
 export const setProcessingState = (processing, {
-    extractTextBtn,
+    simplifyPageBtn,
     simplifyTextBtn,
-    simplifyTextBtn2
+    simplifyParagraphsInPlaceBtn
 }) => {
-    extractTextBtn.disabled = processing;
+    simplifyPageBtn.disabled = processing;
     simplifyTextBtn.disabled = processing;
-    if (simplifyTextBtn2) {
-        simplifyTextBtn2.disabled = true;
+    if (simplifyParagraphsInPlaceBtn) {
+        simplifyParagraphsInPlaceBtn.disabled = processing;
     }
 
     if (processing) {
-        extractTextBtn.textContent = 'Processing...';
-        simplifyTextBtn.classList.add('loading');
+        simplifyPageBtn.textContent = 'Processing...';
+        simplifyPageBtn.classList.add('loading');
     } else {
-        extractTextBtn.textContent = 'Extract Text';
-        simplifyTextBtn.classList.remove('loading');
+        simplifyPageBtn.textContent = 'Simplify Page';
+        simplifyPageBtn.classList.remove('loading');
     }
 };
 
@@ -180,14 +180,14 @@ export const extractText = async (deps) => {
         originalWordCount,
         simplificationStatus,
         webview,
-        simplifyTextBtn2
+        simplifyPageBtn
     } = deps;
 
     if (isProcessingRef.current) return;
 
     try {
         setProcessingState(true, {
-            extractTextBtn: deps.extractTextBtn,
+            simplifyPageBtn: deps.simplifyPageBtn,
             simplifyTextBtn: deps.simplifyTextBtn
         });
         clearStatus(simplificationStatus);
@@ -202,16 +202,13 @@ export const extractText = async (deps) => {
 
         showStatus(simplificationStatus, `Extracted ${textData.wordCount} words. Ready to simplify.`,
             'success');
-        if (deps.simplifyTextBtn2) {
-            deps.simplifyTextBtn2.disabled = false;
-        }
 
     } catch (error) {
         console.error('Text extraction failed:', error);
         showStatus(simplificationStatus, `Error: ${error.message}`, 'error');
     } finally {
         setProcessingState(false, {
-            extractTextBtn: deps.extractTextBtn,
+            simplifyPageBtn: deps.simplifyPageBtn,
             simplifyTextBtn: deps.simplifyTextBtn
         });
     }
@@ -244,9 +241,8 @@ export const simplifyText = async (deps) => {
 
     try {
         setProcessingState(true, {
-            extractTextBtn: deps.extractTextBtn,
-            simplifyTextBtn: deps.simplifyTextBtn,
-            simplifyTextBtn2: deps.simplifyTextBtn2
+            simplifyPageBtn: deps.simplifyPageBtn,
+            simplifyTextBtn: deps.simplifyTextBtn
         });
         clearStatus(simplificationStatus);
 
@@ -330,9 +326,8 @@ export const simplifyText = async (deps) => {
         }
     } finally {
         setProcessingState(false, {
-            extractTextBtn: deps.extractTextBtn,
-            simplifyTextBtn: deps.simplifyTextBtn,
-            simplifyTextBtn2: deps.simplifyTextBtn2
+            simplifyPageBtn: deps.simplifyPageBtn,
+            simplifyTextBtn: deps.simplifyTextBtn
         });
     }
 };
@@ -455,9 +450,8 @@ export const simplifyParagraphsInPlace = async (deps) => {
         complexitySelect,
         webview,
         useOpenAI,
-        extractTextBtn,
+        simplifyPageBtn,
         simplifyTextBtn,
-        simplifyTextBtn2,
         simplifyParagraphsInPlaceBtn // New dependency
     } = deps;
 
@@ -465,9 +459,8 @@ export const simplifyParagraphsInPlace = async (deps) => {
 
     try {
         setProcessingState(true, {
-            extractTextBtn,
+            simplifyPageBtn,
             simplifyTextBtn,
-            simplifyTextBtn2,
             simplifyParagraphsInPlaceBtn // Disable this button too
         });
         showStatus(simplificationStatus, 'Extracting paragraphs for in-place simplification...', 'loading');
@@ -564,9 +557,8 @@ export const simplifyParagraphsInPlace = async (deps) => {
         showStatus(simplificationStatus, `Error: ${error.message}`, 'error');
     } finally {
         setProcessingState(false, {
-            extractTextBtn,
+            simplifyPageBtn,
             simplifyTextBtn,
-            simplifyTextBtn2,
             simplifyParagraphsInPlaceBtn
         });
     }

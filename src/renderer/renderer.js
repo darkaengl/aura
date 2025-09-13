@@ -57,7 +57,9 @@ window.onload = async () => {
     const textSimplificationModal = document.getElementById('text-simplification-modal');
     const closeSimplificationBtn = document.getElementById('close-simplification-btn');
     const complexitySelect = document.getElementById('complexity-select');
-    const extractTextBtn = document.getElementById('extract-text-btn');
+    const simplifyPageBtn = document.getElementById('simplify-page-btn');
+    const moreSimplificationOptionsBtn = document.getElementById('more-simplification-options-btn');
+    const moreSimplificationOptions = document.getElementById('more-simplification-options');
     const simplificationStatus = document.getElementById('simplification-status');
     const originalTextDisplay = document.getElementById('original-text-display');
     const simplifiedTextDisplay = document.getElementById('simplified-text-display');
@@ -73,7 +75,6 @@ window.onload = async () => {
     const uploadPdfBtn = document.getElementById('upload-pdf-btn');
     const pdfUploadInput = document.getElementById('pdf-upload-input');
 
-    const simplifyTextBtn2 = document.getElementById('simplify-text-btn-2');
     const useOpenAICheckbox = document.getElementById('use-openai-checkbox');
 
     // Chat interface elements (from aura)
@@ -226,9 +227,8 @@ window.onload = async () => {
         copySimplifiedText,
         replacePageText,
         webview,
-        extractTextBtn,
+        simplifyPageBtn,
         simplifyTextBtn,
-        simplifyTextBtn2,
         isPageSimplifiedRef,
         pageContentStateRef,
         textSimplificationModal,
@@ -246,9 +246,23 @@ window.onload = async () => {
         textSimplificationModal.style.display = 'none';
     });
 
-    extractTextBtn.addEventListener('click', () => extractText(simplificationDeps));
+    simplifyPageBtn.addEventListener('click', async () => {
+        if (isProcessingRef.current) return;
+        setProcessingState(true, simplificationDeps);
+        clearStatus(simplificationStatus);
+        try {
+            await extractText(simplificationDeps);
+            await simplifyText(simplificationDeps);
+        } catch (error) {
+            console.error('Error during simplification process:', error);
+            showStatus(simplificationStatus, 'Error during simplification.', 'error');
+        }
+        setProcessingState(false, simplificationDeps);
+    });
 
-    simplifyTextBtn2.addEventListener('click', () => simplifyText(simplificationDeps));
+    moreSimplificationOptionsBtn.addEventListener('click', () => {
+        moreSimplificationOptions.classList.toggle('hidden-options');
+    });
 
     copySimplifiedText.addEventListener('click', () => copyToClipboard(simplifiedTextDisplay.textContent));
 
