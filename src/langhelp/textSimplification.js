@@ -132,8 +132,8 @@ export const updateTextDisplay = (textData, simplificationResult, {
  * @returns {Object} - The simplification result.
  */
 const processTextWithOpenAI = async (textData, { complexity }) => {
-    const prompt = `Simplify the following text to a ${complexity} level. Provide only the simplified text, without any conversational filler or extra explanations.
-    
+    const prompt = `Simplify the following text to a ${complexity} level. Ensure the output is well-structured with appropriate headings and subheadings (using Markdown), and avoid over-condensing the content. Maintain the original meaning and important details. Provide only the simplified text, without any conversational filler or extra explanations.
+
     Complexity levels:
     - simple: Elementary vocabulary and sentence structure.
     - moderate: Common vocabulary and clear sentence structure.

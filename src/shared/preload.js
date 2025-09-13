@@ -2,7 +2,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose secrets API for sensitive keys
-const chatGptApiKey = process.env.CHATGPT_API_KEY || '';
+const chatGptApiKey = process.env.OPENAI_API_KEY || '';
 contextBridge.exposeInMainWorld('secretsAPI', {
   getChatGptApiKey: () => chatGptApiKey
 });

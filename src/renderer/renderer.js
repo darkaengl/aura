@@ -34,8 +34,7 @@ import {
     extractText,
     simplifyText,
     replacePageTextWithSimplified,
-    refreshSimplification,
-    simplifyParagraphsInPlace
+    refreshSimplification
 } from '../langhelp/textSimplification.js';
 
 window.onload = async () => {
@@ -66,7 +65,7 @@ window.onload = async () => {
     const copySimplifiedText = document.getElementById('copy-simplified-text');
     const replacePageText = document.getElementById('replace-page-text');
     const refreshSimplificationBtn = document.getElementById('refresh-simplification-btn');
-    const simplifyParagraphsInPlaceBtn = document.getElementById('simplify-paragraphs-in-place-btn');
+    
 
     // Tab elements
     const originalTextTabBtn = document.getElementById('original-text-tab-btn');
@@ -96,7 +95,7 @@ window.onload = async () => {
     const simplifyPageBtn = document.getElementById('simplify-page-btn');
     const moreSimplificationOptionsBtn = document.getElementById('more-simplification-options-btn');
     const moreSimplificationOptions = document.getElementById('more-simplification-options');
-    const useOpenAICheckbox = document.getElementById('use-openai-checkbox');
+    
 
     // Chat interface elements (from aura)
     const micBtn = document.getElementById('mic-btn');
@@ -254,8 +253,8 @@ window.onload = async () => {
         textSimplificationSidebar,
         closeSimplificationBtn,
         refreshSimplificationBtn,
-        simplifyParagraphsInPlaceBtn, // New dependency
-        useOpenAI: useOpenAICheckbox.checked
+        
+        useOpenAI: true // Always use OpenAI as default
     };
 
     simplifyTextBtn.addEventListener('click', () => {
@@ -282,9 +281,7 @@ window.onload = async () => {
         setProcessingState(false, simplificationDeps);
     });
 
-    moreSimplificationOptionsBtn.addEventListener('click', () => {
-        moreSimplificationOptions.classList.toggle('hidden-options');
-    });
+    
 
     copySimplifiedText.addEventListener('click', () => copyToClipboard(simplifiedTextDisplay.textContent));
 
@@ -336,5 +333,4 @@ window.onload = async () => {
             return webview.executeJavaScript(script);
         });
     });
-
-}
+};
