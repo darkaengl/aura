@@ -16,9 +16,7 @@ import {
 import {
     initializeNavigatorFeatures
 } from '../navigator/navigator.js';
-import {
-    initializePdfHandler
-} from '../langhelp/pdfHandler.js';
+
 import {
     showStatus,
     clearStatus,
@@ -88,9 +86,7 @@ window.onload = async () => {
     originalTextTabBtn.addEventListener('click', () => switchTab('original-text'));
     simplifiedTextTabBtn.addEventListener('click', () => switchTab('simplified-text'));
 
-    // PDF Upload Elements
-    const uploadPdfBtn = document.getElementById('upload-pdf-btn');
-    const pdfUploadInput = document.getElementById('pdf-upload-input');
+    
 
     const simplifyPageBtn = document.getElementById('simplify-page-btn');
     const moreSimplificationOptionsBtn = document.getElementById('more-simplification-options-btn');
@@ -137,42 +133,7 @@ window.onload = async () => {
         current: false
     };
 
-    // Initialize PDF handling
-    initializePdfHandler({
-        uploadPdfBtn,
-        pdfUploadInput,
-        simplificationStatus,
-        processTextWithOllama: (textData, options, requestId) => processTextWithOllama(textData,
-            options, requestId, {
-                latestRequestIdRef,
-                simplificationStatus,
-                simplifiedTextDisplay,
-                simplifiedWordCount,
-                wordReduction
-            }),
-        updateTextDisplay: (textData, simplificationResult) => updateTextDisplay(textData,
-            simplificationResult, {
-                originalTextDisplay,
-                originalWordCount,
-                simplifiedTextDisplay,
-                simplifiedWordCount,
-                wordReduction,
-                copySimplifiedText,
-                replacePageText
-            }),
-        setProcessingState: (processing) => setProcessingState(processing, {
-            simplifyPageBtn,
-            simplifyTextBtn
-        }),
-        originalTextDisplay,
-        simplifiedTextDisplay,
-        originalWordCount,
-        simplifiedWordCount,
-        wordReduction,
-        complexitySelect,
-        latestRequestId: latestRequestIdRef.current,
-        currentTextData: currentTextDataRef.current,
-    });
+    
 
 
 
