@@ -98,9 +98,9 @@
       left: 50%;
       top: 40%;
       transform: translate(-50%, -50%);
-      width: 540px;
-      height: 540px;
-      opacity: 0.78;
+      width: 420px;
+      height: 420px;
+      opacity: 0.98;
       z-index: 0;
       pointer-events: none;
       user-select: none;
@@ -143,6 +143,28 @@
       .bottom-container { position: static; transform: none; flex-direction: column; }
     }
   </style>
+  <style>
+    #floating-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+    .floating-btn {
+      background-color: transparent;
+      transform: scale(1.275);
+    }
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .large-button img {
+      height: 48px !important;
+    }
+  </style>
 </head>
 <body>
   <div id="address-bar">
@@ -150,7 +172,7 @@
     <input id="url-input" type="text" placeholder="Enter URL" />
   </div>
   <!-- Aura logo as faded background -->
-  <img src="./assets/brand/IMG_3414.png" alt="Aura Logo" class="logo-bg" />
+  <img src="./assets/brand/Aura Logo_No Text.png" alt="Aura Logo" class="logo-bg" />
   <div class="search-container">
     <input type="text" id="search-input" placeholder="Search with Google">
   </div>
@@ -238,5 +260,17 @@
       });
     });
   </script>
+  <div id="floating-widget">
+    <button id="mic-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Navigator_AI.png" alt="Mic"
+        style="height: 24px;" /></button>
+    <button id="simplify-text-btn" class="nav-btn large-button floating-btn" title="Simplify page text"><img
+        src="assets/buttons/Cognitive_Augmentation.png" alt="Simplify text" style="height: 24px;" /></button>
+    <button id="simplify-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Adaptive_UI.png"
+        alt="Simplify" style="height: 24px;" /></button>
+    <button id="focus-btn" class="nav-btn large-button floating-btn" disabled><img src="assets/buttons/Focus_Mode.png"
+        alt="Focus" style="height: 24px;" /></button>
+    <button id="calm-btn" class="nav-btn large-button floating-btn" disabled><img src="assets/buttons/Calm_Mode.png"
+        alt="Calm" style="height: 24px;" /></button>
+  </div>
 </body>
 </html>
