@@ -54,12 +54,9 @@ window.onload = async () => {
 
     // Text Simplification Elements
     const simplifyTextBtn = document.getElementById('simplify-text-btn');
-    const textSimplificationModal = document.getElementById('text-simplification-modal');
+    const textSimplificationSidebar = document.getElementById('text-simplification-sidebar');
     const closeSimplificationBtn = document.getElementById('close-simplification-btn');
     const complexitySelect = document.getElementById('complexity-select');
-    const simplifyPageBtn = document.getElementById('simplify-page-btn');
-    const moreSimplificationOptionsBtn = document.getElementById('more-simplification-options-btn');
-    const moreSimplificationOptions = document.getElementById('more-simplification-options');
     const simplificationStatus = document.getElementById('simplification-status');
     const originalTextDisplay = document.getElementById('original-text-display');
     const simplifiedTextDisplay = document.getElementById('simplified-text-display');
@@ -71,10 +68,34 @@ window.onload = async () => {
     const refreshSimplificationBtn = document.getElementById('refresh-simplification-btn');
     const simplifyParagraphsInPlaceBtn = document.getElementById('simplify-paragraphs-in-place-btn');
 
+    // Tab elements
+    const originalTextTabBtn = document.getElementById('original-text-tab-btn');
+    const simplifiedTextTabBtn = document.getElementById('simplified-text-tab-btn');
+    const originalTextTabContent = document.getElementById('original-text-tab-content');
+    const simplifiedTextTabContent = document.getElementById('simplified-text-tab-content');
+
+    // Function to switch tabs
+    const switchTab = (tabId) => {
+        // Deactivate all tab buttons and content
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        // Activate the selected tab button and content
+        document.getElementById(`${tabId}-tab-btn`).classList.add('active');
+        document.getElementById(`${tabId}-tab-content`).classList.add('active');
+    };
+
+    // Event listeners for tab buttons
+    originalTextTabBtn.addEventListener('click', () => switchTab('original-text'));
+    simplifiedTextTabBtn.addEventListener('click', () => switchTab('simplified-text'));
+
     // PDF Upload Elements
     const uploadPdfBtn = document.getElementById('upload-pdf-btn');
     const pdfUploadInput = document.getElementById('pdf-upload-input');
 
+    const simplifyPageBtn = document.getElementById('simplify-page-btn');
+    const moreSimplificationOptionsBtn = document.getElementById('more-simplification-options-btn');
+    const moreSimplificationOptions = document.getElementById('more-simplification-options');
     const useOpenAICheckbox = document.getElementById('use-openai-checkbox');
 
     // Chat interface elements (from aura)
@@ -122,7 +143,6 @@ window.onload = async () => {
         uploadPdfBtn,
         pdfUploadInput,
         simplificationStatus,
-        textSimplificationModal,
         processTextWithOllama: (textData, options, requestId) => processTextWithOllama(textData,
             options, requestId, {
                 latestRequestIdRef,
@@ -142,7 +162,7 @@ window.onload = async () => {
                 replacePageText
             }),
         setProcessingState: (processing) => setProcessingState(processing, {
-            extractTextBtn,
+            simplifyPageBtn,
             simplifyTextBtn
         }),
         originalTextDisplay,
@@ -231,7 +251,7 @@ window.onload = async () => {
         simplifyTextBtn,
         isPageSimplifiedRef,
         pageContentStateRef,
-        textSimplificationModal,
+        textSimplificationSidebar,
         closeSimplificationBtn,
         refreshSimplificationBtn,
         simplifyParagraphsInPlaceBtn, // New dependency
@@ -239,11 +259,13 @@ window.onload = async () => {
     };
 
     simplifyTextBtn.addEventListener('click', () => {
-        textSimplificationModal.style.display = 'flex';
+        textSimplificationSidebar.classList.add('open');
+        document.body.classList.add('sidebar-open');
     });
 
     closeSimplificationBtn.addEventListener('click', () => {
-        textSimplificationModal.style.display = 'none';
+        textSimplificationSidebar.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
     });
 
     simplifyPageBtn.addEventListener('click', async () => {
@@ -271,13 +293,6 @@ window.onload = async () => {
     refreshSimplificationBtn.addEventListener('click', () => refreshSimplification(simplificationDeps));
 
     simplifyParagraphsInPlaceBtn.addEventListener('click', () => simplifyParagraphsInPlace(simplificationDeps));
-
-    // Close modal when clicking outside
-    textSimplificationModal.addEventListener('click', (event) => {
-        if (event.target === textSimplificationModal) {
-            textSimplificationModal.style.display = 'none';
-        }
-    });
     // Call the Ollama model to read and simplify the CSS of the current page
     // TODO: prompt engineering for improved output
     simplifyBtn.addEventListener('click', () => {

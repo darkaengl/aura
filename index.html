@@ -14,6 +14,7 @@
       display: flex;
       flex-direction: column;
       font-family: Arial, sans-serif;
+      box-sizing: border-box; /* Ensure consistent box model */
     }
 
     /* Chat Interface Styles */
@@ -531,6 +532,324 @@
       z-index: 1000;
     }
   </style>
+  <style>
+    #container {
+      flex: 1;
+      display: flex; /* Use flexbox for main content and sidebar */
+      overflow: hidden;
+      position: relative; /* For absolute positioning of sidebar */
+    }
+
+    #main-content-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      transition: margin-right 0.3s ease; /* Smooth transition for pushing content */
+    }
+
+    #webview {
+      flex: 1 1 auto;
+      width: 100%;
+      border: none;
+    }
+
+    
+
+    #text-simplification-sidebar.open {
+      transform: translateX(0); /* Slide in */
+    }
+
+    body.sidebar-open #main-content-wrapper {
+      margin-right: 400px; /* Push main content */
+    }
+
+    #text-simplification-sidebar h2 {
+      font-size: 24px;
+      color: #357abd;
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #text-simplification-sidebar #close-simplification-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #6c757d;
+      z-index: 1002;
+      transition: color 0.2s ease;
+    }
+
+    #text-simplification-sidebar #close-simplification-btn:hover {
+      color: #333;
+    }
+
+    #text-simplification-sidebar #simplification-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    #text-simplification-sidebar #simplification-controls .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+    }
+
+    #text-simplification-sidebar #more-simplification-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 10px;
+      border-top: 1px solid #eee;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    #text-simplification-sidebar .hidden-options {
+      display: none !important;
+    }
+
+    #text-simplification-sidebar #simplification-controls label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    #text-simplification-sidebar .control-input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fff;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.07);
+    }
+
+    #text-simplification-sidebar #simplify-page-btn {
+      background-color: #4a90e2;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    #text-simplification-sidebar #simplify-page-btn:hover {
+      background-color: #357abd;
+    }
+
+    #text-simplification-sidebar #more-simplification-options-btn {
+      background-color: #6c757d;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    #text-simplification-sidebar #more-simplification-options-btn:hover {
+      background-color: #5a6268;
+    }
+
+    #text-simplification-sidebar .status-message {
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    #text-simplification-sidebar .status-message.loading {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    #text-simplification-sidebar .status-message.success {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+
+    #text-simplification-sidebar .status-message.error {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+
+    #text-simplification-sidebar #text-comparison {
+      flex: 1;
+      display: flex;
+      flex-direction: column; /* Changed from row to column */
+      gap: 15px;
+      overflow-y: auto; /* Add scrollbar when content overflows */
+    }
+
+    #text-simplification-sidebar .text-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    
+
+    #text-simplification-sidebar .text-display {
+      flex: 1;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 0 0 8px 8px;
+      background-color: #fafafa;
+      overflow-y: auto;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      font-size: 14px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    #text-simplification-sidebar #original-text-display {
+      background-color: #fdfefe;
+    }
+
+    #text-simplification-sidebar #simplified-text-display {
+      background-color: #f0fff0;
+    }
+
+    #text-simplification-sidebar #simplified-text-actions {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    #text-simplification-sidebar #simplified-text-actions button {
+      flex: 1;
+    }
+
+    #simplification-controls .nav-btn,
+    #simplified-text-actions .nav-btn,
+    #more-simplification-options .nav-btn {
+      color: #333;
+      background-color: #e0e0e0;
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    #simplification-controls .nav-btn:hover,
+    #simplified-text-actions .nav-btn:hover,
+    #more-simplification-options .nav-btn:hover {
+      background-color: #d0d0d0;
+      border-color: #bbb;
+    }
+
+    #text-tabs {
+      display: flex;
+      flex-direction: column;
+      flex: 1; /* Allow tabs to take up remaining space */
+      overflow: hidden; /* Hide overflow from tab content */
+    }
+
+    #tab-navigation {
+      display: flex;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .tab-btn {
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      transition: background-color 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background-color: #e0e0e0;
+    }
+
+    .tab-btn.active {
+      background-color: #ffffff;
+      border-color: #ccc;
+      border-bottom-color: #ffffff; /* Hide bottom border for active tab */
+      z-index: 1;
+    }
+
+    #tab-content-wrapper {
+      flex: 1; /* Allow content wrapper to take up remaining space */
+      overflow: hidden; /* Hide overflow from tab content */
+      position: relative; /* For absolute positioning of tab content */
+    }
+
+    .tab-content {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      flex-direction: column; /* Ensure content inside tab is column flex */
+      overflow-y: auto; /* Enable scrolling for tab content */
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    #text-simplification-sidebar {
+      position: fixed;
+      top: 102px; /* Start 20 pixels further down from the address bar */
+      right: 0;
+      bottom: 0; /* Extend to the bottom of the viewport */
+      width: 400px; /* Fixed width for the sidebar */
+      background-color: #ffffff;
+      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      transform: translateX(100%); /* Start off-screen */
+      transition: transform 0.3s ease; /* Smooth slide-in/out */
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto; /* Add scrollbar when content overflows */
+    }
+
+    /* Responsive design for smaller screens */
+    @media (max-width: 768px) {
+      
+
+      body.sidebar-open #main-content-wrapper {
+        margin-right: 0; /* No push on small screens */
+      }
+
+      body.sidebar-open #text-simplification-sidebar {
+        transform: translateX(0); /* Overlay on small screens */
+      }
+
+      #text-simplification-sidebar #text-comparison {
+        flex-direction: column;
+      }
+
+      #text-simplification-sidebar .text-panel {
+        max-height: 300px;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -561,20 +880,11 @@
         alt="Calm" style="height: 24px;" /></button>
   </div>
   <div id="container">
-    <webview id="webview" src="about:blank" allowpopups></webview>
-  </div>
-
-  <div id="accessibility-report">
-    <div id="accessibility-report-content">
-      <button id="close-report-btn">×</button>
-      <h2>Accessibility Report</h2>
-      <button id="download-report-btn" class="nav-btn">Download JSON</button>
-      <div id="report-details"></div>
+    <div id="main-content-wrapper">
+      <webview id="webview" src="about:blank" allowpopups></webview>
     </div>
-  </div>
 
-  <div id="text-simplification-modal">
-    <div id="text-simplification-content">
+    <div id="text-simplification-sidebar" class="hidden-sidebar">
       <button id="close-simplification-btn">×</button>
       <h2>Text Simplification</h2>
 
@@ -602,19 +912,28 @@
 
       <div id="simplification-status" class="status-message"></div>
 
-      <div id="text-comparison">
-        <div id="original-text-panel" class="text-panel">
-          <h3>Original Text (<span id="original-word-count">0</span> words)</h3>
-          <div id="original-text-display" class="text-display"></div>
+      <div id="text-tabs">
+        <div id="tab-navigation">
+          <button id="original-text-tab-btn" class="tab-btn active">Original Text</button>
+          <button id="simplified-text-tab-btn" class="tab-btn">Simplified Text</button>
         </div>
-
-        <div id="simplified-text-panel" class="text-panel">
-          <h3>Simplified Text (<span id="simplified-word-count">0</span> words, <span id="word-reduction">0%</span>
-            reduction)</h3>
-          <div id="simplified-text-display" class="text-display"></div>
-          <div id="simplified-text-actions">
-            <button id="copy-simplified-text" class="nav-btn">Copy Simplified Text</button>
-            <button id="replace-page-text" class="nav-btn" disabled>Replace Page Text</button>
+        <div id="tab-content-wrapper">
+          <div id="original-text-tab-content" class="tab-content active">
+            <div id="original-text-panel" class="text-panel">
+              <h3>Original Text (<span id="original-word-count">0</span> words)</h3>
+              <div id="original-text-display" class="text-display"></div>
+            </div>
+          </div>
+          <div id="simplified-text-tab-content" class="tab-content">
+            <div id="simplified-text-panel" class="text-panel">
+              <h3>Simplified Text (<span id="simplified-word-count">0</span> words, <span id="word-reduction">0%</span>
+                reduction)</h3>
+              <div id="simplified-text-display" class="text-display"></div>
+              <div id="simplified-text-actions">
+                <button id="copy-simplified-text" class="nav-btn">Copy Simplified Text</button>
+                <button id="replace-page-text" class="nav-btn" disabled>Replace Page Text</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
