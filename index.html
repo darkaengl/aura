@@ -125,7 +125,7 @@
       cursor: pointer;
       border: none;
       border-radius: 4px;
-      background-color: #4a90e2;
+      background-color: transparent;
       color: white;
       transition: background-color 0.3s;
     }
@@ -135,8 +135,21 @@
       cursor: default;
     }
 
+    .large-button {
+      padding: 16px 24px;
+    }
+
+    .large-button img {
+      height: 48px !important;
+    }
+
+    .floating-btn {
+      background-color: transparent;
+      transform: scale(1.5);
+    }
+
     .nav-btn:hover:not(:disabled) {
-      background-color: #357abd;
+      background-color: transparent;
     }
 
     #url-input {
@@ -418,19 +431,32 @@
       }
     }
   </style>
+  <style>
+    #floating-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+  </style>
 </head>
 
 <body>
   <div id="address-bar">
   <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo" style="height: 62px; margin-right: 8px;">
-  <button id="back-btn" class="nav-btn">←</button>
-  <button id="forward-btn" class="nav-btn">→</button>
-  <button id="refresh-btn" class="nav-btn">↻</button>
+  <button id="back-btn" class="nav-btn image-button"><img src="assets/buttons/Back.png" alt="Back" style="height: 24px;" /></button>
+  <button id="forward-btn" class="nav-btn image-button"><img src="assets/buttons/Forward.PNG" alt="Forward" style="height: 24px;" /></button>
+  <button id="refresh-btn" class="nav-btn image-button"><img src="assets/buttons/Refresh.png" alt="Refresh" style="height: 24px;" /></button>
   <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" style="flex: 3 1 0; font-size: 23px;" />
-  <span id="wcag-score-label" class="wcag-score"></span>
-  <button id="mic-btn" class="nav-btn">🎤</button>
-  <button id="simplify-text-btn" class="nav-btn" title="Simplify page text">📝</button>
-  <button id="simplify-btn" class="nav-btn">Simplify</button>
+  <button id="wcag-btn" class="nav-btn large-button"><img src="assets/buttons/WCAG.png" alt="WCAG" style="height: 24px;" /></button>
+  </div>
+  <div id="floating-widget">
+    <button id="mic-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Navigator_AI.png" alt="Mic" style="height: 24px;" /></button>
+    <button id="simplify-text-btn" class="nav-btn large-button floating-btn" title="Simplify page text"><img src="assets/buttons/Cognitive_Augmentation.png" alt="Simplify text" style="height: 24px;" /></button>
+    <button id="simplify-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Focus_Mode.png" alt="Simplify" style="height: 24px;" /></button>
   </div>
   <div id="container">
     <webview id="webview" src="about:blank" allowpopups></webview>
