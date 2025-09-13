@@ -20,7 +20,7 @@ export const processTextWithOllama = async (textData, options, requestId, {
     simplifiedTextDisplay,
     simplifiedWordCount,
     wordReduction
-}) => {
+}, forceNoChunking = false) => {
     console.log(`[processTextWithOllama] Starting for request ID: ${requestId}`);
     try {
         const validatedOptions = validateOptions(options);
@@ -43,8 +43,8 @@ export const processTextWithOllama = async (textData, options, requestId, {
         const estimatedSeconds = Math.ceil(estimatedTime / 1000);
         showStatus(simplificationStatus, `Simplifying text... (estimated ${estimatedSeconds}s)`, 'loading');
 
-        // For very large texts, split into chunks
-        if (text.length > 8000) {
+        // For very large texts, split into chunks, unless forceNoChunking is true
+        if (!forceNoChunking && text.length > 8000) {
             console.log(`[processTextWithOllama] Text length > 8000, calling processTextInChunks.`);
             return await processTextInChunks(textData, {
                 ...validatedOptions,

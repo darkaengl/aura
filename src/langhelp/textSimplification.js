@@ -269,7 +269,7 @@ export const simplifyText = async (deps) => {
                     simplifiedTextDisplay,
                     simplifiedWordCount,
                     wordReduction
-                });
+                }, true); // forceNoChunking = true
                 modelUsed = 'Ollama';
             }
         } else {
