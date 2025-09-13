@@ -18,16 +18,20 @@ import {
  */
 export const setProcessingState = (processing, {
     extractTextBtn,
-    simplifyTextBtn
+    simplifyTextBtn,
+    simplifyTextBtn2
 }) => {
     extractTextBtn.disabled = processing;
     simplifyTextBtn.disabled = processing;
+    if (simplifyTextBtn2) {
+        simplifyTextBtn2.disabled = true;
+    }
 
     if (processing) {
         extractTextBtn.textContent = 'Processing...';
         simplifyTextBtn.classList.add('loading');
     } else {
-        extractTextBtn.textContent = 'Extract & Simplify Text';
+        extractTextBtn.textContent = 'Extract Text';
         simplifyTextBtn.classList.remove('loading');
     }
 };
@@ -86,8 +90,7 @@ export const updateTextDisplay = (textData, simplificationResult, {
 }) => {
     console.log(`[updateTextDisplay] Called with simplificationResult:`, simplificationResult);
     // Update original text panel
-    originalTextDisplay.textContent = textData.text;
-    originalWordCount.textContent = textData.wordCount.toLocaleString();
+    originalWordCount.textContent = (textData.wordCount || 0).toLocaleString();
 
     // Update simplified text panel
     if (simplificationResult.error) {
@@ -116,13 +119,9 @@ export const updateTextDisplay = (textData, simplificationResult, {
     }
 };
 
-/**
- * Main function to extract and simplify text
- */
-export const extractAndSimplifyText = async (deps) => {
+export const extractText = async (deps) => {
     const {
         isProcessingRef,
-        latestRequestIdRef,
         setProcessingState,
         clearStatus,
         extractPageText,
@@ -130,21 +129,11 @@ export const extractAndSimplifyText = async (deps) => {
         originalTextDisplay,
         originalWordCount,
         simplificationStatus,
-        complexitySelect,
-        processTextWithOllama,
-        updateTextDisplay,
-        simplifiedTextDisplay,
-        simplifiedWordCount,
-        wordReduction,
-        copySimplifiedText,
-        replacePageText,
-        webview
+        webview,
+        simplifyTextBtn2
     } = deps;
 
     if (isProcessingRef.current) return;
-
-    const requestId = ++latestRequestIdRef.current; // Generate a new request ID
-    console.log(`[extractAndSimplifyText] Starting new request with ID: ${requestId}`);
 
     try {
         setProcessingState(true, {
@@ -156,13 +145,63 @@ export const extractAndSimplifyText = async (deps) => {
         // Extract text from page
         const textData = await extractPageText(webview, simplificationStatus);
         currentTextDataRef.current = textData;
-        console.log(`[extractAndSimplifyText] Extracted textData:`, textData);
 
         // Display original text immediately
         originalTextDisplay.textContent = textData.text;
-        originalWordCount.textContent = textData.wordCount.toLocaleString();
+        originalWordCount.textContent = (textData.wordCount || 0).toLocaleString();
 
-        showStatus(simplificationStatus, `Extracted ${textData.wordCount} words. Processing with Ollama...`,
+        showStatus(simplificationStatus, `Extracted ${textData.wordCount} words. Ready to simplify.`,
+            'success');
+        if (deps.simplifyTextBtn2) {
+            deps.simplifyTextBtn2.disabled = false;
+        }
+
+    } catch (error) {
+        console.error('Text extraction failed:', error);
+        showStatus(simplificationStatus, `Error: ${error.message}`, 'error');
+    } finally {
+        setProcessingState(false, {
+            extractTextBtn: deps.extractTextBtn,
+            simplifyTextBtn: deps.simplifyTextBtn
+        });
+    }
+};
+
+export const simplifyText = async (deps) => {
+    const {
+        isProcessingRef,
+        latestRequestIdRef,
+        setProcessingState,
+        clearStatus,
+        currentTextDataRef,
+        originalTextDisplay,
+        originalWordCount,
+        simplificationStatus,
+        complexitySelect,
+        processTextWithOllama,
+        updateTextDisplay,
+        simplifiedTextDisplay,
+        simplifiedWordCount,
+        wordReduction,
+        copySimplifiedText,
+        replacePageText
+    } = deps;
+
+    if (isProcessingRef.current) return;
+
+    const requestId = ++latestRequestIdRef.current; // Generate a new request ID
+
+    try {
+        setProcessingState(true, {
+            extractTextBtn: deps.extractTextBtn,
+            simplifyTextBtn: deps.simplifyTextBtn,
+            simplifyTextBtn2: deps.simplifyTextBtn2
+        });
+        clearStatus(simplificationStatus);
+
+        const textData = currentTextDataRef.current;
+
+        showStatus(simplificationStatus, `Processing with Ollama...`,
             'loading');
 
         // Get selected complexity level
@@ -178,13 +217,9 @@ export const extractAndSimplifyText = async (deps) => {
             simplifiedWordCount,
             wordReduction
         });
-        console.log(`[extractAndSimplifyText] Result from processTextWithOllama:`, result);
 
         // Only update UI if this is still the latest request and result is not null (i.e., not discarded)
         if (requestId !== latestRequestIdRef.current || result === null) {
-            console.log(
-                `[extractAndSimplifyText] Discarding result for request ${requestId}. Newer request ${latestRequestIdRef.current} exists or result was null.`
-                );
             return;
         }
 
@@ -225,7 +260,8 @@ export const extractAndSimplifyText = async (deps) => {
     } finally {
         setProcessingState(false, {
             extractTextBtn: deps.extractTextBtn,
-            simplifyTextBtn: deps.simplifyTextBtn
+            simplifyTextBtn: deps.simplifyTextBtn,
+            simplifyTextBtn2: deps.simplifyTextBtn2
         });
     }
 };

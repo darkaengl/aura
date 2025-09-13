@@ -31,7 +31,8 @@ import {
     setProcessingState,
     extractPageText,
     updateTextDisplay,
-    extractAndSimplifyText,
+    extractText,
+    simplifyText,
     replacePageTextWithSimplified,
     refreshSimplification
 } from '../langhelp/textSimplification.js';
@@ -69,6 +70,8 @@ window.onload = async () => {
     // PDF Upload Elements
     const uploadPdfBtn = document.getElementById('upload-pdf-btn');
     const pdfUploadInput = document.getElementById('pdf-upload-input');
+
+    const simplifyTextBtn2 = document.getElementById('simplify-text-btn-2');
 
     // Chat interface elements (from aura)
     const micBtn = document.getElementById('mic-btn');
@@ -222,6 +225,7 @@ window.onload = async () => {
         webview,
         extractTextBtn,
         simplifyTextBtn,
+        simplifyTextBtn2,
         isPageSimplifiedRef,
         pageContentStateRef,
         textSimplificationModal,
@@ -237,7 +241,9 @@ window.onload = async () => {
         textSimplificationModal.style.display = 'none';
     });
 
-    extractTextBtn.addEventListener('click', () => extractAndSimplifyText(simplificationDeps));
+    extractTextBtn.addEventListener('click', () => extractText(simplificationDeps));
+
+    simplifyTextBtn2.addEventListener('click', () => simplifyText(simplificationDeps));
 
     copySimplifiedText.addEventListener('click', () => copyToClipboard(simplifiedTextDisplay.textContent));
 
