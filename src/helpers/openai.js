@@ -5,7 +5,7 @@ export async function getOpenAIChatCompletion(prompt) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': ``
+        'Authorization': `Bearer ${chatGptApiKey}`
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',

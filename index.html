@@ -131,6 +131,11 @@
       transition: background-color 0.3s;
     }
 
+    #simplification-controls .nav-btn,
+    #simplified-text-actions .nav-btn {
+      color: #333; /* Darker color for better visibility */
+    }
+
     .nav-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -499,6 +504,8 @@
           <option value="moderate" selected>Moderate (Common vocabulary)</option>
           <option value="advanced">Advanced (Clear but detailed)</option>
         </select>
+        <label for="use-openai-checkbox" style="margin-left: 10px;">Use OpenAI:</label>
+        <input type="checkbox" id="use-openai-checkbox" class="control-input" checked>
         <button id="extract-text-btn" class="nav-btn">Extract Text</button>
         <button id="simplify-text-btn-2" class="nav-btn" disabled>Simplify Extracted Text</button>
         <button id="upload-pdf-btn" class="nav-btn" title="Upload PDF to Simplify">⬆️ PDF</button>

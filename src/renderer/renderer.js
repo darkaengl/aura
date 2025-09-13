@@ -72,6 +72,7 @@ window.onload = async () => {
     const pdfUploadInput = document.getElementById('pdf-upload-input');
 
     const simplifyTextBtn2 = document.getElementById('simplify-text-btn-2');
+    const useOpenAICheckbox = document.getElementById('use-openai-checkbox');
 
     // Chat interface elements (from aura)
     const micBtn = document.getElementById('mic-btn');
@@ -230,7 +231,8 @@ window.onload = async () => {
         pageContentStateRef,
         textSimplificationModal,
         closeSimplificationBtn,
-        refreshSimplificationBtn
+        refreshSimplificationBtn,
+        useOpenAI: useOpenAICheckbox.checked
     };
 
     simplifyTextBtn.addEventListener('click', () => {

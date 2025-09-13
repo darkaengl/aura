@@ -10,6 +10,9 @@ import {
     processTextWithOllama
 } from './ollamaHandler.js';
 import {
+    getOpenAIChatCompletion
+} from '../helpers/openai.js';
+import {
     marked
 } from '../../node_modules/marked/lib/marked.esm.js';
 
@@ -119,6 +122,50 @@ export const updateTextDisplay = (textData, simplificationResult, {
     }
 };
 
+/**
+ * Processes text with OpenAI for simplification.
+ * @param {Object} textData - The extracted text data.
+ * @param {Object} options - Options for simplification (e.g., complexity).
+ * @returns {Object} - The simplification result.
+ */
+const processTextWithOpenAI = async (textData, { complexity }) => {
+    const prompt = `Simplify the following text to a ${complexity} level. Provide only the simplified text, without any conversational filler or extra explanations.
+    
+    Complexity levels:
+    - simple: Elementary vocabulary and sentence structure.
+    - moderate: Common vocabulary and clear sentence structure.
+    - advanced: Clear but detailed, suitable for a general audience.
+
+    Original Text:
+    ${textData.text}
+    `;
+
+    try {
+        const simplifiedText = await getOpenAIChatCompletion(prompt);
+        if (!simplifiedText) {
+            throw new Error('OpenAI returned an empty response.');
+        }
+
+        const originalWordCount = textData.wordCount;
+        const simplifiedWordCount = simplifiedText.split(/\s+/).filter(word => word.length > 0).length;
+        const wordReduction = originalWordCount > 0 ? ((originalWordCount - simplifiedWordCount) / originalWordCount * 100).toFixed(1) : 0;
+
+        return {
+            simplified: simplifiedText,
+            wordReduction: wordReduction,
+            metadata: {
+                originalWordCount: originalWordCount,
+                simplifiedWordCount: simplifiedWordCount,
+                complexity: complexity,
+                model: 'OpenAI'
+            }
+        };
+    } catch (error) {
+        console.error('Error processing text with OpenAI:', error);
+        throw new Error(`OpenAI simplification failed: ${error.message}`);
+    }
+};
+
 export const extractText = async (deps) => {
     const {
         isProcessingRef,
@@ -184,7 +231,8 @@ export const simplifyText = async (deps) => {
         simplifiedWordCount,
         wordReduction,
         copySimplifiedText,
-        replacePageText
+        replacePageText,
+        useOpenAI // New dependency
     } = deps;
 
     if (isProcessingRef.current) return;
@@ -200,23 +248,43 @@ export const simplifyText = async (deps) => {
         clearStatus(simplificationStatus);
 
         const textData = currentTextDataRef.current;
-
-        showStatus(simplificationStatus, `Processing with Ollama...`,
-            'loading');
-
-        // Get selected complexity level
         const complexity = complexitySelect.value;
+        let result = null;
+        let modelUsed = '';
 
-        // Process with Ollama
-        const result = await processTextWithOllama(textData, {
-            complexity
-        }, requestId, {
-            latestRequestIdRef,
-            simplificationStatus,
-            simplifiedTextDisplay,
-            simplifiedWordCount,
-            wordReduction
-        });
+        if (useOpenAI) {
+            showStatus(simplificationStatus, `Processing with OpenAI...`, 'loading');
+            try {
+                result = await processTextWithOpenAI(textData, { complexity });
+                modelUsed = 'OpenAI';
+            } catch (openaiError) {
+                console.warn('OpenAI simplification failed, falling back to Ollama:', openaiError);
+                showStatus(simplificationStatus, `OpenAI failed, falling back to Ollama...`, 'loading');
+                // Fallback to Ollama
+                result = await processTextWithOllama(textData, {
+                    complexity
+                }, requestId, {
+                    latestRequestIdRef,
+                    simplificationStatus,
+                    simplifiedTextDisplay,
+                    simplifiedWordCount,
+                    wordReduction
+                });
+                modelUsed = 'Ollama';
+            }
+        } else {
+            showStatus(simplificationStatus, `Processing with Ollama...`, 'loading');
+            result = await processTextWithOllama(textData, {
+                complexity
+            }, requestId, {
+                latestRequestIdRef,
+                simplificationStatus,
+                simplifiedTextDisplay,
+                simplifiedWordCount,
+                wordReduction
+            });
+            modelUsed = 'Ollama';
+        }
 
         // Only update UI if this is still the latest request and result is not null (i.e., not discarded)
         if (requestId !== latestRequestIdRef.current || result === null) {
@@ -235,7 +303,7 @@ export const simplifyText = async (deps) => {
         });
 
         showStatus(simplificationStatus,
-            `Text simplified successfully! Reduced by ${result.wordReduction}% (${result.metadata.originalWordCount} → ${result.metadata.simplifiedWordCount} words)`,
+            `Text simplified successfully with ${modelUsed}! Reduced by ${result.wordReduction}% (${result.metadata.originalWordCount} → ${result.metadata.simplifiedWordCount} words)`,
             'success');
 
     } catch (error) {
