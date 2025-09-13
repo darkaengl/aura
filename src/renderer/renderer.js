@@ -65,26 +65,7 @@ window.onload = async () => {
     const refreshSimplificationBtn = document.getElementById('refresh-simplification-btn');
     
 
-    // Tab elements
-    const originalTextTabBtn = document.getElementById('original-text-tab-btn');
-    const simplifiedTextTabBtn = document.getElementById('simplified-text-tab-btn');
-    const originalTextTabContent = document.getElementById('original-text-tab-content');
-    const simplifiedTextTabContent = document.getElementById('simplified-text-tab-content');
-
-    // Function to switch tabs
-    const switchTab = (tabId) => {
-        // Deactivate all tab buttons and content
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-        // Activate the selected tab button and content
-        document.getElementById(`${tabId}-tab-btn`).classList.add('active');
-        document.getElementById(`${tabId}-tab-content`).classList.add('active');
-    };
-
-    // Event listeners for tab buttons
-    originalTextTabBtn.addEventListener('click', () => switchTab('original-text'));
-    simplifiedTextTabBtn.addEventListener('click', () => switchTab('simplified-text'));
+    
 
     
 
@@ -195,15 +176,11 @@ window.onload = async () => {
         clearStatus,
         extractPageText,
         currentTextDataRef,
-        originalTextDisplay,
-        originalWordCount,
         simplificationStatus,
         complexitySelect,
         processTextWithOllama,
         updateTextDisplay,
         simplifiedTextDisplay,
-        simplifiedWordCount,
-        wordReduction,
         copySimplifiedText,
         replacePageText,
         webview,

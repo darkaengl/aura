@@ -560,7 +560,7 @@
     }
 
     body.sidebar-open #main-content-wrapper {
-      margin-right: 400px; /* Push main content */
+      margin-right: 700px; /* Push main content */
     }
 
     #text-simplification-sidebar h2 {
@@ -593,7 +593,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 10px;
-      margin-bottom: 15px;
+      margin-bottom: 0px;
       padding: 10px;
       background-color: #f5f5f5;
       border-radius: 8px;
@@ -664,7 +664,7 @@
 
     #text-simplification-sidebar .status-message {
       padding: 8px 12px;
-      margin-bottom: 10px;
+      margin-bottom: 0px;
       border-radius: 4px;
       font-weight: bold;
       text-align: center;
@@ -723,7 +723,7 @@
     }
 
     #text-simplification-sidebar #simplified-text-display {
-      background-color: #f0fff0;
+      background-color: #e3f0ff;
     }
 
     #text-simplification-sidebar #simplified-text-actions {
@@ -816,7 +816,7 @@
       top: 102px; /* Start 20 pixels further down from the address bar */
       right: 0;
       bottom: 0; /* Extend to the bottom of the viewport */
-      width: 400px; /* Fixed width for the sidebar */
+      width: 700px; /* Fixed width for the sidebar */
       background-color: #ffffff;
       box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
       z-index: 1000;
@@ -824,7 +824,10 @@
       transition: transform 0.3s ease; /* Smooth slide-in/out */
       display: flex;
       flex-direction: column;
-      padding: 20px;
+      padding-top: 0px;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-bottom: 10px;
       box-sizing: border-box;
       overflow-y: auto; /* Add scrollbar when content overflows */
     }
@@ -886,8 +889,6 @@
 
     <div id="text-simplification-sidebar" class="hidden-sidebar">
       <button id="close-simplification-btn">×</button>
-      <h2>Text Simplification</h2>
-
       <div id="simplification-controls">
         <div class="control-group">
           <label for="complexity-select">Complexity Level:</label>
@@ -905,29 +906,11 @@
 
       <div id="simplification-status" class="status-message"></div>
 
-      <div id="text-tabs">
-        <div id="tab-navigation">
-          <button id="original-text-tab-btn" class="tab-btn active">Original Text</button>
-          <button id="simplified-text-tab-btn" class="tab-btn">Simplified Text</button>
-        </div>
-        <div id="tab-content-wrapper">
-          <div id="original-text-tab-content" class="tab-content active">
-            <div id="original-text-panel" class="text-panel">
-              <h3>Original Text (<span id="original-word-count">0</span> words)</h3>
-              <div id="original-text-display" class="text-display"></div>
-            </div>
-          </div>
-          <div id="simplified-text-tab-content" class="tab-content">
-            <div id="simplified-text-panel" class="text-panel">
-              <h3>Simplified Text (<span id="simplified-word-count">0</span> words, <span id="word-reduction">0%</span>
-                reduction)</h3>
-              <div id="simplified-text-display" class="text-display"></div>
-              <div id="simplified-text-actions">
-                <button id="copy-simplified-text" class="nav-btn">Copy Simplified Text</button>
-                <button id="replace-page-text" class="nav-btn" disabled>Replace Page Text</button>
-              </div>
-            </div>
-          </div>
+      <div id="simplified-text-panel" class="text-panel">
+        <div id="simplified-text-display" class="text-display"></div>
+        <div id="simplified-text-actions">
+          <button id="copy-simplified-text" class="nav-btn">Copy Simplified Text</button>
+          <button id="replace-page-text" class="nav-btn" disabled>Replace Page Text</button>
         </div>
       </div>
     </div>

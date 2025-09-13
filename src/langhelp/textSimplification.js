@@ -86,33 +86,17 @@ export const extractPageText = async (webview, simplificationStatus) => {
  * Updates the display with original and simplified text
  */
 export const updateTextDisplay = (textData, simplificationResult, {
-    originalTextDisplay,
-    originalWordCount,
     simplifiedTextDisplay,
-    simplifiedWordCount,
-    wordReduction,
     copySimplifiedText,
     replacePageText
 }) => {
     console.log(`[updateTextDisplay] Called with simplificationResult:`, simplificationResult);
-    // Update original text panel
-    originalWordCount.textContent = (textData.wordCount || 0).toLocaleString();
-
     // Update simplified text panel
     if (simplificationResult.error) {
         simplifiedTextDisplay.innerHTML = `<p style="color: red;">Error: ${simplificationResult.message}</p>`;
-        simplifiedWordCount.textContent = '0';
-        wordReduction.textContent = '0%';
     } else {
         console.log(`[updateTextDisplay] Updating simplifiedTextDisplay with:`, simplificationResult.simplified);
         simplifiedTextDisplay.innerHTML = marked.parse(simplificationResult.simplified);
-        const currentSimplifiedWordCount = simplificationResult.simplified.split(/\s+/).filter(word => word.length >
-            0).length;
-        simplifiedWordCount.textContent = currentSimplifiedWordCount.toLocaleString();
-        const originalWordCount = textData.wordCount;
-        const currentWordReductionPercent = ((originalWordCount - currentSimplifiedWordCount) / originalWordCount *
-            100).toFixed(1);
-        wordReduction.textContent = `${currentWordReductionPercent}%`;
     }
 
     // Enable/disable action buttons
@@ -176,8 +160,6 @@ export const extractText = async (deps) => {
         clearStatus,
         extractPageText,
         currentTextDataRef,
-        originalTextDisplay,
-        originalWordCount,
         simplificationStatus,
         webview,
         simplifyPageBtn
@@ -195,10 +177,6 @@ export const extractText = async (deps) => {
         // Extract text from page
         const textData = await extractPageText(webview, simplificationStatus);
         currentTextDataRef.current = textData;
-
-        // Display original text immediately
-        originalTextDisplay.textContent = textData.text;
-        originalWordCount.textContent = (textData.wordCount || 0).toLocaleString();
 
         showStatus(simplificationStatus, `Extracted ${textData.wordCount} words. Ready to simplify.`,
             'success');
@@ -221,15 +199,11 @@ export const simplifyText = async (deps) => {
         setProcessingState,
         clearStatus,
         currentTextDataRef,
-        originalTextDisplay,
-        originalWordCount,
         simplificationStatus,
         complexitySelect,
         processTextWithOllama,
         updateTextDisplay,
         simplifiedTextDisplay,
-        simplifiedWordCount,
-        wordReduction,
         copySimplifiedText,
         replacePageText,
         useOpenAI // New dependency
@@ -252,7 +226,7 @@ export const simplifyText = async (deps) => {
         let modelUsed = '';
 
         if (useOpenAI) {
-            showStatus(simplificationStatus, `Processing with OpenAI...`, 'loading');
+            
             try {
                 result = await processTextWithOpenAI(textData, { complexity });
                 modelUsed = 'OpenAI';
@@ -265,9 +239,7 @@ export const simplifyText = async (deps) => {
                 }, requestId, {
                     latestRequestIdRef,
                     simplificationStatus,
-                    simplifiedTextDisplay,
-                    simplifiedWordCount,
-                    wordReduction
+                    simplifiedTextDisplay
                 }, true); // forceNoChunking = true
                 modelUsed = 'Ollama';
             }
@@ -278,9 +250,7 @@ export const simplifyText = async (deps) => {
             }, requestId, {
                 latestRequestIdRef,
                 simplificationStatus,
-                simplifiedTextDisplay,
-                simplifiedWordCount,
-                wordReduction
+                simplifiedTextDisplay
             });
             modelUsed = 'Ollama';
         }
@@ -292,18 +262,12 @@ export const simplifyText = async (deps) => {
 
         // Update display
         updateTextDisplay(textData, result, {
-            originalTextDisplay,
-            originalWordCount,
             simplifiedTextDisplay,
-            simplifiedWordCount,
-            wordReduction,
             copySimplifiedText,
             replacePageText
         });
 
-        showStatus(simplificationStatus,
-            `Text simplified successfully with ${modelUsed}! Reduced by ${result.wordReduction}% (${result.metadata.originalWordCount} → ${result.metadata.simplifiedWordCount} words)`,
-            'success');
+        
 
     } catch (error) {
         console.error('Text simplification failed:', error);
@@ -315,11 +279,7 @@ export const simplifyText = async (deps) => {
                 error: true,
                 message: error.message
             }, {
-                originalTextDisplay,
-                originalWordCount,
                 simplifiedTextDisplay,
-                simplifiedWordCount,
-                wordReduction,
                 copySimplifiedText,
                 replacePageText
             });
@@ -388,7 +348,7 @@ export const replacePageTextWithSimplified = async (deps) => {
 
             isPageSimplifiedRef.current = true;
             replacePageText.textContent = 'Show Original';
-            showStatus(simplificationStatus, 'Page text replaced with simplified version!', 'success');
+            
         }
     } catch (error) {
         console.error('Failed to replace page text:', error);
@@ -399,11 +359,7 @@ export const replacePageTextWithSimplified = async (deps) => {
 export const refreshSimplification = (deps) => {
     const {
         latestRequestIdRef,
-        originalTextDisplay,
         simplifiedTextDisplay,
-        originalWordCount,
-        simplifiedWordCount,
-        wordReduction,
         clearStatus,
         currentTextDataRef,
         setProcessingState,
@@ -417,13 +373,7 @@ export const refreshSimplification = (deps) => {
     latestRequestIdRef.current++;
 
     // Clear displayed text
-    originalTextDisplay.textContent = '';
     simplifiedTextDisplay.textContent = '';
-
-    // Reset word counts
-    originalWordCount.textContent = '0';
-    simplifiedWordCount.textContent = '0';
-    wordReduction.textContent = '0%';
 
     // Clear status message
     clearStatus(simplificationStatus);
