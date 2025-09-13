@@ -43,7 +43,7 @@ window.onload = async () => {
     const refreshBtn = document.getElementById('refresh-btn');
     const browserLogo = document.getElementById('browser-logo'); // New Browser Logo
     const webview = document.getElementById('webview');
-    const wcagScoreLabel = document.getElementById('wcag-score-label');
+    const wcagBtn = document.getElementById('wcag-btn');
     const accessibilityReport = document.getElementById('accessibility-report');
     const reportDetails = document.getElementById('report-details');
     const closeReportBtn = document.getElementById('close-report-btn');
@@ -85,7 +85,7 @@ window.onload = async () => {
 
     // Initialize accessibility features
     initializeAccessibility({
-        wcagScoreLabel,
+        wcagBtn,
         accessibilityReport,
         reportDetails,
         closeReportBtn,

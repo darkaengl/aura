@@ -71,22 +71,22 @@ const downloadJsonReport = (data, filename) => {
 };
 
 export const initializeAccessibility = async (elements, webview) => {
-  const { wcagScoreLabel, accessibilityReport, reportDetails, closeReportBtn, downloadReportBtn } = elements;
+  const { wcagBtn, accessibilityReport, reportDetails, closeReportBtn, downloadReportBtn } = elements;
 
   let axeCoreScriptContent;
   try {
     axeCoreScriptContent = await window.fileAPI.readLocalFile('assets/axe.min.js');
   } catch (error) {
     console.error('Failed to load axe.min.js:', error);
-    if (wcagScoreLabel) {
-      wcagScoreLabel.innerText = 'WCAG: Error';
-      wcagScoreLabel.style.backgroundColor = 'red';
+    if (wcagBtn) {
+      wcagBtn.innerText = 'WCAG: Error';
+      wcagBtn.style.backgroundColor = 'red';
     }
     return;
   }
 
-  if (wcagScoreLabel) {
-    wcagScoreLabel.addEventListener('click', () => {
+  if (wcagBtn) {
+    wcagBtn.addEventListener('click', () => {
       if (currentAxeResults) {
         reportDetails.innerHTML = formatAxeResults(currentAxeResults);
         accessibilityReport.style.display = 'flex';
@@ -133,9 +133,8 @@ export const initializeAccessibility = async (elements, webview) => {
       const totalChecks = passes + violations + currentAxeResults.incomplete.length + currentAxeResults.inapplicable.length;
 
       const { score, color } = calculateWcagScore(passes, totalChecks);
-      if (wcagScoreLabel) {
-        wcagScoreLabel.innerText = `WCAG: ${score}`;
-        wcagScoreLabel.style.backgroundColor = color;
+      if (wcagBtn) {
+
       }
     });
 
