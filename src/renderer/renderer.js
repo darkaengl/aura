@@ -11,7 +11,12 @@ window.onload = async () => {
   const reportDetails = document.getElementById('report-details');
   const closeReportBtn = document.getElementById('close-report-btn');
   const downloadReportBtn = document.getElementById('download-report-btn');
+  const wcagBtn = document.getElementById('wcag-btn');
   const micBtn = document.getElementById('mic-btn');
+  const simplifyBtn = document.getElementById('simplify-btn');
+  const simplifyTextBtn = document.getElementById('simplify-text-btn');
+  const focusBtn = document.getElementById('focus-btn');
+  const calmBtn = document.getElementById('calm-btn');
 
   // Wake word detection elements
   const wakeWordToggle = document.getElementById('wake-word-toggle');
@@ -626,6 +631,44 @@ window.onload = async () => {
   });
 
   chatSendBtn.addEventListener('click', () => sendMessage());
+
+  // WCAG button functionality
+  if (wcagBtn) {
+    wcagBtn.addEventListener('click', () => {
+      // Trigger accessibility analysis
+      if (accessibilityReport) {
+        accessibilityReport.style.display = 'flex';
+      }
+    });
+  }
+
+  // Simplify button functionality
+  if (simplifyBtn) {
+    simplifyBtn.addEventListener('click', () => {
+      console.log('Simplify button clicked - functionality to be implemented');
+    });
+  }
+
+  // Simplify text button functionality
+  if (simplifyTextBtn) {
+    simplifyTextBtn.addEventListener('click', () => {
+      console.log('Simplify text button clicked - functionality to be implemented');
+    });
+  }
+
+  // Focus button functionality (disabled for now)
+  if (focusBtn) {
+    focusBtn.addEventListener('click', () => {
+      console.log('Focus button clicked - functionality to be implemented');
+    });
+  }
+
+  // Calm button functionality (disabled for now)
+  if (calmBtn) {
+    calmBtn.addEventListener('click', () => {
+      console.log('Calm button clicked - functionality to be implemented');
+    });
+  }
 
   chatInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {

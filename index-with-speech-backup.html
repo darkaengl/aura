@@ -15,7 +15,6 @@
       display: flex;
       flex-direction: column;
       font-family: Arial, sans-serif;
-      box-sizing: border-box; /* Ensure consistent box model */
     }
 
     #address-bar {
@@ -33,31 +32,18 @@
       cursor: pointer;
       border: none;
       border-radius: 4px;
-      background-color: transparent;
+      background-color: #4a90e2;
       color: white;
       transition: background-color 0.3s;
     }
 
     .nav-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .large-button {
-      padding: 16px 24px;
-    }
-
-    .large-button img {
-      height: 48px !important;
-    }
-
-    .floating-btn {
-      background-color: transparent;
-      transform: scale(1.275);
+      background-color: #a0a0a0;
+      cursor: default;
     }
 
     .nav-btn:hover:not(:disabled) {
-      background-color: transparent;
+      background-color: #357abd;
     }
 
     #url-input {
@@ -78,15 +64,8 @@
     #container {
       flex: 1;
       display: flex;
-      overflow: hidden;
-      position: relative;
-    }
-
-    #main-content-wrapper {
-      flex: 1;
-      display: flex;
       flex-direction: column;
-      transition: margin-right 0.3s ease;
+      overflow: hidden;
     }
 
     .wcag-score {
@@ -127,8 +106,8 @@
     }
 
     .wake-word-icon {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       vertical-align: middle;
       object-fit: contain;
       transition: filter 0.3s ease;
@@ -146,102 +125,6 @@
       0% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.7; transform: scale(1.05); }
       100% { opacity: 1; transform: scale(1); }
-    }
-
-    /* Chat Interface Styles */
-    .hidden {
-      display: none !important;
-    }
-
-    #chat-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 400px;
-      height: 600px;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      display: flex;
-      flex-direction: column;
-      z-index: 1001;
-    }
-
-    #chat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      background-color: #f1f1f1;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-
-    #chat-header h3 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    #close-chat-btn {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    #chat-messages {
-      flex-grow: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .chat-message {
-      padding: 10px 15px;
-      border-radius: 18px;
-      max-width: 80%;
-    }
-
-    .user-message {
-      background-color: #4a90e2;
-      color: white;
-      align-self: flex-end;
-    }
-
-    .ai-message {
-      background-color: #f1f1f1;
-      color: black;
-      align-self: flex-start;
-    }
-
-    #chat-input-container {
-      display: flex;
-      padding: 20px;
-      border-top: 1px solid #f1f1f1;
-    }
-
-    #chat-send-btn {
-      margin-left: 10px;
-      background-color: #4a90e2;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    /* Floating widget styles */
-    #floating-widget {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 1000;
     }
 
     #accessibility-report {
@@ -410,39 +293,18 @@
 
 <body>
   <div id="address-bar">
-    <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo"
-      style="height: 62px; margin-right: 8px;">
-    <button id="back-btn" class="nav-btn image-button"><img src="assets/buttons/Back.png" alt="Back"
-        style="height: 24px;" /></button>
-    <button id="forward-btn" class="nav-btn image-button"><img src="assets/buttons/Forward.PNG" alt="Forward"
-        style="height: 24px;" /></button>
-    <button id="refresh-btn" class="nav-btn image-button"><img src="assets/buttons/Refresh.png" alt="Refresh"
-        style="height: 24px;" /></button>
-    <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com"
-      style="flex: 3 1 0; font-size: 23px;" />
-    <button id="wcag-btn" class="nav-btn large-button"><img src="assets/buttons/WCAG.png" alt="WCAG"
-        style="height: 24px;" /></button>
-  </div>
-  <div id="floating-widget">
-    <!-- Integrated speech buttons into the floating widget -->
-    <button id="wake-word-toggle" class="nav-btn large-button floating-btn wake-word-active" title="Toggle 'browser' wake word detection">
-      <img src="./assets/aura_logo.png" alt="Aura Logo" class="wake-word-icon" style="height: 24px;">
+    <button id="back-btn" class="nav-btn">←</button>
+    <button id="forward-btn" class="nav-btn">→</button>
+    <button id="refresh-btn" class="nav-btn">↻</button>
+    <input id="url-input" type="text" placeholder="Enter URL" value="https://www.google.com" />
+    <span id="wcag-score-label" class="wcag-score">WCAG: ...</span>
+    <button id="wake-word-toggle" class="action-btn wake-word-active" title="Toggle 'browser' wake word detection">
+      <img src="./assets/aura_logo.png" alt="Aura Logo" class="wake-word-icon">
     </button>
-    <button id="mic-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Navigator_AI.png" alt="Mic"        
-        style="height: 24px;" /></button>
-    <button id="simplify-text-btn" class="nav-btn large-button floating-btn" title="Simplify page text"><img
-        src="assets/buttons/Cognitive_Augmentation.png" alt="Simplify text" style="height: 24px;" /></button>
-    <button id="simplify-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Adaptive_UI.png"
-        alt="Simplify" style="height: 24px;" /></button>
-    <button id="focus-btn" class="nav-btn large-button floating-btn" disabled><img src="assets/buttons/Focus_Mode.png"
-        alt="Focus" style="height: 24px;" /></button>
-    <button id="calm-btn" class="nav-btn large-button floating-btn" disabled><img src="assets/buttons/Calm_Mode.png"
-        alt="Calm" style="height: 24px;" /></button>
+    <button id="mic-btn" class="action-btn">🎤</button>
   </div>
   <div id="container">
-    <div id="main-content-wrapper">
-      <webview id="webview" src="about:blank" allowpopups preload="./src/shared/webview-preload.js"></webview>
-    </div>
+    <webview id="webview" src="https://www.google.com" allowpopups preload="./src/shared/webview-preload.js"></webview>
   </div>
 
   <div id="accessibility-report">

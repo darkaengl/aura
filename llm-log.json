@@ -1,1 +1,1 @@
-"[\n  {\n    \"action\": \"goto\",\n    \"url\": \"http://www.rte.ie\"\n  }\n]"
+"[\n  {\n    \"action\": \"fill\",\n    \"selector\": \"#statCode\",\n    \"text\": \"IRE\"\n  },\n  {\n    \"action\": \"select\",\n    \"selector\": \"#startYear\",\n    \"value\": \"2020\"\n  },\n  {\n    \"action\": \"select\",\n    \"selector\": \"#startMonth\",\n    \"value\": \"January\"\n  },\n  {\n    \"action\": \"click\",\n    \"selector\": \"#statCodeSearchButton\"\n  }\n]"
