@@ -1,4 +1,12 @@
 node_modules/
+dist/
+*.log
+dom-log.json
+llm-log.json
+google-cloud-key.json
+.env.local
+.DS_Store
+Thumbs.dbnode_modules/
 .env
 package-lock.json
 

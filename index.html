@@ -57,6 +57,54 @@
       font-size: 24px;
       cursor: pointer;
     }
+    
+    .action-btn {
+      padding: 8px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+      color: black;
+      transition: background-color 0.3s;
+    }
+
+    .action-btn:hover {
+      background-color: #d0d0d0;
+    }
+
+    .wake-word-active {
+      background-color: #4CAF50 !important;
+      color: white !important;
+    }
+
+    .wake-word-inactive {
+      background-color: #f44336 !important;
+      color: white !important;
+    }
+    
+    .wake-word-icon {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      object-fit: contain;
+      transition: filter 0.3s ease;
+    }
+
+    .wake-word-active .wake-word-icon {
+      filter: brightness(0) invert(1); /* White logo when active (green background) */
+    }
+
+    .wake-word-inactive .wake-word-icon {
+      filter: brightness(0) invert(1); /* White logo when inactive (red background) */
+    }
+
+    /* Add pulse animation parity (used when future continuous mode active) */
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
 
     #chat-messages {
       flex-grow: 1;
@@ -869,6 +917,9 @@
       style="flex: 3 1 0; font-size: 23px;" />
     <button id="wcag-btn" class="nav-btn large-button"><img src="assets/buttons/WCAG.png" alt="WCAG"
         style="height: 24px;" /></button>
+    <button id="wake-word-toggle" class="action-btn wake-word-active" title="Toggle 'browser' wake word detection">
+      <img src="./assets/buttons/aura_logo.png" alt="Aura Logo" class="wake-word-icon">
+    </button>
   </div>
   <div id="floating-widget">
     <button id="mic-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Navigator_AI.png" alt="Mic"

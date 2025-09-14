@@ -5,9 +5,10 @@ import {
 import {
     addMessage
 } from './chatutils.js';
-import {
-    getOpenAIChatCompletion
-} from '../helpers/openai.js';
+import { getOpenAIChatCompletion } from '../helpers/openai.js';
+import { generateNextSteps } from './nextStepSuggestions.js';
+import { isFormSessionActive, handleFormInput } from './formFillingHandler.js';
+import { executeCommands } from './commandExecutor.js';
 
 
 // Send message to AI
@@ -18,6 +19,12 @@ export async function sendMessage(webview, chatInput, chatMessages) {
 
     addMessage(chatMessages, message, 'user');
     chatInput.value = '';
+
+  // If a form session is active, route message directly to form handler and short-circuit
+  if (isFormSessionActive()) {
+    const consumed = await handleFormInput(message);
+    if (consumed) return;
+  }
 
     try {
         // Classify intent first
@@ -36,121 +43,42 @@ export async function sendMessage(webview, chatInput, chatMessages) {
                 console.log('Screen context saved to log file.');
             }
 
-            // Prompt for high-level command (search_and_navigate)
-            const navPrompt = `You are a browser assistant.\nGiven the user's command: "${message}", \n          generate a single high-level command object in JSON format.\nIf the command is to search or navigate to a topic, use:\n{\n  action: 'search_and_navigate',\n          \n  topic: '<topic>'\n}\nIf the command is to click, fill, or interact, use:\n{\n  action: '<action>',\n  selector: '<selector>',\n  value: '<value>' // \n          if applicable\n}\nOnly output the JSON object, no extra text.\n          `;
-            console.log('Sending navPrompt to ChatGPT...');
-            const llmResponse = await getOpenAIChatCompletion(navPrompt);
+            // Prompt for high-level command(s) (now supports array for multi-step)
+            const navPrompt = `You are a browser assistant.\nGiven the user's instruction: "${message}", output EITHER a single JSON object OR a JSON array of objects (for multiple sequential actions).\nSupported actions (initial set):\n- search_and_navigate => {"action":"search_and_navigate","topic":"<topic>"}\n- agree_and_start_form => {"action":"agree_and_start_form"}\n- start_form_filling => {"action":"start_form_filling"}\n- click => {"action":"click","selector":"<css selector>"}\n- fill => {"action":"fill","selector":"<css selector>","value":"<text>"}\n- select => {"action":"select","selector":"<css selector>","value":"<visible option text>"}\nRules:\n1. Output ONLY raw JSON (no markdown, text, or explanation).\n2. If multiple steps are clearly requested (e.g. navigate then fill), output a JSON array in the exact order.\n3. For vague requests to proceed or continue on a site with a visible agreement, prefer {"action":"agree_and_start_form"}.\n4. For 'start the form' or similar, output {"action":"start_form_filling"}.\n5. If unsure default to {"action":"search_and_navigate","topic":"${message.replace(/"/g,'\\"')}"}.`;
+      console.log('Sending navPrompt to ChatGPT...');
+      const llmResponse = await getOpenAIChatCompletion(navPrompt, {
+        fallbackFn: async (prompt, meta) => {
+          console.warn('Falling back to Ollama for navPrompt. Reason:', meta);
+          // Simple fallback: ask Ollama to output ONLY JSON.
+          const fallbackMessages = [{
+            role: 'user',
+            content: `${prompt}\n\nIf you cannot comply fully, output a minimal JSON object: {"action":"search_and_navigate","topic":"<best guess>"}`
+          }];
+          const resp = await window.ollamaAPI.chat(fallbackMessages);
+          return resp;
+        },
+        feature: 'navigator'
+      });
             console.log('LLM response received:', llmResponse);
             await window.mainAPI.saveLlmLog(llmResponse);
             try {
-                const commandObj = JSON.parse(llmResponse);
-                if (commandObj.action === 'search_and_navigate') {
-                    addMessage(chatMessages, 'Executing command:', 'ai');
-                } else {
-                    addMessage(chatMessages, `Executing command: ${JSON.stringify(commandObj)}`, 'ai');
+                let parsed;
+                try { parsed = JSON.parse(llmResponse); } catch (e) { /* not JSON */ }
+                if (!parsed) {
+                  addMessage(chatMessages, llmResponse, 'ai');
+                  return;
                 }
-                // Execute search_and_navigate like aura-nav
-                if (commandObj.action === 'search_and_navigate' && commandObj.topic) {
-                    console.log(`Searching and navigating to: ${commandObj.topic}`);
-                    const searchAndClickScript = `
-              (() => {
-                const searchTerm = '${commandObj.topic.replace(/\'/g, "\\'")}';
-                const searchVariations = [
-                  searchTerm.toLowerCase(),
-                  searchTerm.toLowerCase().replace(/\s+/g, ''),
-                  ...searchTerm.toLowerCase().split(' '),
-                ];
-                if (searchTerm.toLowerCase().includes('vehicle') || searchTerm.toLowerCase().includes('vehical')) {
-                  searchVariations.push('vrt', 'vehicle registration tax', 'motor tax');
-                }
-                if (searchTerm.toLowerCase().includes('tax')) {
-                  searchVariations.push('vrt', 'taxation', 'revenue');
-                }
-                if (searchTerm.toLowerCase().includes('registration')) {
-                  searchVariations.push('vrt', 'register', 'registration');
-                }
-                const clickableElements = document.querySelectorAll('a, button, [role="button"], [onclick]');
-                const clickableMatches = [];
-                clickableElements.forEach(element => {
-                  if (element.offsetParent !== null) {
-                    const text = element.textContent.toLowerCase();
-                    const href = element.getAttribute('href') || '';
-                    for (const variation of searchVariations) {
-                      if (variation && (text.includes(variation) || href.toLowerCase().includes(variation))) {
-                        const rect = element.getBoundingClientRect();
-                        if (rect.height > 10 && rect.width > 50) {
-                          clickableMatches.push({
-                            element: element,
-                            text: element.textContent.trim(),
-                            href: href,
-                            matchedTerm: variation,
-                            relevanceScore: calculateRelevance(text + ' ' + href, searchVariations),
-                            rect: rect
-                          });
-                          break;
-                        }
-                      }
-                    }
-                  }
-                });
-                clickableMatches.sort((a, b) => {
-                  if (a.relevanceScore !== b.relevanceScore) {
-                    return b.relevanceScore - a.relevanceScore;
-                  }
-                  return a.rect.top - b.rect.top;
-                });
-                if (clickableMatches.length > 0) {
-                  const bestMatch = clickableMatches[0];
-                  const originalStyle = bestMatch.element.style.cssText;
-                  bestMatch.element.style.backgroundColor = '#00ff00';
-                  bestMatch.element.style.transition = 'background-color 0.3s';
-                  bestMatch.element.style.border = '2px solid #0066ff';
-                  setTimeout(() => {
-                    bestMatch.element.click();
-                  }, 500);
-                  return {
-                    success: true,
-                    found: true,
-                    clicked: true,
-                    text: bestMatch.text,
-                    href: bestMatch.href,
-                    matchedTerm: bestMatch.matchedTerm,
-                    matches: clickableMatches.length
-                  };
-                } else {
-                  return {
-                    success: true,
-                    found: false,
-                    clicked: false,
-                    message: 'No clickable element found for topic',
-                    searchedFor: searchVariations
-                  };
-                }
-                function calculateRelevance(text, searchTerms) {
-                  let score = 0;
-                  for (const term of searchTerms) {
-                    if (term && text.includes(term)) {
-                      score += term.length;
-                    }
-                  }
-                  return score;
-                }
-              })();
-            `;
-                    try {
-                        const result = await webview.executeJavaScript(searchAndClickScript, true);
-                        if (result.found && result.clicked) {
-                            addMessage(chatMessages, `Navigating to "${result.matchedTerm}": ${result.text}${result.href ? ' → ' + result.href : ''}`, 'ai');
-                        } else {
-                            addMessage(chatMessages, `Could not find clickable element for "${commandObj.topic}". Searched for: ${result.searchedFor.join(', ')}`, 'ai');
-                        }
-                    } catch (e) {
-                        console.error('Search and navigate error:', e);
-                        addMessage(chatMessages, `Error navigating to "${commandObj.topic}": ${e.message}`, 'ai');
-                    }
+                // Normalize to array
+                const commands = Array.isArray(parsed) ? parsed : [parsed];
+                await executeCommands({ webview, commands, addMessage: (t,s)=>addMessage(chatMessages,t,s||'ai') });
+                // After finishing command execution, trigger next steps only if a navigation occurred OR commands length > 0
+                const hadNav = commands.some(c=>c.action==='search_and_navigate');
+                if (hadNav) {
+                  addMessage(chatMessages, '🤔 Analyzing page content to suggest next steps...', 'ai');
+                  await generateNextSteps(webview, (text, sender) => addMessage(chatMessages, text, sender || 'ai'));
                 }
             } catch (e) {
-                addMessage(chatMessages, llmResponse, 'ai');
+                addMessage(chatMessages, `⚠️ Could not process command JSON: ${e.message}`, 'ai');
             }
         } else if (intent === 'question') {
             // Extract visible text from the webview

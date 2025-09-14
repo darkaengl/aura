@@ -228,7 +228,7 @@ export const simplifyText = async (deps) => {
         if (useOpenAI) {
             
             try {
-                result = await processTextWithOpenAI(textData, { complexity });
+                result = await processTextWithOpenAI(textData, { complexity, feature: 'simplification' });
                 modelUsed = 'OpenAI';
             } catch (openaiError) {
                 console.warn('OpenAI simplification failed, falling back to Ollama:', openaiError);
@@ -458,7 +458,7 @@ export const simplifyParagraphsInPlace = async (deps) => {
             let simplifiedText = '';
             try {
                 if (useOpenAI) {
-                    const result = await processTextWithOpenAI({ text: originalText }, { complexity });
+                    const result = await processTextWithOpenAI({ text: originalText }, { complexity, feature: 'simplification' });
                     simplifiedText = result.simplified;
                 } else {
                     // For Ollama, we need to mock the requestId and other deps for processTextWithOllama

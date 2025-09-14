@@ -1,10 +1,25 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose secrets API for sensitive keys
-const chatGptApiKey = process.env.OPENAI_API_KEY || '';
+// LLM feature config + key resolution (guarded require to prevent preload crash if file missing)
+let resolveApiKeyForFeature = () => '';
+let getFeatureConfig = () => null;
+try {
+  const mod = require('../config/llm-config.js');
+  resolveApiKeyForFeature = mod.resolveApiKeyForFeature || resolveApiKeyForFeature;
+  getFeatureConfig = mod.getFeatureConfig || getFeatureConfig;
+} catch (e) {
+  console.warn('[preload] llm-config module not found or failed to load:', e.message);
+}
+const baseOpenAiKey = process.env.OPENAI_API_KEY || process.env.CHATGPT_API_KEY || '';
 contextBridge.exposeInMainWorld('secretsAPI', {
-  getChatGptApiKey: () => chatGptApiKey
+  getChatGptApiKey: () => baseOpenAiKey,
+  getLLMKey: (feature) => {
+    try { return resolveApiKeyForFeature(feature) || ''; } catch { return ''; }
+  },
+  getLLMConfig: (feature) => {
+    try { return getFeatureConfig(feature); } catch { return null; }
+  }
 });
 
 // Expose a safe, limited API to the renderer process

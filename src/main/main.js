@@ -3,6 +3,13 @@ const { app, BrowserWindow, ipcMain } = require('electron/main')
 const path = require('node:path')
 const fs = require('node:fs/promises'); // Import Node.js file system promises API
 const { spawn } = require('child_process');
+// Use a CommonJS-specific constants file to avoid ESM syntax issues in main process
+const { MODELS } = require('../config/constants-node.js');
+// Inline lightweight logger (CommonJS friendly) - avoids ESM import friction
+const logLevel = (process.env.LOG_LEVEL || 'info').toLowerCase();
+const _levels = ['error','warn','info','debug'];
+const _lvlIndex = _levels.includes(logLevel) ? _levels.indexOf(logLevel) : 2;
+function log(level, ...args){ const idx = _levels.indexOf(level); if(idx <= _lvlIndex){ console[level === 'debug' ? 'log' : level](`[MAIN ${level.toUpperCase()}]`, ...args);} }
 const pdfParse = require('pdf-parse');
 
 app.setName('Aura');
@@ -22,14 +29,12 @@ ipcMain.handle('classify-intent', async (event, userMessage) => {
     // Directly spawn Ollama for classification
     return await new Promise((resolve, reject) => {
       const input = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-      const child = spawn('ollama', ['run', 'mistral:7b-instruct-v0.2-q4_0']);
+  const child = spawn('ollama', ['run', MODELS.CLASSIFIER]);
       let output = '';
       child.stdout.on('data', (data) => {
         output += data.toString();
       });
-      child.stderr.on('data', (data) => {
-        console.error('classify-intent Ollama stderr:', data.toString());
-      });
+      child.stderr.on('data', (data) => { log('warn','classify-intent stderr:', data.toString()); });
       child.on('close', (code) => {
         const cleanedOutput = output.replace(/^Thinking\.{3}.*?\.\.\.done thinking\.\n*/s, '');
         const intent = (cleanedOutput || '').trim().toLowerCase();
@@ -47,7 +52,7 @@ ipcMain.handle('classify-intent', async (event, userMessage) => {
       child.stdin.end();
     });
   } catch (error) {
-    console.error('Intent classification failed:', error);
+  log('error','Intent classification failed:', error);
     return 'unknown';
   }
 });
@@ -66,26 +71,26 @@ ipcMain.handle('read-local-file', async (event, filePath) => {
 
 ipcMain.handle('ollama:chat', async (event, messages) => {
   try {
-    const response = await fetch('http://localhost:11434/api/chat', {
+  const response = await fetch('http://localhost:11434/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3.2', // You can make this configurable or choose a default
+  model: MODELS.CHAT, // centralized constant
         messages: messages,
         stream: false, // We want the full response at once
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Ollama API responded with status: ${response.status}`);
+  throw new Error(`Ollama API responded with status: ${response.status}`);
     }
 
     const data = await response.json();
     return data.message.content; // Assuming the response structure
   } catch (error) {
-    console.error('Error communicating with Ollama:', error);
+  log('error','Error communicating with Ollama:', error);
     return `Error: Could not connect to Ollama. Is it running? (${error.message})`;
   }
 });
@@ -93,11 +98,11 @@ ipcMain.handle('ollama:chat', async (event, messages) => {
 
 // Alternative handler using spawn for direct Ollama CLI
 ipcMain.handle('ollama:chat:spawn', async (event, messages) => {
-  console.log('ollama:chat:spawn handler called');
+  log('debug','ollama:chat:spawn handler called');
   return new Promise((resolve, reject) => {
     const input = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-    console.log('Input to Ollama length:', input.length);
-    const child = spawn('ollama', ['run', 'mistral:7b-instruct-v0.2-q4_0']);
+  log('debug','Input to Ollama length:', input.length);
+  const child = spawn('ollama', ['run', MODELS.CLASSIFIER]);
 
     let output = '';
     child.stdout.on('data', (data) => {
@@ -105,14 +110,14 @@ ipcMain.handle('ollama:chat:spawn', async (event, messages) => {
     });
 
     child.stderr.on('data', (data) => {
-      console.error('Ollama stderr:', data.toString());
+  log('warn','Ollama stderr:', data.toString());
     });
 
     child.on('close', (code) => {
-      console.log(`Ollama process closed with code ${code}`);
+  log('debug',`Ollama process closed with code ${code}`);
       // Remove the "thinking" part of the output.
       const cleanedOutput = output.replace(/^Thinking\.\.\..*?\.\.\.done thinking\.\n*/s, '');
-      console.log('Cleaned Ollama output length:', cleanedOutput.length);
+  log('debug','Cleaned Ollama output length:', cleanedOutput.length);
       resolve(cleanedOutput);
     });
 
@@ -125,27 +130,27 @@ ipcMain.handle('ollama:chat:spawn', async (event, messages) => {
 
 
 ipcMain.handle('save-dom-log', async (event, domJson) => {
-  console.log('save-dom-log handler called in main');
+  log('debug','save-dom-log handler called');
   try {
     const logPath = path.join(__dirname, '..', '..', 'dom-log.json');
     await fs.writeFile(logPath, JSON.stringify(domJson, null, 2));
-    console.log(`DOM log saved to ${logPath}`);
+  log('info',`DOM log saved to ${logPath}`);
     return { success: true, path: logPath };
   } catch (error) {
-    console.error('Failed to save DOM log:', error);
+  log('error','Failed to save DOM log:', error);
     throw new Error(`Failed to save DOM log: ${error.message}`);
   }
 });
 
 ipcMain.handle('save-llm-log', async (event, llmResponse) => {
-  console.log('save-llm-log handler called in main');
+  log('debug','save-llm-log handler called');
   try {
     const logPath = path.join(__dirname, '..', '..', 'llm-log.json');
     await fs.writeFile(logPath, JSON.stringify(llmResponse, null, 2));
-    console.log(`LLM log saved to ${logPath}`);
+  log('info',`LLM log saved to ${logPath}`);
     return { success: true, path: logPath };
   } catch (error) {
-    console.error('Failed to save LLM log:', error);
+  log('error','Failed to save LLM log:', error);
     throw new Error(`Failed to save LLM log: ${error.message}`);
   }
 });
@@ -156,7 +161,7 @@ ipcMain.handle('simplify:extract-text', async (event, options) => {
     // This handler exists for future expansion or server-side processing if needed
     return { success: true, message: 'Text extraction initiated' };
   } catch (error) {
-    console.error('Error in text extraction handler:', error);
+  log('error','Error in text extraction handler:', error);
     throw new Error(`Text extraction failed: ${error.message}`);
   }
 });
@@ -211,7 +216,7 @@ ${text}`;
     });
 
     if (!response.ok) {
-      throw new Error(`Ollama API responded with status: ${response.status}`);
+  throw new Error(`Ollama API responded with status: ${response.status}`);
     }
 
     const data = await response.json();
@@ -238,7 +243,7 @@ ${text}`;
     };
 
   } catch (error) {
-    console.error('Error processing text with Ollama:', error);
+  log('error','Error processing text with Ollama:', error);
     return {
       error: true,
       message: `Could not simplify text. Is Ollama running? (${error.message})`,
@@ -255,7 +260,7 @@ ipcMain.handle('process-pdf-for-simplification', async (event, pdfArrayBuffer) =
     const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
     return { text, wordCount, title: 'PDF Document', url: 'file://pdf-upload' };
   } catch (error) {
-    console.error('Error extracting text from PDF:', error);
+  log('error','Error extracting text from PDF:', error);
     throw new Error(`Failed to extract text from PDF: ${error.message}`);
   }
 });
@@ -289,7 +294,7 @@ ipcMain.handle('transcribe-audio', async (event, audioBuffer, sampleRate) => {
       .join('\n');
     return transcription;
   } catch (error) {
-    console.error('Google Cloud Speech-to-Text error:', error);
+  log('error','Google Cloud Speech-to-Text error:', error);
     throw new Error(`Speech-to-Text failed: ${error.message}`);
   }
 });
@@ -320,6 +325,9 @@ ipcMain.on('navigate-from-homepage', (event, url) => {
     }
   }
 });
+
+
+
 
 let mainWindow; // Declare mainWindow globally
 

@@ -16,7 +16,8 @@ import {
 import {
     initializeNavigatorFeatures
 } from '../navigator/navigator.js';
-
+import { initializeWakeWord } from '../navigator/hey-aura.js';
+import { initializeContinuousVoice } from '../navigator/continuousVoiceHandler.js';
 import {
     showStatus,
     clearStatus,
@@ -83,9 +84,40 @@ window.onload = async () => {
     const chatSendBtn = document.getElementById('chat-send-btn');
     const micChatBtn = document.getElementById('mic-chat-btn');
 
+    // Wake word toggle element
+    const wakeWordToggle = document.getElementById('wake-word-toggle');
+
+
     // Initialize voice and text navigator features
     initializeNavigatorFeatures(webview, chatInput, chatMessages, micChatBtn, micBtn,
         chatContainer, closeChatBtn, chatSendBtn);
+
+    // Helper to append messages (used by wake word module)
+    const addMessage = (text, sender) => {
+        if (!chatMessages) return;
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message', `${sender}-message`);
+        messageElement.innerText = text;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    // Start wake word detection (auto-start). When activated, open chat.
+    // Set up continuous voice handler (but don't start until wake word fires)
+    const continuous = initializeContinuousVoice({
+        chatInput,
+        chatMessages,
+        chatContainer,
+        micChatBtn,
+        wakeWordToggle,
+        webview,
+        addMessage
+    });
+
+    initializeWakeWord(wakeWordToggle, () => {
+        // Wake word detected -> start continuous mode
+        continuous.startContinuousMode();
+    }, addMessage);
 
     // Initialize accessibility features
     initializeAccessibility({
