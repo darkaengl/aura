@@ -1,3 +1,8 @@
+# Aura Project Structure
+
+## 🏗️ **Recommended Project Structure for future development**
+
+```
 aura/
 ├── 📁 src/
 │   ├── 📁 main/                          # Main process
@@ -112,3 +117,146 @@ aura/
 ├── .env                                # Environment variables
 ├── .gitignore
 └── README.md
+```
+
+## 🎯 **Key Improvements**
+
+### **1. Separation of Concerns**
+```javascript
+// src/main/services/speechService.js
+class SpeechService {
+  constructor(credentials) {
+    this.speechClient = new speech.SpeechClient({ keyFilename: credentials });
+  }
+  
+  async transcribe(audioBuffer, sampleRate) {
+    // Speech transcription logic
+  }
+  
+  async startStreaming() {
+    // Streaming speech logic
+  }
+}
+
+// src/renderer/components/speech/WakeWordDetector.js
+class WakeWordDetector {
+  constructor(wakeWord = 'browser') {
+    this.wakeWord = wakeWord;
+    this.isActive = false;
+  }
+  
+  start() { /* Wake word detection logic */ }
+  stop() { /* Cleanup logic */ }
+}
+```
+
+### **2. Event-Driven Architecture**
+```javascript
+// src/shared/constants/events.js
+export const SPEECH_EVENTS = {
+  WAKE_WORD_DETECTED: 'speech:wake-word-detected',
+  TRANSCRIPTION_COMPLETE: 'speech:transcription-complete',
+  RECORDING_START: 'speech:recording-start',
+  RECORDING_STOP: 'speech:recording-stop'
+};
+
+// src/renderer/utils/eventBus.js
+class EventBus {
+  constructor() {
+    this.events = {};
+  }
+  
+  on(event, callback) { /* Event registration */ }
+  emit(event, data) { /* Event emission */ }
+  off(event, callback) { /* Event cleanup */ }
+}
+```
+
+### **3. Configuration Management**
+```javascript
+// config/speech-commands.json
+{
+  "wakeWords": ["browser", "aura"],
+  "stopCommands": [
+    "stop listening",
+    "stop executing commands",
+    "end session"
+  ],
+  "continuousMode": {
+    "enabled": true,
+    "silenceThreshold": -50,
+    "silenceDuration": 2000,
+    "maxRecordingDuration": 15000
+  }
+}
+
+// src/main/utils/config.js
+class ConfigManager {
+  static load(environment = 'development') {
+    return require(`../../config/${environment}.json`);
+  }
+}
+```
+
+### **4. Modular Components**
+```javascript
+// src/renderer/components/automation/FormFiller.js
+class FormFiller {
+  constructor(webview, eventBus) {
+    this.webview = webview;
+    this.eventBus = eventBus;
+    this.currentFields = [];
+    this.currentIndex = 0;
+  }
+  
+  async detectFields() { /* Form detection logic */ }
+  async fillField(index, value) { /* Field filling logic */ }
+  askNextQuestion() { /* User interaction logic */ }
+}
+
+// src/renderer/components/speech/SpeechRecorder.js
+class SpeechRecorder {
+  constructor(config, eventBus) {
+    this.config = config;
+    this.eventBus = eventBus;
+    this.recorder = null;
+    this.isRecording = false;
+  }
+  
+  async startRecording() { /* Recording logic */ }
+  async stopRecording() { /* Stop and process logic */ }
+  detectSilence() { /* Silence detection logic */ }
+}
+```
+
+## 🔧 **Implementation Benefits**
+
+### **Maintainability**
+- **Single Responsibility**: Each class/module has one clear purpose
+- **Easy Testing**: Components can be tested in isolation
+- **Clear Dependencies**: Easy to understand what depends on what
+
+### **Scalability**
+- **Plugin Architecture**: Easy to add new features as modules
+- **Event System**: Loose coupling between components
+- **Configuration**: Easy to modify behavior without code changes
+
+### **Developer Experience**
+- **Hot Reload**: Components can be reloaded independently
+- **Debugging**: Clear separation makes debugging easier
+- **Documentation**: Each module can be documented separately
+
+### **Code Reusability**
+- **Shared Utilities**: Common functions in one place
+- **Component Library**: Reusable UI components
+- **Service Layer**: Business logic can be reused
+
+## 🚀 **Migration Strategy**
+
+1. **Phase 1**: Extract services from main.js and renderer.js
+2. **Phase 2**: Break down renderer.js into components
+3. **Phase 3**: Implement event system and configuration
+4. **Phase 4**: Add proper error handling and logging
+5. **Phase 5**: Add comprehensive testing
+
+This structure would make your Aura project much more maintainable, testable, and ready for future features while preserving all the excellent functionality you've already built!
