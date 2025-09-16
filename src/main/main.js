@@ -289,7 +289,6 @@ ipcMain.handle('transcribe-audio', async (event, audioBuffer, sampleRate) => {
     };
 
     const [response] = await speechClient.recognize(request);
-    log('debug', 'Google Speech-to-Text API response:', JSON.stringify(response, null, 2)); // Add this line
     const transcription = response.results
       .map(result => result.alternatives[0].transcript)
       .join('\n');

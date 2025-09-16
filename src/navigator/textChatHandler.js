@@ -26,10 +26,23 @@ export async function sendMessage(webview, chatInput, chatMessages) {
     if (consumed) return;
   }
 
+    // Check if we are on homepage.html and webview is null
+    const isOnHomepage = window.location.pathname.includes('homepage.html');
+    // Classify intent first (moved up to determine if webview is needed)
+    const intent = await window.ollamaAPI.classifyIntent(message);
+    console.log('Intent classified as:', intent, 'for message:', message);
+    const needsWebview = (intent === 'action' || intent === 'question');
+
+    if (isOnHomepage && webview === null && needsWebview) {
+        addMessage(chatMessages, "To perform this action, I need to navigate to a web page. Navigating to Google.com...", 'ai');
+        window.electronAPI.sendNavigate('https://www.google.com');
+        return; // Stop processing here, the page will reload.
+    }
+
     try {
-        // Classify intent first
-        const intent = await window.ollamaAPI.classifyIntent(message);
-        console.log('Intent classified as:', intent, 'for message:', message);
+        // Classify intent first (already done above)
+        // const intent = await window.ollamaAPI.classifyIntent(message);
+        // console.log('Intent classified as:', intent, 'for message:', message);
 
         if (intent === 'action') {
             // Extract visible screen context instead of DOM
