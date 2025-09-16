@@ -289,6 +289,7 @@ ipcMain.handle('transcribe-audio', async (event, audioBuffer, sampleRate) => {
     };
 
     const [response] = await speechClient.recognize(request);
+    log('debug', 'Google Speech-to-Text API response:', JSON.stringify(response, null, 2)); // Add this line
     const transcription = response.results
       .map(result => result.alternatives[0].transcript)
       .join('\n');
@@ -339,14 +340,17 @@ const createWindow = () => {
     icon: path.join(__dirname, '../../assets/brand/IMG_3414.png'), // Set the application icon
     webPreferences: {
       preload: path.join(__dirname, '../shared/preload.js'),
+      additionalArguments: [`--configPath=${path.join(__dirname, '../config')}`],
       webviewTag: true, // Enable webview tag
       contextIsolation: true, // Isolate context to enhance security
-      nodeIntegration: false // Keep nodeIntegration false for security
+      nodeIntegration: false, // Keep nodeIntegration false for security
+      sandbox: false // Disable sandbox for broader API access
     }
   })
 
   mainWindow.loadFile('homepage.html');
   mainWindow.setTitle('Aura Browser');
+  mainWindow.focus(); // Add this line
 
   // Uncomment to enable DevTools for debugging
   // mainWindow.webContents.openDevTools();

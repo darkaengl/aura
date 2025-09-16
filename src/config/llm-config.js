@@ -13,7 +13,7 @@
 //  OPENAI_NAV_API_KEY, OPENAI_SIMPLIFY_API_KEY, OPENAI_CSS_API_KEY, OPENAI_WCAG_API_KEY
 // Fallback order for OpenAI keys if feature-specific key missing: feature env -> OPENAI_API_KEY -> CHATGPT_API_KEY.
 
-export const LLM_FEATURES = {
+const LLM_FEATURES = {
   navigator: {
     provider: 'openai',
     model: 'gpt-3.5-turbo',
@@ -48,12 +48,12 @@ export const LLM_FEATURES = {
   }
 };
 
-export function getFeatureConfig(feature) {
+function getFeatureConfig(feature) {
   return LLM_FEATURES[feature] || null;
 }
 
 // Attempt to find appropriate API key for an OpenAI-backed feature.
-export function resolveApiKeyForFeature(feature) {
+function resolveApiKeyForFeature(feature) {
   const cfg = getFeatureConfig(feature);
   if (!cfg || cfg.provider !== 'openai') return '';
   const specific = cfg.env ? process.env[cfg.env] : '';
@@ -62,7 +62,5 @@ export function resolveApiKeyForFeature(feature) {
 
 // CommonJS compatibility
 // eslint-disable-next-line no-undef
-if (typeof module !== 'undefined') {
   // eslint-disable-next-line no-undef
-  module.exports = { LLM_FEATURES, getFeatureConfig, resolveApiKeyForFeature };
-}
+module.exports = { LLM_FEATURES, getFeatureConfig, resolveApiKeyForFeature };

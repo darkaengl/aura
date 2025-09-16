@@ -144,6 +144,48 @@
     }
   </style>
   <style>
+    .action-btn {
+      padding: 8px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+      color: black;
+      transition: background-color 0.3s;
+    }
+
+    .action-btn:hover {
+      background-color: #d0d0d0;
+    }
+
+    .wake-word-active {
+      background-color: #4CAF50 !important;
+      color: white !important;
+    }
+
+    .wake-word-inactive {
+      background-color: #f44336 !important;
+      color: white !important;
+    }
+    
+    .wake-word-icon {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      object-fit: contain;
+      transition: filter 0.3s ease;
+    }
+
+    .wake-word-active .wake-word-icon {
+      filter: brightness(0) invert(1); /* White logo when active (green background) */
+    }
+
+    .wake-word-inactive .wake-word-icon {
+      filter: brightness(0) invert(1); /* White logo when inactive (red background) */
+    }
+  </style>
+  <style>
     #floating-widget {
       position: fixed;
       bottom: 20px;
@@ -169,7 +211,10 @@
 <body>
   <div id="address-bar">
     <img id="browser-logo" src="./assets/brand/IMG_3414.png" alt="Browser Logo" style="height: 62px; margin-right: 8px;">
-    <input id="url-input" type="text" placeholder="Enter URL" />
+        <input id="url-input" type="text" placeholder="Enter URL" />
+    <button id="wake-word-toggle" class="action-btn wake-word-active" title="Toggle 'browser' wake word detection">
+      <img src="./assets/buttons/aura_logo.png" alt="Aura Logo" class="wake-word-icon">
+    </button>
   </div>
   <!-- Aura logo as faded background -->
   <img src="./assets/brand/Aura Logo_No Text.png" alt="Aura Logo" class="logo-bg" />
@@ -260,6 +305,7 @@
       });
     });
   </script>
+  <script type="module" src="./src/renderer/homepage.js"></script>
   <div id="floating-widget">
     <button id="mic-btn" class="nav-btn large-button floating-btn"><img src="assets/buttons/Navigator_AI.png" alt="Mic"
         style="height: 24px;" /></button>

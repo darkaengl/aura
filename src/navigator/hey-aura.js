@@ -8,8 +8,11 @@ import { encodeToWav } from '../shared/audio.js';
 import { logger } from '../shared/logger.js';
 
 let isWakeWordActive = true; // exported getter available via function
-let wakeWordMediaRecorder = null;
 let wakeWordStream = null;
+let audioContext = null;
+let workletNode = null;
+let audioBuffer = [];
+const sampleRate = 16000;
 
 // (Future extension placeholders kept for possible continuous mode integration)
 let isContinuousMode = false; // not yet used – reserved
@@ -21,69 +24,128 @@ function isStopCommand(_) { return false; }
 
 export async function startWakeWordDetection(handleWakeWordDetection, updateWakeWordToggle) {
   try {
-  logger.debug('Starting wake word detection...');
+    logger.debug('Starting wake word detection...');
     wakeWordStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        sampleRate: 16000,
-        echoCancellation: true,
-        noiseSuppression: true
+        sampleRate: sampleRate,
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
       }
     });
-    wakeWordMediaRecorder = new MediaRecorder(wakeWordStream, { mimeType: 'audio/webm' });
-    wakeWordMediaRecorder.ondataavailable = async (event) => {
-      if (event.data.size > 0 && isWakeWordActive) {
-        const audioBlob = new Blob([event.data], { type: 'audio/webm' });
-        const arrayBuffer = await audioBlob.arrayBuffer();
-        try {
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const decodedAudio = await audioContext.decodeAudioData(arrayBuffer);
-          const sampleRate = decodedAudio.sampleRate;
-          const wavBuffer = encodeToWav(decodedAudio);
-          const wavAudioBuffer = window.nodeBufferFrom(wavBuffer);
-          const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
-          const timestamp = new Date().toLocaleTimeString();
-          if (transcription && transcription.trim()) {
-            logger.debug(`🎧 [${timestamp}] Wake word monitoring - Detected speech: ${transcription}`);
-            if (transcription.toLowerCase().includes(WAKE_WORD)) {
-              logger.info(`Wake word detected: ${transcription}`);
-              if (typeof handleWakeWordDetection === 'function') handleWakeWordDetection();
-            } else {
-              logger.debug(`Speech but not wake word: ${transcription}`);
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    await audioContext.resume();
+
+    try {
+      // Try path relative to the root in a bundled environment
+      await audioContext.audioWorklet.addModule('src/shared/wake-word-processor.js');
+    } catch (e) {
+      logger.error('Failed to load audio worklet module, trying alternative path.', e);
+      try {
+        // Try path relative to the script file
+        await audioContext.audioWorklet.addModule('../shared/wake-word-processor.js');
+      } catch (e2) {
+        logger.error('Failed to load audio worklet module with alternative path.', e2);
+        throw e2; // re-throw to be caught by outer catch
+      }
+    }
+    
+    workletNode = new AudioWorkletNode(audioContext, 'wake-word-processor');
+    const source = audioContext.createMediaStreamSource(wakeWordStream);
+    source.connect(workletNode);
+    workletNode.connect(audioContext.destination);
+
+    workletNode.port.onmessage = (event) => {
+      if (isWakeWordActive) {
+        const pcmData = event.data;
+        audioBuffer.push(pcmData);
+
+        // The worklet gives us chunks of 128 samples.
+        // Let's collect about 2 seconds of audio.
+        const bufferSize = 128;
+        if ((audioBuffer.length * bufferSize) / sampleRate > 2) {
+          const fullBuffer = audioBuffer.reduce((acc, val) => {
+            const tmp = new Float32Array(acc.length + val.length);
+            tmp.set(acc, 0);
+            tmp.set(val, acc.length);
+            return tmp;
+          }, new Float32Array(0));
+
+          audioBuffer = []; // Clear the buffer
+
+          // Now process this fullBuffer
+          (async () => {
+            try {
+              // We have the raw data, so we need to create a "decodedAudio" object
+              // that encodeToWav can use.
+              const decodedAudio = {
+                numberOfChannels: 1,
+                sampleRate: sampleRate,
+                length: fullBuffer.length,
+                getChannelData: () => fullBuffer
+              };
+
+              const sum = fullBuffer.reduce((a, b) => a + Math.abs(b), 0);
+              const avg = sum / fullBuffer.length;
+              logger.info(`Average audio level: ${avg}`);
+
+              const wavBuffer = encodeToWav(decodedAudio);
+              const wavAudioBuffer = window.nodeBufferFrom(wavBuffer);
+              logger.info('Sending audio for transcription...');
+              const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+              logger.info('Received transcription:', transcription);
+              const timestamp = new Date().toLocaleTimeString();
+              if (transcription && transcription.trim()) {
+                logger.info(`🎧 [${timestamp}] Wake word monitoring - Detected speech: ${transcription}`);
+                if (transcription.toLowerCase().includes(WAKE_WORD)) {
+                  logger.info(`Wake word detected: ${transcription}`);
+                  if (typeof handleWakeWordDetection === 'function') handleWakeWordDetection();
+                } else {
+                  logger.info(`Speech but not wake word: ${transcription}`);
+                }
+              } else {
+                logger.info(`🎧 [${timestamp}] Wake word monitoring - Detected speech: [No speech detected]`);
+              }
+            } catch (error) {
+              logger.error('Wake word transcription error:', error);
             }
-          } else {
-            logger.debug(`🎧 [${timestamp}] Wake word monitoring - Detected speech: [No speech detected]`);
-          }
-        } catch (error) {
-          // Ignore errors
-          // Optional debug (commented to avoid noise):
-          // console.debug('Wake word transcription error:', error.message);
+          })();
         }
       }
     };
-    wakeWordMediaRecorder.start(2000); // 2 second chunks
+
     isWakeWordActive = true;
     if (typeof updateWakeWordToggle === 'function') updateWakeWordToggle(true);
-  logger.info('Wake word detection started successfully');
+    logger.info('Wake word detection started successfully');
   } catch (error) {
     isWakeWordActive = false;
-  logger.error('Failed to start wake word detection:', error);
+    logger.error('Failed to start wake word detection:', error);
     if (typeof updateWakeWordToggle === 'function') updateWakeWordToggle(false);
+    alert('Could not start wake word detection. Please ensure you have a microphone connected and have granted microphone permission to the app.');
   }
 }
 
 export async function stopWakeWordDetection(updateWakeWordToggle) {
   try {
-    if (wakeWordMediaRecorder && wakeWordMediaRecorder.state !== 'inactive') {
-      wakeWordMediaRecorder.stop();
+    if (workletNode) {
+      workletNode.port.onmessage = null;
+      workletNode.disconnect();
+      workletNode = null;
+    }
+    if (audioContext) {
+      await audioContext.close();
+      audioContext = null;
     }
     if (wakeWordStream) {
       wakeWordStream.getTracks().forEach(track => track.stop());
       wakeWordStream = null;
     }
-    wakeWordMediaRecorder = null;
     isWakeWordActive = false;
     if (typeof updateWakeWordToggle === 'function') updateWakeWordToggle(false);
-  } catch (error) {}
+  } catch (error) {
+    logger.error('Error stopping wake word detection:', error);
+  }
 }
 
 export function updateWakeWordToggle(active) {

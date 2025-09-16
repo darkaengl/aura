@@ -1,11 +1,15 @@
-
+const path = require('path');
 const { contextBridge, ipcRenderer } = require('electron');
 
 // LLM feature config + key resolution (guarded require to prevent preload crash if file missing)
 let resolveApiKeyForFeature = () => '';
 let getFeatureConfig = () => null;
+const configPath = process.argv.find(arg => arg.startsWith('--configPath='))?.split('=')[1];
+console.log('[preload] configPath:', configPath);
+const llmPath = path.join(configPath, 'llm-config.js');
+
 try {
-  const mod = require('../config/llm-config.js');
+  const mod = require(llmPath);
   resolveApiKeyForFeature = mod.resolveApiKeyForFeature || resolveApiKeyForFeature;
   getFeatureConfig = mod.getFeatureConfig || getFeatureConfig;
 } catch (e) {
