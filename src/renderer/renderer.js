@@ -1,6 +1,10 @@
 import {
-    initializeAccessibility
+    initializeAccessibility,
+    wcagViolations
 } from '../ui/accessibility.js';
+import {
+    restyleLayout
+} from '../ui/simplify-layout.js';
 import {
     getTextExtractionScript
 } from '../shared/text-extraction.js';
@@ -260,47 +264,8 @@ window.onload = async () => {
     refreshSimplificationBtn.addEventListener('click', () => refreshSimplification(simplificationDeps));
 
     
-    // Call the Ollama model to read and simplify the CSS of the current page
-    // TODO: prompt engineering for improved output
+    // Call the LLM to read and simplify the CSS of the current page
     simplifyBtn.addEventListener('click', () => {
-        let newCSS = webview.executeJavaScript(`
-      Array.from(document.styleSheets)
-        .map(sheet => {
-          try {
-            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
-          } catch (e) {
-            // Skip CORS-protected sheets
-            return '';
-          }
-        })
-        .filter(text => text.length)
-        .join('\n')
-      `).then(async cssText => {
-            const messages = [{
-                role: 'user',
-                content: 'Respond only with valid CSS contained within triple backticks (e.g: ``` CSS_HERE ```). Optimise the following CSS, making the resulting page simplified and more readable. CSS: ' +
-                    cssText
-            }];
-
-            let llmResponse = await window.ollamaAPI.chat(messages);
-            const escaped = llmResponse.split("```")[1].slice(4)
-                .replace(/\\/g, '\\') // escape backslashes
-                .replace(/`/g, '\`') // escape backticks
-                .replace(/\$/g, '\$'); // escape dollar signs if using ${}
-
-            const script = `
-          (function() {
-            let style = document.getElementById('dynamic-style');
-            if (!style) {
-              style = document.createElement('style');
-              style.id = 'dynamic-style';
-              document.head.appendChild(style);
-            }
-            style.textContent = "${escaped}";
-          })();
-        `;
-
-            return webview.executeJavaScript(script);
-        });
+        restyleLayout(webview, wcagViolations);
     });
 };
