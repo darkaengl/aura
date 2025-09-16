@@ -12,7 +12,7 @@ let wakeWordStream = null;
 let audioContext = null;
 let workletNode = null;
 let audioBuffer = [];
-const sampleRate = 16000;
+let actualSampleRate = 16000; // Initialize with default, will be updated
 
 // (Future extension placeholders kept for possible continuous mode integration)
 let isContinuousMode = false; // not yet used – reserved
@@ -27,12 +27,19 @@ export async function startWakeWordDetection(handleWakeWordDetection, updateWake
     logger.debug('Starting wake word detection...');
     wakeWordStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        sampleRate: sampleRate,
+        sampleRate: actualSampleRate, // Request actual sample rate
         echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false
       }
     });
+    const audioTracks = wakeWordStream.getAudioTracks();
+    if (audioTracks.length > 0) {
+      const track = audioTracks[0];
+      const settings = track.getSettings();
+      actualSampleRate = settings.sampleRate; // Update actual sample rate
+      logger.info('Audio track settings:', settings);
+    }
 
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     await audioContext.resume();
@@ -64,7 +71,7 @@ export async function startWakeWordDetection(handleWakeWordDetection, updateWake
         // The worklet gives us chunks of 128 samples.
         // Let's collect about 2 seconds of audio.
         const bufferSize = 128;
-        if ((audioBuffer.length * bufferSize) / sampleRate > 2) {
+        if ((audioBuffer.length * bufferSize) / actualSampleRate > 2) {
           const fullBuffer = audioBuffer.reduce((acc, val) => {
             const tmp = new Float32Array(acc.length + val.length);
             tmp.set(acc, 0);
@@ -81,7 +88,7 @@ export async function startWakeWordDetection(handleWakeWordDetection, updateWake
               // that encodeToWav can use.
               const decodedAudio = {
                 numberOfChannels: 1,
-                sampleRate: sampleRate,
+                sampleRate: actualSampleRate,
                 length: fullBuffer.length,
                 getChannelData: () => fullBuffer
               };
@@ -93,7 +100,7 @@ export async function startWakeWordDetection(handleWakeWordDetection, updateWake
               const wavBuffer = encodeToWav(decodedAudio);
               const wavAudioBuffer = window.nodeBufferFrom(wavBuffer);
               logger.info('Sending audio for transcription...');
-              const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, sampleRate);
+              const transcription = await window.speechAPI.transcribeAudio(wavAudioBuffer, actualSampleRate);
               logger.info('Received transcription:', transcription);
               const timestamp = new Date().toLocaleTimeString();
               if (transcription && transcription.trim()) {
