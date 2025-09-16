@@ -27,8 +27,10 @@ export const LLM_FEATURES = {
     fallback: { provider: 'ollama', model: 'llama3.2' }
   },
   css_refactor: {
-    provider: 'ollama',
-    model: 'llama3.2'
+    provider: 'openai',
+    model: 'gpt-3.5-turbo',
+    env: 'OPENAI_SIMPLIFY_API_KEY',
+    fallback: { provider: 'ollama', model: 'llama3.2' }
   },
   next_steps: {
     provider: 'ollama',

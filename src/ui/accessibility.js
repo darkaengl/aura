@@ -2,6 +2,8 @@ import { escapeHtml, calculateWcagScore } from '../shared/utils.js';
 
 let currentAxeResults = null; // To store the latest axe-core results
 
+export let wcagViolations = null;
+
 /**
  * Formats axe-core results into a readable HTML string.
  * @param {object} results - The axe-core results object.
@@ -70,6 +72,40 @@ const downloadJsonReport = (data, filename) => {
   URL.revokeObjectURL(url);
 };
 
+
+// Function to parse violations for CSS Restyling prompt
+const processViolations = (failures) => {
+  let result = '';
+  let totalDisplayableNodes = 0;
+  const itemsWithDisplayableNodes = failures.map(item => {
+    if (item.nodes) {
+      const filteredNodes = item.nodes.filter(node => node.impact && node.impact !== 'N/A');
+      if (filteredNodes.length > 0) {
+        totalDisplayableNodes += filteredNodes.length;
+        return { ...item, nodes: filteredNodes };
+      }
+    }
+    return null;
+  }).filter(item => item !== null);
+
+  if (totalDisplayableNodes > 0) {
+    itemsWithDisplayableNodes.forEach(item => {
+      result += `${item.id}: ${item.description} `;
+      if (item.nodes && item.nodes.length > 0) {
+        item.nodes.forEach(node => {
+          result += result.includes(node.failureSummary) ? '' : ('\n' + node.failureSummary + ' ')
+        });
+      }
+    });
+  }
+  result = result.replace(/Fix (any|all) of the following:/g, '');
+  result = result.replace(/  /g, '');
+  result = result.replace(/\n\n\n/g, '\n\n');
+  console.log(result)
+  return result
+}
+
+
 export const initializeAccessibility = async (elements, webview) => {
   const { wcagBtn, accessibilityReport, reportDetails, closeReportBtn, downloadReportBtn } = elements;
 
@@ -136,6 +172,8 @@ export const initializeAccessibility = async (elements, webview) => {
       if (wcagBtn) {
 
       }
+      // Populate Violation text for CSS-optimisation prompt
+      wcagViolations = processViolations(currentAxeResults.violations);
     });
 
     webview.addEventListener('did-fail-load', (event) => {
