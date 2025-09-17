@@ -101,7 +101,6 @@ const processViolations = (failures) => {
   result = result.replace(/Fix (any|all) of the following:/g, '');
   result = result.replace(/  /g, '');
   result = result.replace(/\n\n\n/g, '\n\n');
-  console.log(result)
   return result
 }
 

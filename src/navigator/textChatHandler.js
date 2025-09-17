@@ -22,8 +22,12 @@ export async function sendMessage(webview, chatInput, chatMessages) {
 
   // If a form session is active, route message directly to form handler and short-circuit
   if (isFormSessionActive()) {
+    console.log('Form session is active, routing message to form handler:', message);
     const consumed = await handleFormInput(message);
-    if (consumed) return;
+    if (consumed) {
+      console.log('Message consumed by form handler');
+      return;
+    }
   }
 
     try {
@@ -32,6 +36,21 @@ export async function sendMessage(webview, chatInput, chatMessages) {
         console.log('Intent classified as:', intent, 'for message:', message);
 
         if (intent === 'action') {
+            // Check for form filling keywords first before sending to LLM
+            const lowerMessage = message.toLowerCase();
+            console.log('Checking for form filling keywords in message:', lowerMessage);
+            if (lowerMessage.includes('fill form') || 
+                lowerMessage.includes('start form') || 
+                lowerMessage.includes('form filling') ||
+                lowerMessage.includes('start filling')) {
+              console.log('✅ Detected form filling request, using start_form_filling action');
+              const formCommands = [{ "action": "start_form_filling" }];
+              addMessage(chatMessages, "Starting form filling process...", 'ai');
+              await executeCommands({ webview, commands: formCommands, addMessage: (t,s)=>addMessage(chatMessages,t,s||'ai') });
+              return;
+            }
+            console.log('No form filling keywords detected, proceeding with normal command generation');
+            
             // Extract visible screen context instead of DOM
             console.log('Extracting screen context...');
             const screenContext = await extractScreenContextFromWebview(webview);
@@ -43,16 +62,66 @@ export async function sendMessage(webview, chatInput, chatMessages) {
                 console.log('Screen context saved to log file.');
             }
 
-            // Prompt for high-level command(s) (now supports array for multi-step)
-            const navPrompt = `You are a browser assistant.\nGiven the user's instruction: "${message}", output EITHER a single JSON object OR a JSON array of objects (for multiple sequential actions).\nSupported actions (initial set):\n- search_and_navigate => {"action":"search_and_navigate","topic":"<topic>"}\n- agree_and_start_form => {"action":"agree_and_start_form"}\n- start_form_filling => {"action":"start_form_filling"}\n- click => {"action":"click","selector":"<css selector>"}\n- fill => {"action":"fill","selector":"<css selector>","value":"<text>"}\n- select => {"action":"select","selector":"<css selector>","value":"<visible option text>"}\nRules:\n1. Output ONLY raw JSON (no markdown, text, or explanation).\n2. If multiple steps are clearly requested (e.g. navigate then fill), output a JSON array in the exact order.\n3. For vague requests to proceed or continue on a site with a visible agreement, prefer {"action":"agree_and_start_form"}.\n4. For 'start the form' or similar, output {"action":"start_form_filling"}.\n5. If unsure default to {"action":"search_and_navigate","topic":"${message.replace(/"/g,'\\"')}"}.`;
-      console.log('Sending navPrompt to ChatGPT...');
-      const llmResponse = await getOpenAIChatCompletion(navPrompt, {
+            // Use the working prompt structure from dev_kaushal branch
+            const messageWithContext = `
+You are an AI assistant that helps users interact with a web page.
+The user has given you a command: "${message}"
+
+The user is currently on a page with the following visible, interactive elements (flat JSON list):
+${JSON.stringify(screenContext, null, 2)}
+
+Your task is to generate a sequence of commands to be executed on the page to fulfill the user's request.
+The commands should be in a JSON array format. Each object in the array should have an "action" property and other properties depending on the action.
+
+IMPORTANT:
+- Only use URLs, selectors, and actions that are present in the provided context. Do NOT invent, guess, or hallucinate any links, selectors, or actions.
+- When the user wants to visit or navigate to something, look for the most relevant link or button in the context by matching its visible text, href, or other attributes.
+- For navigation, always use the "search_and_navigate" action with the "topic" property set to the user's search terms.
+- When matching by text, use partial/substring matching, ignore case and extra whitespace, and select the closest match to the user's phrase.
+- Always prefer exact or closest matches for text, href, or aria-label when selecting elements.
+- If no matching element is found in the context, respond with an empty array: []
+
+The available actions are:
+- "search_and_navigate": searches for and clicks on an element to navigate. Requires a "topic" property with the search terms.
+- "click": clicks on an element. Requires a "selector" property (a standard CSS selector that matches the element in the context).
+- "fill": types text into an input field. Requires a "selector" property and a "value" property.
+- "select": selects an option in a dropdown menu. Requires a "selector" property and a "value" property.
+- "agree_and_start_form": checks agreement boxes automatically.
+- "start_form_filling": starts guided form filling session.
+
+Examples:
+User command: "go to vehicle tax calculation"
+Context contains:
+  { "tag": "button", "id": "newVehicleButton", "text": "Vehicle VRT Calculation" }
+Generated commands:
+[
+  {
+    "action": "search_and_navigate",
+    "topic": "vehicle tax calculation"
+  }
+]
+
+User command: "click the search button"
+Context contains:
+  { "tag": "button", "id": "btnSearch", "text": "Search" }
+Generated commands:
+[
+  {
+    "action": "click",
+    "selector": "#btnSearch"
+  }
+]
+
+Please generate the JSON array of commands. Provide only the JSON array, with no other text before or after it.
+`;
+      console.log('Sending message to LLM with context...');
+      const llmResponse = await getOpenAIChatCompletion(messageWithContext, {
         fallbackFn: async (prompt, meta) => {
-          console.warn('Falling back to Ollama for navPrompt. Reason:', meta);
+          console.warn('Falling back to Ollama for navigation. Reason:', meta);
           // Simple fallback: ask Ollama to output ONLY JSON.
           const fallbackMessages = [{
             role: 'user',
-            content: `${prompt}\n\nIf you cannot comply fully, output a minimal JSON object: {"action":"search_and_navigate","topic":"<best guess>"}`
+            content: `${prompt}\n\nIf you cannot comply fully, output a minimal JSON object: [{"action":"search_and_navigate","topic":"${message.replace(/"/g,'\\"')}"}]`
           }];
           const resp = await window.ollamaAPI.chat(fallbackMessages);
           return resp;
@@ -62,15 +131,19 @@ export async function sendMessage(webview, chatInput, chatMessages) {
             console.log('LLM response received:', llmResponse);
             await window.mainAPI.saveLlmLog(llmResponse);
             try {
-                let parsed;
-                try { parsed = JSON.parse(llmResponse); } catch (e) { /* not JSON */ }
-                if (!parsed) {
-                  addMessage(chatMessages, llmResponse, 'ai');
+                const commands = JSON.parse(llmResponse);
+                if (!Array.isArray(commands)) {
+                  addMessage(chatMessages, 'Invalid response format from AI. Expected array of commands.', 'ai');
                   return;
                 }
-                // Normalize to array
-                const commands = Array.isArray(parsed) ? parsed : [parsed];
-                await executeCommands({ webview, commands, addMessage: (t,s)=>addMessage(chatMessages,t,s||'ai') });
+                addMessage(chatMessages, "🚀 Executing the automation steps...", 'ai');
+                await executeCommands({ webview, commands, screenContext, addMessage: (t,s)=>addMessage(chatMessages,t,s||'ai') });
+                
+                // Don't show completion message for form filling commands (they're ongoing)
+                const hasFormCommand = commands.some(c => c.action === 'start_form_filling');
+                if (!hasFormCommand) {
+                  addMessage(chatMessages, "✨ Task completed successfully!", 'ai');
+                }
                 // After finishing command execution, trigger next steps only if a navigation occurred OR commands length > 0
                 const hadNav = commands.some(c=>c.action==='search_and_navigate');
                 if (hadNav) {
