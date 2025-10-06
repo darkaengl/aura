@@ -204,6 +204,32 @@ window.onload = async () => {
         urlInput.value = webview.getURL();
     });
 
+    // --- Text Spacing Feature Injection ----------------------------------
+    // Injects the standalone browser-inject script from libs/text-spacing into
+    // every page loaded inside the <webview>. This enables the custom
+    // right-click text spacing context menu. The injected script is idempotent
+    // (it sets window.auraTextSpacingInitialized) so multiple calls are safe.
+    async function injectTextSpacingFeature() {
+        try {
+            if (!webview || webview.isDestroyed?.()) return;
+            const code = await window.fileAPI.readLocalFile('libs/text-spacing/src/browser-inject.js');
+            if (!code || typeof code !== 'string') {
+                console.warn('[Aura][TextSpacing] No code returned for injection');
+                return;
+            }
+            await webview.executeJavaScript(code, true);
+            console.log('[Aura][TextSpacing] Injection attempted');
+        } catch (err) {
+            console.error('[Aura][TextSpacing] Injection failed:', err);
+        }
+    }
+
+    // Inject on initial load and subsequent navigations within the webview.
+    webview.addEventListener('did-finish-load', injectTextSpacingFeature);
+    webview.addEventListener('dom-ready', injectTextSpacingFeature);
+    webview.addEventListener('did-navigate-in-page', injectTextSpacingFeature);
+    // ----------------------------------------------------------------------
+
     
     const simplificationDeps = {
         isProcessingRef,
