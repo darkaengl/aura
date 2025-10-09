@@ -230,6 +230,22 @@ window.onload = async () => {
     webview.addEventListener('did-navigate-in-page', injectTextSpacingFeature);
     // ----------------------------------------------------------------------
 
+    // Mirror text-spacing logs from the webview into the host renderer console
+    // so the user can see toggle events without opening separate devtools.
+    if (webview && !webview.__textSpacingConsoleHooked) {
+        webview.__textSpacingConsoleHooked = true;
+        webview.addEventListener('console-message', (e) => {
+            try {
+                const msg = e.message || '';
+                if (msg.includes('[text-spacing]')) {
+                    // Preserve original level if possible
+                    if (e.level === 2) console.warn('[webview]', msg);
+                    else console.log('[webview]', msg);
+                }
+            } catch(_){}
+        });
+    }
+
     
     const simplificationDeps = {
         isProcessingRef,
